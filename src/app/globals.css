@@ -117,7 +117,7 @@ a {
   height: 100%;
   will-change: clip-path;
   clip-path: inset(0 var(--de, 100%) 0 0);
-  animation: carregar 1.2s linear infinite;
+  animation: carregar 2.8s ease-in-out infinite;
 }
 @keyframes carregar {
   from {
@@ -283,35 +283,50 @@ a {
   position: absolute;
   left: 50%;
   bottom: 78%;
-  width: 40px;
+  width: 46px;
   height: auto;
   pointer-events: none;
   transform-origin: bottom center;
   z-index: 6;
-  animation: marretada 0.6s cubic-bezier(0.3, 1.3, 0.5, 1) forwards;
+  opacity: 0;
+  animation: marretada 1.15s cubic-bezier(0.3, 1.25, 0.5, 1) 0.1s forwards;
 }
 @keyframes marretada {
   0% {
-    transform: translate(-50%, -130%) rotate(-10deg) scale(0.55);
+    transform: translate(-50%, -150%) rotate(-12deg) scale(0.5);
     opacity: 0;
   }
-  38% {
-    transform: translate(-50%, 6%) rotate(0deg) scale(1.02);
+  18% {
+    transform: translate(-50%, -150%) rotate(-12deg) scale(0.5);
+    opacity: 0;
+  }
+  30% {
+    transform: translate(-50%, -140%) rotate(-10deg) scale(0.8);
     opacity: 1;
   }
-  55% {
-    transform: translate(-50%, -14%) rotate(3deg) scale(1);
+  52% {
+    transform: translate(-50%, 8%) rotate(0deg) scale(1.05);
+    opacity: 1;
+  }
+  64% {
+    transform: translate(-50%, -12%) rotate(3deg) scale(1);
+    opacity: 1;
+  }
+  82% {
+    transform: translate(-50%, -6%) rotate(0deg) scale(1);
+    opacity: 1;
   }
   100% {
-    transform: translate(-50%, -34%) rotate(0deg) scale(0.9);
+    transform: translate(-50%, -40%) rotate(0deg) scale(0.9);
     opacity: 0;
   }
 }
 @keyframes recuo {
-  0% {
+  0%,
+  40% {
     transform: translateY(0);
   }
-  32% {
+  62% {
     transform: translateY(3px) scale(0.97);
   }
   100% {
@@ -319,7 +334,7 @@ a {
   }
 }
 .aposta-add.recuo {
-  animation: recuo 0.3s ease;
+  animation: recuo 0.85s ease;
 }
 .aposta-lista {
   list-style: none;
@@ -334,9 +349,15 @@ a {
   border-top: 1px solid rgba(246, 244, 238, 0.14);
 }
 .aposta-lista .pl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 16px;
   font-weight: 800;
   letter-spacing: 1px;
+}
+.aposta-lista .pl .bandeira {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 .aposta-lista .pl em {
   font-style: normal;
@@ -1306,7 +1327,6 @@ input:focus {
   animation: rowIn 0.28s ease both;
 }
 .aposta-lista .pl {
-  display: inline-block;
   animation: fincado 0.3s ease both;
 }
 

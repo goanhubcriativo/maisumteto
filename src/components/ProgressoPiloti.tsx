@@ -10,12 +10,13 @@ interface Progresso {
 }
 
 // O piloti é a barra de carregamento da campanha.
-// A parte já conquistada (arrecadação real) fica fixa; o bloco de 5% atual
-// "carrega" continuamente do início ao fim e reinicia (loop), completando a
-// imagem sem divisões. Base = tubo vazio; sobreposição = tubo cheio recortado
-// por clip-path, animado por CSS (de "real%" até o topo do bloco de 5%).
+// - Parte JÁ CONQUISTADA (estática): avança de 5 em 5%.
+// - Bloco que está "carregando" (animado): sobe de 10 em 10%, em loop e lento.
+// - Número: conta de 1 em 1 até o valor real.
+// Base = tubo vazio; sobreposição = tubo cheio recortado por clip-path (CSS).
 export default function ProgressoPiloti() {
-  const [real, setReal] = useState(0);
+  const [real, setReal] = useState(0); // % exato arrecadado (1 em 1)
+  const [num, setNum] = useState(0); // número exibido, contando 1 a 1
 
   useEffect(() => {
     let ativo = true;
@@ -30,11 +31,35 @@ export default function ProgressoPiloti() {
     };
   }, []);
 
+  // Número conta de 1 em 1 até o real
+  useEffect(() => {
+    const reduz =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduz) {
+      setNum(real);
+      return;
+    }
+    setNum(0);
+    const t = setInterval(() => {
+      setNum((n) => {
+        if (n >= real) {
+          clearInterval(t);
+          return real;
+        }
+        return n + 1;
+      });
+    }, 45);
+    return () => clearInterval(t);
+  }, [real]);
+
   const cheio = real >= 100;
-  const alvo = cheio ? 100 : (Math.floor(real / 5) + 1) * 5;
+  const estatico = Math.floor(real / 5) * 5; // conquistado, de 5 em 5
+  const alvo = cheio ? 100 : Math.min(100, Math.floor(real / 10) * 10 + 10); // próxima marca de 10
+
   // clip-path inset esconde X% pela direita → mostra (100 - X)%
-  const de = 100 - real; // início do loop (parte fixa já conquistada)
-  const ate = 100 - alvo; // fim do loop (topo do bloco de 5%)
+  const de = 100 - estatico; // início do loop (parte fixa)
+  const ate = 100 - alvo; // fim do loop (topo do bloco de 10%)
 
   const estiloFill = {
     "--de": `${de}%`,
@@ -56,7 +81,7 @@ export default function ProgressoPiloti() {
             style={estiloFill}
           />
         </div>
-        <span className="progresso-pct">{real}%</span>
+        <span className="progresso-pct">{num}%</span>
       </div>
 
       <div className="participe">

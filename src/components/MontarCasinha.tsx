@@ -186,7 +186,8 @@ export default function MontarCasinha({
             {fezinhas.map((f, i) => (
               <li key={i}>
                 <span className="pl">
-                  {f.casa} <em>×</em> {f.visitante}
+                  <Bandeira nome={timeCasa} size={16} /> {f.casa} <em>×</em>{" "}
+                  {f.visitante} <Bandeira nome={timeVisitante} size={16} />
                 </span>
                 <span className="ord">{i + 1}ª aposta</span>
                 <span className="vl">{formatBRL(valorCentavos)}</span>
@@ -289,7 +290,7 @@ export default function MontarCasinha({
             "Gerando PIX..."
           ) : (
             <>
-              Fechar a casinha <IconSeta size={17} />
+              Finalizar contribuição e fazer aposta <IconSeta size={17} />
             </>
           )}
         </button>
