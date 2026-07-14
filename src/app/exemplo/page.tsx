@@ -10,7 +10,7 @@ export default function ExemploPage() {
   const origem =
     typeof window !== "undefined"
       ? window.location.origin
-      : "https://maisumteto.vercel.app";
+      : "https://maisumteto.com.br";
   const waMsg = `Acabei de contribuir pra construir mais uma casa com a Teto. Faça sua fézinha também e ajude: ${origem}`;
   const waLink = `https://wa.me/?text=${encodeURIComponent(waMsg)}`;
 
