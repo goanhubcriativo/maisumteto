@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { formatBRL, reaisParaCentavos } from "@/lib/config";
 import {
@@ -65,14 +65,68 @@ export default function MontarCasinha({
   const [enviando, setEnviando] = useState(false);
   const [martelo, setMartelo] = useState(0); // dispara a "marretada"
 
-  // Popup "a maioria fez 3 apostas" após a primeira aposta
+  // Popup "a maioria fez 3 apostas": arma na 1ª aposta, abre quando rolar a tela.
+  const [popupPendente, setPopupPendente] = useState(false);
   const [popupAberto, setPopupAberto] = useState(false);
   const [popupJaMostrado, setPopupJaMostrado] = useState(false);
-  const [naoTentativas, setNaoTentativas] = useState(0);
+  const [naoFase, setNaoFase] = useState(0); // 0 e 1 = corre; 2 = pode clicar
+  const [naoCorrendo, setNaoCorrendo] = useState(false);
+  const [naoPos, setNaoPos] = useState("translate(0px, 0px) rotate(0deg)");
+  const runInt = useRef<ReturnType<typeof setInterval> | null>(null);
+  const runTo = useRef<ReturnType<typeof setTimeout> | null>(null);
   const casaRef = useRef<HTMLInputElement>(null);
+
+  // Percursos que o "Não" percorre (dois sentidos diferentes) + pontos de descanso.
+  const PERCURSO_A = [
+    "translate(66px, -40px) rotate(9deg)",
+    "translate(-74px, 26px) rotate(-9deg)",
+    "translate(48px, 44px) rotate(7deg)",
+    "translate(-58px, -42px) rotate(-7deg)",
+    "translate(72px, 10px) rotate(9deg)",
+    "translate(-40px, 40px) rotate(-6deg)",
+  ];
+  const PERCURSO_B = [
+    "translate(-66px, 40px) rotate(-9deg)",
+    "translate(74px, -26px) rotate(9deg)",
+    "translate(-48px, -44px) rotate(-7deg)",
+    "translate(58px, 42px) rotate(7deg)",
+    "translate(-72px, -10px) rotate(-9deg)",
+    "translate(40px, -40px) rotate(6deg)",
+  ];
+  const DESCANSO = [
+    "translate(-50px, -28px) rotate(0deg)",
+    "translate(50px, 28px) rotate(0deg)",
+  ];
 
   const n = fezinhas.length;
   const total = n * valorCentavos + doacaoCentavos;
+
+  function pararCorrida() {
+    if (runInt.current) clearInterval(runInt.current);
+    if (runTo.current) clearTimeout(runTo.current);
+    runInt.current = null;
+    runTo.current = null;
+  }
+  // limpa timers ao desmontar
+  useEffect(() => () => pararCorrida(), []);
+
+  // Abre o popup só depois de uma "roladinha" na tela.
+  useEffect(() => {
+    if (!popupPendente) return;
+    const armY = window.scrollY;
+    const onScroll = () => {
+      if (Math.abs(window.scrollY - armY) > 24) {
+        window.removeEventListener("scroll", onScroll);
+        setNaoFase(0);
+        setNaoCorrendo(false);
+        setNaoPos("translate(0px, 0px) rotate(0deg)");
+        setPopupPendente(false);
+        setPopupAberto(true);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [popupPendente]);
 
   function adicionar() {
     setErro("");
@@ -89,31 +143,45 @@ export default function MontarCasinha({
     setNovoVisitante("");
     setMartelo((m) => m + 1);
     if (primeira && !popupJaMostrado) {
-      setNaoTentativas(0);
-      setPopupAberto(true);
+      setPopupPendente(true); // arma; abre só quando rolar a tela
       setPopupJaMostrado(true);
     }
   }
 
-  // O "Não" foge duas vezes; na terceira tentativa, fecha.
+  // O "Não" corre sem parar por ~2s (fugindo), para, corre de novo em outro
+  // sentido por mais ~2s e só então (após ~4s) fica parado pra clicar.
   function clicarNao() {
-    if (naoTentativas >= 2) {
+    if (naoCorrendo) return; // está fugindo, ignora o clique
+    if (naoFase >= 2) {
+      pararCorrida();
       setPopupAberto(false);
       return;
     }
-    setNaoTentativas((t) => t + 1);
+    const fase = naoFase;
+    const percurso = fase === 0 ? PERCURSO_A : PERCURSO_B;
+    setNaoCorrendo(true);
+    setNaoPos(percurso[0]);
+    let i = 0;
+    runInt.current = setInterval(() => {
+      i = (i + 1) % percurso.length;
+      setNaoPos(percurso[i]);
+    }, 200);
+    runTo.current = setTimeout(() => {
+      pararCorrida();
+      setNaoPos(DESCANSO[fase]);
+      setNaoCorrendo(false);
+      setNaoFase(fase + 1);
+    }, 2000);
   }
   function clicarSim() {
+    pararCorrida();
     setPopupAberto(false);
-    setNaoTentativas(0);
+    setNaoFase(0);
+    setNaoCorrendo(false);
+    setNaoPos("translate(0px, 0px) rotate(0deg)");
     setTimeout(() => casaRef.current?.focus(), 60);
   }
-  const posNao =
-    naoTentativas === 0
-      ? "translate(0, 0) rotate(0deg) scale(1)"
-      : naoTentativas === 1
-        ? "translate(-52px, -30px) rotate(-12deg) scale(0.9)"
-        : "translate(-52px, 30px) rotate(12deg) scale(0.9)";
+
   function remover(i: number) {
     setFezinhas((f) => f.filter((_, idx) => idx !== i));
   }
@@ -353,7 +421,7 @@ export default function MontarCasinha({
               <button
                 type="button"
                 className="pop-nao"
-                style={{ transform: posNao }}
+                style={{ transform: naoPos }}
                 onClick={clicarNao}
               >
                 <IconTriste size={18} /> Não

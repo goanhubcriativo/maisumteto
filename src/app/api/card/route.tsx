@@ -4,7 +4,6 @@ export const runtime = "nodejs";
 
 // Cartão pronto (1080x1350) pra pessoa compartilhar no WhatsApp/Instagram.
 export async function GET(req: Request) {
-  const BEGE = "#b2ab97";
   const GRAFITE = "#273740";
   const AZUL = "#0291da";
   const PAPEL = "#f6f4ee";
@@ -40,8 +39,8 @@ export async function GET(req: Request) {
           height: "1350px",
           display: "flex",
           flexDirection: "column",
-          backgroundColor: BEGE,
-          color: GRAFITE,
+          backgroundColor: GRAFITE,
+          color: PAPEL,
           padding: "78px 76px",
           fontFamily: "sans-serif",
         }}
