@@ -587,10 +587,11 @@ a {
 /* ---------- Rodapé da campanha ---------- */
 .responsa {
   display: flex;
+  width: fit-content;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin: 0 0 18px;
+  gap: 7px;
+  margin: 0 auto 18px;
   color: var(--grafite);
 }
 .responsa-bloco {
@@ -600,14 +601,14 @@ a {
   text-align: right;
   text-transform: uppercase;
   font-weight: 800;
-  font-size: 15px;
+  font-size: 9px;
   line-height: 1.25;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
 }
 .responsa-social {
   font-style: italic;
   font-weight: 900;
-  font-size: 38px;
+  font-size: 23px;
   color: var(--azul);
   letter-spacing: -0.5px;
   line-height: 1;
