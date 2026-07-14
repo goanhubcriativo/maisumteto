@@ -6,7 +6,7 @@ export const config = {
   dataJogo: process.env.NEXT_PUBLIC_DATA_JOGO || "19/07/2026",
   nomeEvento:
     process.env.NEXT_PUBLIC_NOME_EVENTO ||
-    "Bolão da Final da Copa — Casa Amiga de Dezembro (Teto)",
+    "Bolão da Casa Amiga · Teto",
 };
 
 // Valor de cada aposta em centavos (só no servidor; nunca confie no cliente).

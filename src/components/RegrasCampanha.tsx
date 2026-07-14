@@ -21,7 +21,7 @@ export default function RegrasCampanha() {
       </summary>
       <ul>
         <li>
-          Cada pessoa pode fazer quantas apostas quiser — e a contribuição
+          Cada pessoa pode fazer quantas apostas quiser, e a contribuição
           adicional não interfere na aposta.
         </li>
         <li>
@@ -37,7 +37,7 @@ export default function RegrasCampanha() {
           feito um sorteio simples para definir quem leva.
         </li>
         <li>
-          Todos podem participar, independente do prêmio que irão receber — o
+          Todos podem participar, independente do prêmio que irão receber. O
           objetivo é arrecadar para mais uma casa.
         </li>
       </ul>

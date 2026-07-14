@@ -51,7 +51,7 @@ export default function Home() {
 
         <p className="transparencia">
           As doações são feitas para a conta de <b>GOAN | hub criativo</b> no
-          Asaas — responsáveis pelo contrato da Casa Amiga. Cada doação tem uma
+          Asaas, responsáveis pelo contrato da Casa Amiga. Cada doação tem uma
           taxa de R$&nbsp;0,99 do sistema e todo o restante é depositado
           diretamente para a <b>TETO Paraná</b>.
         </p>

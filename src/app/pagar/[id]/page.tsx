@@ -126,7 +126,7 @@ export default function PagarPage({
           <div className="obra">
             <CasinhaObra pilotis={qtd} />
             <p className="obra-legenda">
-              Sua casinha sobre <b>{qtd} piloti{qtd > 1 ? "s" : ""}</b> — falta o
+              Sua casinha sobre <b>{qtd} piloti{qtd > 1 ? "s" : ""}</b>. Falta o
               PIX pra fincar de vez.
             </p>
           </div>

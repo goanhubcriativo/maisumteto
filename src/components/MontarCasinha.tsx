@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatBRL, reaisParaCentavos } from "@/lib/config";
 import { IconMais, IconX, IconCadeado, IconSeta } from "@/components/icones";
+import Bandeira from "@/components/Bandeira";
 
 interface Props {
   timeCasa: string;
@@ -132,7 +133,9 @@ export default function MontarCasinha({
 
         <div className="aposta-adder">
           <div className="lado">
-            <span className="time">{timeCasa}</span>
+            <span className="time">
+              <Bandeira nome={timeCasa} size={20} /> {timeCasa}
+            </span>
             <input
               value={novoCasa}
               onChange={(e) => setNovoCasa(soPlacar(e.target.value))}
@@ -143,7 +146,9 @@ export default function MontarCasinha({
           </div>
           <span className="x">×</span>
           <div className="lado">
-            <span className="time">{timeVisitante}</span>
+            <span className="time">
+              <Bandeira nome={timeVisitante} size={20} /> {timeVisitante}
+            </span>
             <input
               value={novoVisitante}
               onChange={(e) => setNovoVisitante(soPlacar(e.target.value))}

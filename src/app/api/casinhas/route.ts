@@ -105,9 +105,9 @@ export async function POST(req: NextRequest) {
     const customerId = await criarCustomer({ nome, cpf, whatsapp, email });
 
     // 3) Cobrança PIX (valor total da casinha)
-    const partes = [`${palpites.length} palpite(s)`];
-    if (doacaoCentavos > 0) partes.push("chorinho pra obra");
-    const descricao = `${config.nomeEvento} — ${partes.join(" + ")} (${nome})`;
+    const partes = [`${palpites.length} fezinha(s)`];
+    if (doacaoCentavos > 0) partes.push("ajudinha extra");
+    const descricao = `${config.nomeEvento} · ${partes.join(" + ")} (${nome})`;
 
     const cobranca = await criarCobrancaPix({
       customerId,

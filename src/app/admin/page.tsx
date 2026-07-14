@@ -235,7 +235,7 @@ export default function AdminPage() {
                         ({c.palpites.join(", ")})
                       </span>
                     </td>
-                    <td>{c.doacaoCentavos > 0 ? brl(c.doacaoCentavos) : "—"}</td>
+                    <td>{c.doacaoCentavos > 0 ? brl(c.doacaoCentavos) : "·"}</td>
                     <td>{brl(c.valorTotalCentavos)}</td>
                     <td>{badge(c.status)}</td>
                     <td>{new Date(c.createdAt).toLocaleString("pt-BR")}</td>

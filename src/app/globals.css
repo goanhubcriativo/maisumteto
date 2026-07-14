@@ -64,7 +64,7 @@ a {
 
 .masthead-logo {
   width: 100%;
-  max-width: 520px;
+  max-width: 430px;
   height: auto;
   margin: 0 auto;
   display: block;
@@ -95,9 +95,9 @@ a {
 .participe {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
-  gap: 16px;
+  gap: 18px;
   align-items: center;
-  margin-top: 14px;
+  margin-top: 20px;
 }
 .participe-chamada {
   font-size: 24px;
@@ -112,15 +112,15 @@ a {
   color: var(--azul);
 }
 .participe-meta {
-  background: var(--grafite);
-  color: var(--papel);
+  color: var(--grafite);
   font-size: 12.5px;
-  line-height: 1.55;
+  line-height: 1.5;
   font-weight: 600;
-  padding: 12px 14px;
-  border-radius: 6px;
+  padding: 11px 2px;
   margin: 0;
   text-align: center;
+  border-top: 1.5px solid var(--linha-forte);
+  border-bottom: 1.5px solid var(--linha-forte);
 }
 @media (max-width: 480px) {
   .participe {
@@ -134,9 +134,9 @@ a {
 .aposta {
   background: var(--grafite);
   color: var(--papel);
-  border-radius: 14px;
-  padding: 18px 18px 16px;
-  margin-top: 20px;
+  border-radius: 16px;
+  padding: 24px 20px 24px;
+  margin-top: 26px;
 }
 .aposta-topo {
   display: flex;
@@ -144,7 +144,7 @@ a {
   justify-content: space-between;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 .aposta-topo h2 {
   margin: 0;
@@ -170,19 +170,27 @@ a {
   text-align: center;
 }
 .aposta-adder .time {
-  display: block;
-  font-size: 9.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
-  color: rgba(246, 244, 238, 0.6);
-  margin-bottom: 1px;
+  color: rgba(246, 244, 238, 0.7);
+  margin-bottom: 5px;
+}
+.bandeira {
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
 }
 .aposta-adder input {
   text-align: center;
-  font-size: 26px;
+  font-size: 32px;
   font-weight: 800;
-  padding: 2px;
+  padding: 4px;
   color: var(--papel);
   border-bottom: 2px solid rgba(246, 244, 238, 0.4);
 }
@@ -269,7 +277,7 @@ a {
 
 /* ---------- Dados (sem caixa, direto no bege) ---------- */
 .dados {
-  padding: 18px 4px 2px;
+  padding: 24px 4px 4px;
 }
 .dados-titulo {
   font-size: 12px;
@@ -285,8 +293,8 @@ a {
   background: var(--azul);
   color: #fff;
   border-radius: 14px;
-  padding: 15px 18px 16px;
-  margin-top: 16px;
+  padding: 16px 18px 17px;
+  margin-top: 22px;
 }
 .ajudinha h3 {
   margin: 0;
@@ -346,7 +354,7 @@ a {
 
 /* ---------- Fechar (resumo enxuto) ---------- */
 .fechar {
-  margin-top: 16px;
+  margin-top: 22px;
 }
 .fechar-resumo {
   display: flex;
@@ -1099,4 +1107,112 @@ input:focus {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
+}
+
+/* ===================== Animações ===================== */
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes fincado {
+  0% {
+    transform: scale(0.9);
+  }
+  55% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes pctPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+/* Entrada em cascata dos blocos da home */
+.canvas > * {
+  animation: revealUp 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.canvas > *:nth-child(1) {
+  animation-delay: 0.02s;
+}
+.canvas > *:nth-child(2) {
+  animation-delay: 0.09s;
+}
+.canvas > *:nth-child(3) {
+  animation-delay: 0.16s;
+}
+.canvas > *:nth-child(4) {
+  animation-delay: 0.23s;
+}
+.canvas > *:nth-child(5) {
+  animation-delay: 0.3s;
+}
+.canvas > *:nth-child(6) {
+  animation-delay: 0.37s;
+}
+.canvas > *:nth-child(7) {
+  animation-delay: 0.44s;
+}
+.canvas > *:nth-child(8) {
+  animation-delay: 0.51s;
+}
+
+/* Piloti: transição suave entre os frames e pulso ao completar */
+.progresso-piloti img {
+  transition: opacity 0.2s ease;
+}
+.progresso-piloti img.cheio {
+  animation: pctPulse 1.6s ease-in-out 1;
+}
+.progresso-pct {
+  transition: transform 0.15s ease;
+}
+
+/* Cada fézinha fincada entra deslizando; o número dá um "toque" */
+.aposta-lista li {
+  animation: rowIn 0.28s ease both;
+}
+.aposta-lista .pl {
+  display: inline-block;
+  animation: fincado 0.3s ease both;
+}
+
+/* Feedback tátil nos botões */
+.cta:active:not(:disabled),
+.aposta-add:active,
+.chip:active,
+.btn-copiar:active {
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas > *,
+  .aposta-lista li,
+  .aposta-lista .pl,
+  .progresso-piloti img.cheio {
+    animation: none !important;
+  }
 }
