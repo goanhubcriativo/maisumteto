@@ -18,15 +18,15 @@ export async function GET(req: Request) {
   // (o domínio novo pode ainda estar propagando).
   const fetchHost = reqHost || host;
 
-  // Logo (ícone Teto) buscado da própria /public e embutido como data URI.
+  // Logo da campanha (PNG rasterizado com a fonte Agilera) buscado da /public.
   let logo = "";
   try {
     const proto = fetchHost.startsWith("localhost") ? "http" : "https";
-    const svg = await (
-      await fetch(`${proto}://${fetchHost}/icone.svg`, { cache: "no-store" })
-    ).text();
-    if (svg.includes("<svg")) {
-      logo = `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`;
+    const buf = await (
+      await fetch(`${proto}://${fetchHost}/logo-card.png`, { cache: "no-store" })
+    ).arrayBuffer();
+    if (buf.byteLength > 1000) {
+      logo = `data:image/png;base64,${Buffer.from(buf).toString("base64")}`;
     }
   } catch {
     // sem logo se falhar; o cartão ainda renderiza
@@ -46,16 +46,19 @@ export async function GET(req: Request) {
           fontFamily: "sans-serif",
         }}
       >
-        {/* Logo */}
+        {/* Logo da campanha, no topo */}
         {logo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={logo} width={150} height={150} alt="" />
+          <img src={logo} width={660} height={387} alt="" />
         ) : (
-          <div style={{ display: "flex", height: "150px" }} />
+          <div style={{ display: "flex", height: "180px" }} />
         )}
 
+        {/* Empurra o bloco de texto pra baixo */}
+        <div style={{ display: "flex", height: "120px" }} />
+
         {/* Chamada */}
-        <div style={{ display: "flex", flexDirection: "column", marginTop: "56px" }}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", fontSize: "40px", fontWeight: 600, lineHeight: 1.2 }}>
             Eu fiz uma fézinha para a Final da Copa e
           </div>
