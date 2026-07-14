@@ -94,8 +94,8 @@ export default function MontarCasinha({
     "translate(40px, -40px) rotate(6deg)",
   ];
   const DESCANSO = [
-    "translate(-50px, -28px) rotate(0deg)",
-    "translate(50px, 28px) rotate(0deg)",
+    "translate(-104px, 6px) rotate(-7deg)", // 1ª vez: escondidinho no canto esquerdo
+    "translate(0px, 0px) rotate(0deg)", // 2ª vez: volta pro lugar original
   ];
 
   const n = fezinhas.length;

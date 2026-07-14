@@ -123,6 +123,48 @@ export default function PagarPage({
             </p>
           </section>
 
+          <section className="passo recibo">
+            <div className="passo-head">
+              <span className="passo-num">
+                <IconCheck size={15} strokeWidth={2.6} />
+              </span>
+              <h2 className="passo-titulo">Comprovante</h2>
+            </div>
+            <ul className="recibo-itens">
+              {casinha.palpites.map((p, i) => (
+                <li key={i}>
+                  <span className="ri-idx">{i + 1}ª aposta</span>
+                  <span className="ri-placar">
+                    {p.placarCasa} <span className="ri-x">×</span>{" "}
+                    {p.placarVisitante}
+                  </span>
+                  <span className="ri-val">
+                    {brl(
+                      Math.round(
+                        (casinha.valorTotalCentavos - casinha.doacaoCentavos) /
+                          qtd
+                      )
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            {casinha.doacaoCentavos > 0 && (
+              <div className="recibo-linha">
+                <span>Ajudinha extra</span>
+                <span>{brl(casinha.doacaoCentavos)}</span>
+              </div>
+            )}
+            <div className="recibo-total">
+              <span>Total pago</span>
+              <span>{brl(casinha.valorTotalCentavos)}</span>
+            </div>
+            <div className="recibo-rodape">
+              <span>Protocolo {casinha.id.slice(-8).toUpperCase()}</span>
+              <span className="pago">Pago via PIX</span>
+            </div>
+          </section>
+
           <section className="passo compartilhe">
             <div className="passo-head">
               <span className="passo-num">↗</span>

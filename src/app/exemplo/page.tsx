@@ -41,6 +41,42 @@ export default function ExemploPage() {
           </p>
         </section>
 
+        <section className="passo recibo">
+          <div className="passo-head">
+            <span className="passo-num">
+              <IconCheck size={15} strokeWidth={2.6} />
+            </span>
+            <h2 className="passo-titulo">Comprovante</h2>
+          </div>
+          <ul className="recibo-itens">
+            {[
+              [2, 1],
+              [1, 0],
+              [3, 2],
+            ].map(([c, v], i) => (
+              <li key={i}>
+                <span className="ri-idx">{i + 1}ª aposta</span>
+                <span className="ri-placar">
+                  {c} <span className="ri-x">×</span> {v}
+                </span>
+                <span className="ri-val">R$ 10,00</span>
+              </li>
+            ))}
+          </ul>
+          <div className="recibo-linha">
+            <span>Ajudinha extra</span>
+            <span>R$ 10,00</span>
+          </div>
+          <div className="recibo-total">
+            <span>Total pago</span>
+            <span>R$ 40,00</span>
+          </div>
+          <div className="recibo-rodape">
+            <span>Protocolo A1B2C3D4</span>
+            <span className="pago">Pago via PIX</span>
+          </div>
+        </section>
+
         <section className="passo compartilhe">
           <div className="passo-head">
             <span className="passo-num">↗</span>
