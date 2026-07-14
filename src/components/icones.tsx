@@ -106,3 +106,23 @@ export const IconSeta = (p: P) => (
     <path d="M5 12h14M13 6l6 6-6 6" />
   </Base>
 );
+
+// Carinha feliz (Sim)
+export const IconFeliz = (p: P) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="9" cy="10" r="0.9" fill="currentColor" stroke="none" />
+    <circle cx="15" cy="10" r="0.9" fill="currentColor" stroke="none" />
+    <path d="M8.3 14c1.2 1.8 6.2 1.8 7.4 0" />
+  </Base>
+);
+
+// Carinha triste (Não)
+export const IconTriste = (p: P) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="9" cy="10" r="0.9" fill="currentColor" stroke="none" />
+    <circle cx="15" cy="10" r="0.9" fill="currentColor" stroke="none" />
+    <path d="M8.3 16c1.2-1.8 6.2-1.8 7.4 0" />
+  </Base>
+);

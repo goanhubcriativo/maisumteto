@@ -3,7 +3,14 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { formatBRL, reaisParaCentavos } from "@/lib/config";
-import { IconMais, IconX, IconCadeado, IconSeta } from "@/components/icones";
+import {
+  IconMais,
+  IconX,
+  IconCadeado,
+  IconSeta,
+  IconFeliz,
+  IconTriste,
+} from "@/components/icones";
 import Bandeira from "@/components/Bandeira";
 
 interface Props {
@@ -103,10 +110,10 @@ export default function MontarCasinha({
   }
   const posNao =
     naoTentativas === 0
-      ? "translate(0, 0)"
+      ? "translate(0, 0) rotate(0deg) scale(1)"
       : naoTentativas === 1
-        ? "translate(38px, 66px)"
-        : "translate(-38px, -66px)";
+        ? "translate(-52px, -30px) rotate(-12deg) scale(0.9)"
+        : "translate(-52px, 30px) rotate(12deg) scale(0.9)";
   function remover(i: number) {
     setFezinhas((f) => f.filter((_, idx) => idx !== i));
   }
@@ -336,7 +343,11 @@ export default function MontarCasinha({
       {popupAberto && (
         <div className="pop-overlay">
           <div className="pop-box">
-            <p className="pop-titulo">A maioria das pessoas fez 3 apostas!</p>
+            <p className="pop-titulo">
+              A maioria das pessoas
+              <br />
+              fez 3 apostas!
+            </p>
             <p className="pop-sub">Deseja fazer mais uma?</p>
             <div className="pop-botoes">
               <button
@@ -345,10 +356,10 @@ export default function MontarCasinha({
                 style={{ transform: posNao }}
                 onClick={clicarNao}
               >
-                Não
+                <IconTriste size={18} /> Não
               </button>
               <button type="button" className="pop-sim" onClick={clicarSim}>
-                Sim
+                Sim <IconFeliz size={18} />
               </button>
             </div>
           </div>
