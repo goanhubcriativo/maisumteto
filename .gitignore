@@ -39,3 +39,5 @@ npm-debug.log*
 # logs de dev locais
 *.log
 .dev.log
+
+.env*

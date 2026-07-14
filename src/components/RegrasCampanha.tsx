@@ -3,7 +3,7 @@ export default function RegrasCampanha() {
   return (
     <details className="regras">
       <summary>
-        Regras da campanha
+        Regras do bolão
         <svg
           className="regras-seta"
           width="16"
@@ -39,10 +39,6 @@ export default function RegrasCampanha() {
         <li>
           Todos podem participar, independente do prêmio que irão receber — o
           objetivo é arrecadar para mais uma casa.
-        </li>
-        <li>
-          Se não gostar do prêmio, você pode solicitar o valor equivalente em
-          dinheiro no lugar do item surpresa.
         </li>
       </ul>
     </details>

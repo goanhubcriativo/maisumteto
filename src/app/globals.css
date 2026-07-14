@@ -13,7 +13,6 @@
   --linha-forte: rgba(39, 55, 64, 0.4);
   --verde: #1a9e5f;
   --branco: #fff;
-  --script: var(--fonte-script), "Brush Script MT", cursive;
 }
 
 * {
@@ -24,18 +23,11 @@ html,
 body {
   margin: 0;
   padding: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--fonte-base), system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
   background: var(--bege-fundo);
   color: var(--grafite);
   -webkit-font-smoothing: antialiased;
-}
-
-/* Trama sutil de "papel milimetrado" no fundo bege */
-body {
-  background-image:
-    linear-gradient(rgba(39, 55, 64, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(39, 55, 64, 0.05) 1px, transparent 1px);
-  background-size: 26px 26px;
 }
 
 a {
@@ -115,10 +107,9 @@ a {
   color: var(--grafite);
 }
 .script-azul {
-  font-family: var(--script);
-  font-weight: 400;
+  font-style: italic;
+  font-weight: 900;
   color: var(--azul);
-  font-size: 1.05em;
 }
 .participe-meta {
   background: var(--grafite);
@@ -250,6 +241,13 @@ a {
   font-size: 12px;
   margin: 0 2px;
 }
+.aposta-lista .ord {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(246, 244, 238, 0.55);
+}
 .aposta-lista .vl {
   margin-left: auto;
   font-family: ui-monospace, monospace;
@@ -282,9 +280,10 @@ a {
   margin: 0 0 10px;
 }
 
-/* ---------- Ajudinha extra (caixa azul clara) ---------- */
+/* ---------- Ajudinha extra (caixa azul, mesma do botão de apostar) ---------- */
 .ajudinha {
-  background: var(--azul-claro);
+  background: var(--azul);
+  color: #fff;
   border-radius: 14px;
   padding: 15px 18px 16px;
   margin-top: 16px;
@@ -295,11 +294,11 @@ a {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--grafite);
+  color: #fff;
 }
 .ajudinha-sub {
   font-size: 12.5px;
-  color: var(--grafite-70);
+  color: rgba(255, 255, 255, 0.8);
   margin: 3px 0 10px;
 }
 .ajudinha-opcoes {
@@ -308,30 +307,40 @@ a {
   align-items: stretch;
 }
 .ajudinha .chip {
-  flex: 0 0 52px;
+  flex: 0 0 64px;
   min-width: 0;
   padding: 8px 4px;
-  font-size: 15px;
-  border-color: var(--grafite);
-  background: rgba(255, 255, 255, 0.55);
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 800;
+  border-color: rgba(255, 255, 255, 0.75);
+  color: #fff;
+  background: transparent;
   border-radius: 6px;
 }
+.ajudinha .chip:hover {
+  border-color: #fff;
+}
 .ajudinha .chip.ativo {
-  background: var(--azul);
-  border-color: var(--azul);
-  color: #fff;
+  background: #fff;
+  border-color: #fff;
+  color: var(--azul);
 }
 .chip-outro {
   flex: 1;
-  border: 1.5px solid var(--grafite) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.75) !important;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.12);
   padding: 8px 10px;
   font-size: 14px;
   text-align: center;
+  color: #fff;
+}
+.chip-outro::placeholder {
+  color: rgba(255, 255, 255, 0.65);
 }
 .chip-outro:focus {
-  border-color: var(--azul) !important;
+  border-color: #fff !important;
   border-bottom-width: 1.5px;
 }
 
@@ -355,39 +364,38 @@ a {
 }
 
 /* ---------- Rodapé da campanha ---------- */
-.rodape-nota {
-  margin: 0 0 18px;
-  font-size: 13px;
-  color: var(--grafite);
-}
 .responsa {
-  margin: 0 0 16px;
-  line-height: 0.95;
-  text-transform: uppercase;
-  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 0 18px;
   color: var(--grafite);
 }
-.responsa-linha {
-  display: block;
-  font-size: 26px;
-  letter-spacing: 1px;
+.responsa-bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: 0.6px;
 }
 .responsa-social {
-  display: block;
-  font-family: var(--script);
-  font-weight: 400;
-  text-transform: none;
-  font-size: 44px;
+  font-style: italic;
+  font-weight: 900;
+  font-size: 38px;
   color: var(--azul);
-  margin-top: 4px;
-  line-height: 1.3;
+  letter-spacing: -0.5px;
+  line-height: 1;
 }
 .transparencia {
-  font-size: 12px;
-  line-height: 1.65;
+  font-size: 12.5px;
+  line-height: 1.7;
   color: var(--grafite-70);
-  max-width: 52ch;
-  margin: 0 auto 20px;
+  margin: 0 0 20px;
 }
 .transparencia b {
   color: var(--grafite);
@@ -875,13 +883,12 @@ input:focus {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  transition: background 0.15s;
 }
-.cta:hover {
+.cta:hover:not(:disabled) {
   background: var(--azul-escuro);
 }
 .cta:disabled {
-  background: var(--grafite-70);
+  background: var(--grafite);
   cursor: not-allowed;
 }
 .cta.secacao {

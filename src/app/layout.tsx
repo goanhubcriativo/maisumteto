@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
-import { Pacifico } from "next/font/google";
+import { Raleway } from "next/font/google";
 import "./globals.css";
 
-// Fonte de "letras corridas" (script) — usada em destaques como o
-// "Social" de "Jogue com responsabilidade Social".
-const script = Pacifico({
-  weight: "400",
+// Todo o material da campanha é composto em Raleway.
+const raleway = Raleway({
   subsets: ["latin"],
-  variable: "--fonte-script",
+  style: ["normal", "italic"],
+  variable: "--fonte-base",
   display: "swap",
 });
 
@@ -23,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className={script.variable}>
+    <html lang="pt-BR" className={raleway.variable}>
       <body>{children}</body>
     </html>
   );

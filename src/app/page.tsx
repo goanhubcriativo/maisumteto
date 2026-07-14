@@ -22,7 +22,7 @@ export default function Home() {
       <header className="masthead">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/logo-escuro.svg"
+          src="/logo-claro.svg"
           alt="Um Teto, um recomeço"
           className="masthead-logo"
         />
@@ -41,13 +41,11 @@ export default function Home() {
 
       {/* Rodapé da campanha */}
       <footer className="rodape">
-        <p className="rodape-nota">
-          Quantas fézinhas você quiser — cada uma é um piloti a mais na obra.
-        </p>
-
         <p className="responsa">
-          <span className="responsa-linha">Jogue com</span>
-          <span className="responsa-linha">responsabilidade</span>
+          <span className="responsa-bloco">
+            <span>Jogue com</span>
+            <span>responsabilidade</span>
+          </span>
           <span className="responsa-social">Social</span>
         </p>
 

@@ -126,7 +126,7 @@ export default function MontarCasinha({
         <div className="aposta-topo">
           <h2>Sua fézinha</h2>
           <span className="aposta-jogo">
-            {timeCasa} × {timeVisitante} · {formatBRL(valorCentavos)} cada
+            R$ {Math.round(valorCentavos / 100)} cada aposta
           </span>
         </div>
 
@@ -153,7 +153,7 @@ export default function MontarCasinha({
             />
           </div>
           <button type="button" className="aposta-add" onClick={adicionar}>
-            <IconMais size={15} strokeWidth={2.4} /> Apostar
+            <IconMais size={15} strokeWidth={2.4} /> Fincar
           </button>
         </div>
 
@@ -164,6 +164,7 @@ export default function MontarCasinha({
                 <span className="pl">
                   {f.casa} <em>×</em> {f.visitante}
                 </span>
+                <span className="ord">{i + 1}ª aposta</span>
                 <span className="vl">{formatBRL(valorCentavos)}</span>
                 <button
                   type="button"
@@ -220,9 +221,9 @@ export default function MontarCasinha({
         </div>
       </section>
 
-      {/* Ajudinha extra — caixa azul clara */}
+      {/* Ajudinha extra — caixa azul (mesmo azul do Fincar) */}
       <section className="ajudinha">
-        <h3>Uma ajudinha extra</h3>
+        <h3>Que tal uma ajudinha extra?</h3>
         <p className="ajudinha-sub">
           Aquela última batida para deixar o piloti no nível.
         </p>
@@ -236,7 +237,7 @@ export default function MontarCasinha({
               }`}
               onClick={() => escolherPreset(c)}
             >
-              {c / 100}
+              R$ {c / 100}
             </button>
           ))}
           <input
