@@ -30,3 +30,12 @@ npm-debug.log*
 
 # Config local de permissões do Claude Code
 .claude/settings.local.json
+
+.vercel
+
+.webhook-token.txt
+.admin-pass.txt
+
+# logs de dev locais
+*.log
+.dev.log

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Bolão da Final da Copa — Casa Amiga (Teto)",
+  title: "Faça sua fézinha, levante uma casinha — Teto",
   description:
-    "Participe do bolão da final da Copa do Mundo e ajude a Casa Amiga de Dezembro da Teto. Cada palpite custa R$ 10, pago via PIX.",
+    "Cada fézinha na final da Copa finca um piloti de uma casa emergencial da Teto. Palpite R$ 10, pagamento via PIX. 100% pra causa.",
 };
 
 export default function RootLayout({

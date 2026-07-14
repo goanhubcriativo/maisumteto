@@ -2,12 +2,13 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
+import CasinhaObra from "@/components/CasinhaObra";
+import { IconCheck, IconCadeado, IconSeta, IconPix } from "@/components/icones";
 
 interface Palpite {
   placarCasa: number;
   placarVisitante: number;
 }
-
 interface Casinha {
   id: string;
   status: string;
@@ -20,10 +21,7 @@ interface Casinha {
 }
 
 function brl(c: number) {
-  return (c / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  return (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 export default function PagarPage({
@@ -38,7 +36,6 @@ export default function PagarPage({
 
   useEffect(() => {
     let ativo = true;
-
     async function checar() {
       try {
         const res = await fetch(`/api/casinhas/${id}`, { cache: "no-store" });
@@ -52,7 +49,6 @@ export default function PagarPage({
         if (ativo) setErro("Erro de conexão.");
       }
     }
-
     checar();
     const t = setInterval(checar, 4000);
     return () => {
@@ -71,101 +67,129 @@ export default function PagarPage({
   const qtd = casinha?.palpites.length ?? 0;
 
   return (
-    <main className="container">
-      <div className="hero" style={{ padding: "22px 24px", textAlign: "center" }}>
+    <main className="canvas">
+      <header className="masthead">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo-claro.svg" alt="Teto" className="hero-logo-sm" />
-        <h1 style={{ fontSize: 22 }}>Fechar a casinha</h1>
-        {casinha && (
-          <p>
-            {qtd} palpite(s)
-            {casinha.doacaoCentavos > 0 ? " + chorinho" : ""} ·{" "}
-            <b>{brl(casinha.valorTotalCentavos)}</b>
-          </p>
-        )}
-      </div>
+        <img src="/logo-escuro.svg" alt="Teto" className="masthead-logo" />
+      </header>
 
       {erro && (
-        <div className="card">
-          <div className="erro">{erro}</div>
-          <Link href="/">← Voltar</Link>
+        <div className="folha">
+          <section className="passo">
+            <div className="erro">
+              <span>{erro}</span>
+            </div>
+            <Link href="/" className="cta secacao">
+              Voltar
+            </Link>
+          </section>
         </div>
       )}
 
       {!erro && !casinha && (
-        <div className="card">
-          <div className="status-aguardando">
-            <span className="spinner" /> Carregando...
-          </div>
+        <div className="folha">
+          <section className="passo">
+            <div className="aguardando">
+              <span className="spinner" /> Carregando sua casinha...
+            </div>
+          </section>
         </div>
       )}
 
       {casinha && casinha.status === "PAGO" && (
-        <div className="card sucesso">
-          <div className="check">✓</div>
-          <h2>Casinha fechada! 🏠</h2>
-          <p className="sub">
-            Valeu, {casinha.nome.split(" ")[0]}! Seus {qtd} palpite(s) estão
-            confirmados e viraram tijolo pra obra. 💙
-          </p>
-          <Link
-            href="/"
-            className="btn btn-primario"
-            style={{ display: "block", textDecoration: "none", marginTop: 10 }}
-          >
-            Montar outra casinha
-          </Link>
-        </div>
+        <>
+          <div className="obra">
+            <CasinhaObra pilotis={qtd} />
+          </div>
+          <div className="folha">
+            <section className="passo sucesso">
+              <div className="selo">
+                <IconCheck size={34} strokeWidth={2.4} />
+              </div>
+              <h2 className="passo-titulo" style={{ marginBottom: 6 }}>
+                Casinha erguida!
+              </h2>
+              <p className="passo-sub" style={{ margin: "0 auto 18px" }}>
+                Valeu, {casinha.nome.split(" ")[0]}! Suas {qtd} fézinha
+                {qtd > 1 ? "s" : ""} viraram piloti na obra da Teto.
+              </p>
+              <Link href="/" className="cta">
+                Fazer outra fézinha <IconSeta size={18} />
+              </Link>
+            </section>
+          </div>
+        </>
       )}
 
       {casinha && casinha.status === "PENDENTE" && casinha.pixQrCodeImage && (
         <>
-          <div className="card">
-            <h2 style={{ marginBottom: 12 }}>O que tem na sua casinha</h2>
-            <ul className="casinha-lista">
-              {casinha.palpites.map((p, i) => (
-                <li key={i} className="casinha-item">
-                  <span className="tijolo">🧱</span>
-                  <span className="placar">
-                    {p.placarCasa} <span className="x-mini">x</span>{" "}
-                    {p.placarVisitante}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            {casinha.doacaoCentavos > 0 && (
-              <div className="resumo-linha" style={{ marginTop: 10 }}>
-                <span>Chorinho pra obra 💙</span>
-                <span>{brl(casinha.doacaoCentavos)}</span>
-              </div>
-            )}
-            <div className="resumo-total" style={{ marginTop: 6 }}>
-              <span>Total</span>
-              <span>{brl(casinha.valorTotalCentavos)}</span>
-            </div>
+          <div className="obra">
+            <CasinhaObra pilotis={qtd} />
+            <p className="obra-legenda">
+              Sua casinha sobre <b>{qtd} piloti{qtd > 1 ? "s" : ""}</b> — falta o
+              PIX pra fincar de vez.
+            </p>
           </div>
 
-          <div className="card qr-box">
-            <h2>Pague com PIX para confirmar</h2>
-            <p className="sub">
-              Escaneie o QR Code ou use o Pix Copia e Cola. A confirmação é
-              automática.
-            </p>
-            <img
-              src={`data:image/png;base64,${casinha.pixQrCodeImage}`}
-              alt="QR Code PIX"
-            />
-            {casinha.pixPayload && (
-              <div className="copia-cola">
-                <input readOnly value={casinha.pixPayload} />
-                <button className="btn-copiar" onClick={copiar}>
-                  {copiado ? "Copiado!" : "Copiar"}
-                </button>
+          <div className="folha">
+            <section className="passo">
+              <div className="passo-head">
+                <span className="passo-num">01</span>
+                <h2 className="passo-titulo">O que tem na casinha</h2>
               </div>
-            )}
-            <div className="status-aguardando">
-              <span className="spinner" /> Aguardando pagamento...
-            </div>
+              <ul className="fezinhas">
+                {casinha.palpites.map((p, i) => (
+                  <li key={i} className="fezinha-row">
+                    <span className="idx">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="placar">
+                      {p.placarCasa} <span className="xs">×</span>{" "}
+                      {p.placarVisitante}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {casinha.doacaoCentavos > 0 && (
+                <div className="resumo-linha" style={{ marginTop: 12 }}>
+                  <span>Chorinho pra obra</span>
+                  <span className="v">{brl(casinha.doacaoCentavos)}</span>
+                </div>
+              )}
+              <div className="resumo-total">
+                <span className="lbl">Total</span>
+                <span className="v">{brl(casinha.valorTotalCentavos)}</span>
+              </div>
+            </section>
+
+            <section className="passo pix-box">
+              <div className="passo-head">
+                <span className="passo-num">02</span>
+                <h2 className="passo-titulo">Pague com PIX</h2>
+                <IconPix className="icone" size={22} />
+              </div>
+              <p className="passo-sub" style={{ marginLeft: 37 }}>
+                Escaneie o QR ou use o Copia e Cola. A confirmação é automática.
+              </p>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="qr"
+                src={`data:image/png;base64,${casinha.pixQrCodeImage}`}
+                alt="QR Code PIX"
+              />
+              {casinha.pixPayload && (
+                <div className="copia">
+                  <input readOnly value={casinha.pixPayload} />
+                  <button className="btn-copiar" onClick={copiar}>
+                    {copiado ? "Copiado" : "Copiar"}
+                  </button>
+                </div>
+              )}
+              <div className="aguardando">
+                <span className="spinner" /> Aguardando pagamento...
+              </div>
+              <div className="seguranca" style={{ marginTop: 10 }}>
+                <IconCadeado size={14} /> Ambiente seguro · Asaas
+              </div>
+            </section>
           </div>
         </>
       )}
@@ -173,19 +197,15 @@ export default function PagarPage({
       {casinha &&
         casinha.status !== "PAGO" &&
         casinha.status !== "PENDENTE" && (
-          <div className="card">
-            <div className="erro">Esta casinha foi cancelada ou expirou.</div>
-            <Link
-              href="/"
-              className="btn btn-primario"
-              style={{
-                display: "block",
-                textDecoration: "none",
-                textAlign: "center",
-              }}
-            >
-              Montar nova casinha
-            </Link>
+          <div className="folha">
+            <section className="passo">
+              <div className="erro">
+                <span>Esta casinha foi cancelada ou expirou.</span>
+              </div>
+              <Link href="/" className="cta">
+                Montar nova casinha <IconSeta size={18} />
+              </Link>
+            </section>
           </div>
         )}
     </main>

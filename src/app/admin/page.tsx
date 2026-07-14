@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { IconSeta } from "@/components/icones";
 
 interface Casinha {
   id: string;
@@ -16,7 +17,6 @@ interface Casinha {
   createdAt: string;
   paidAt: string | null;
 }
-
 interface Resumo {
   totalCasinhas: number;
   casinhasPagas: number;
@@ -27,20 +27,11 @@ interface Resumo {
 }
 
 function brl(c: number) {
-  return (c / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  return (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
-
 function badge(status: string) {
-  const map: Record<string, string> = {
-    PAGO: "badge-pago",
-    PENDENTE: "badge-pendente",
-  };
-  return (
-    <span className={`badge ${map[status] || "badge-cancelado"}`}>{status}</span>
-  );
+  const map: Record<string, string> = { PAGO: "badge-pago", PENDENTE: "badge-pendente" };
+  return <span className={`badge ${map[status] || "badge-cancelado"}`}>{status}</span>;
 }
 
 export default function AdminPage() {
@@ -75,7 +66,6 @@ export default function AdminPage() {
     }
     setCarregando(false);
   }
-
   async function atualizar() {
     try {
       await carregar(senha);
@@ -86,35 +76,38 @@ export default function AdminPage() {
 
   if (!logado) {
     return (
-      <main className="container">
-        <div className="hero" style={{ padding: "22px 24px" }}>
+      <main className="canvas">
+        <header className="masthead">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo-claro.svg"
-            alt="Teto"
-            className="hero-logo-sm"
-            style={{ margin: "0 0 12px" }}
-          />
-          <h1 style={{ fontSize: 22 }}>Painel — Bolão Teto</h1>
-          <p>Acesso restrito à organização.</p>
+          <img src="/logo-escuro.svg" alt="Teto" className="masthead-logo" />
+          <div className="sobre">Painel da organização</div>
+        </header>
+        <div className="folha">
+          <form className="passo" onSubmit={entrar}>
+            <div className="passo-head">
+              <span className="passo-num">→</span>
+              <h2 className="passo-titulo">Entrar</h2>
+            </div>
+            {erro && (
+              <div className="erro">
+                <span>{erro}</span>
+              </div>
+            )}
+            <div className="campo">
+              <label htmlFor="senha">Senha do painel</label>
+              <input
+                id="senha"
+                type="password"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                required
+              />
+            </div>
+            <button className="cta" disabled={carregando}>
+              {carregando ? "Entrando..." : "Entrar"} <IconSeta size={18} />
+            </button>
+          </form>
         </div>
-        <form className="card" onSubmit={entrar}>
-          <h2>Entrar</h2>
-          {erro && <div className="erro">{erro}</div>}
-          <div className="campo">
-            <label htmlFor="senha">Senha do painel</label>
-            <input
-              id="senha"
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              required
-            />
-          </div>
-          <button className="btn btn-primario" disabled={carregando}>
-            {carregando ? "Entrando..." : "Entrar"}
-          </button>
-        </form>
       </main>
     );
   }
@@ -122,39 +115,28 @@ export default function AdminPage() {
   const visiveis =
     filtro === "PAGO" ? casinhas.filter((c) => c.status === "PAGO") : casinhas;
 
-  // Agrupa palpites pagos por placar (para achar vencedores depois do jogo)
   const porPlacar: Record<string, number> = {};
   casinhas
     .filter((c) => c.status === "PAGO")
-    .forEach((c) => {
-      c.palpites.forEach((pl) => {
-        porPlacar[pl] = (porPlacar[pl] || 0) + 1;
-      });
-    });
+    .forEach((c) => c.palpites.forEach((pl) => (porPlacar[pl] = (porPlacar[pl] || 0) + 1)));
 
   return (
-    <main className="container admin-wide">
-      <div className="hero" style={{ padding: "22px 24px" }}>
+    <main className="canvas admin-wide">
+      <header className="masthead">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/logo-claro.svg"
-          alt="Teto"
-          className="hero-logo-sm"
-          style={{ margin: "0 0 12px" }}
-        />
-        <h1 style={{ fontSize: 22 }}>Painel — Bolão Teto</h1>
-        <p>Acompanhe as casinhas e a arrecadação pra obra.</p>
-      </div>
+        <img src="/logo-escuro.svg" alt="Teto" className="masthead-logo" />
+        <div className="sobre">Painel · arrecadação da obra</div>
+      </header>
 
       {resumo && (
-        <div className="stats stats-4">
+        <div className="stats">
           <div className="stat">
             <div className="num">{resumo.casinhasPagas}</div>
             <div className="lbl">Casinhas pagas</div>
           </div>
           <div className="stat">
             <div className="num">{resumo.palpitesPagos}</div>
-            <div className="lbl">Palpites pagos</div>
+            <div className="lbl">Pilotis fincados</div>
           </div>
           <div className="stat">
             <div className="num">{brl(resumo.totalArrecadadoCentavos)}</div>
@@ -162,110 +144,112 @@ export default function AdminPage() {
           </div>
           <div className="stat">
             <div className="num">{brl(resumo.totalDoacoesCentavos)}</div>
-            <div className="lbl">Chorinho 💙</div>
+            <div className="lbl">Chorinho</div>
           </div>
         </div>
       )}
 
-      <div className="card">
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 12,
-          }}
-        >
-          <h2 style={{ margin: 0 }}>Palpites por placar (pagos)</h2>
-          <button className="btn-copiar" onClick={atualizar}>
-            Atualizar
-          </button>
-        </div>
-        <div className="scroll-x">
-          <table className="tabela">
-            <thead>
-              <tr>
-                <th>Placar</th>
-                <th>Qtd. palpites pagos</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(porPlacar)
-                .sort((a, b) => b[1] - a[1])
-                .map(([placar, qtd]) => (
-                  <tr key={placar}>
+      <div className="folha">
+        <section className="passo">
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 14,
+            }}
+          >
+            <h2 className="passo-titulo">Fézinhas por placar (pagas)</h2>
+            <button className="mini" onClick={atualizar}>
+              Atualizar
+            </button>
+          </div>
+          <div className="scroll-x">
+            <table className="tabela">
+              <thead>
+                <tr>
+                  <th>Placar</th>
+                  <th>Fézinhas pagas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(porPlacar)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([placar, qtd]) => (
+                    <tr key={placar}>
+                      <td>
+                        <b>{placar.replace("x", " × ")}</b>
+                      </td>
+                      <td>{qtd}</td>
+                    </tr>
+                  ))}
+                {Object.keys(porPlacar).length === 0 && (
+                  <tr>
+                    <td colSpan={2}>Nenhuma fézinha paga ainda.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="passo">
+          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+            <button
+              className="mini"
+              style={{ background: filtro === "PAGO" ? "var(--azul)" : "var(--grafite-70)" }}
+              onClick={() => setFiltro("PAGO")}
+            >
+              Só pagas
+            </button>
+            <button
+              className="mini"
+              style={{ background: filtro === "TODAS" ? "var(--grafite)" : "var(--grafite-70)" }}
+              onClick={() => setFiltro("TODAS")}
+            >
+              Todas
+            </button>
+          </div>
+          <div className="scroll-x">
+            <table className="tabela">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>WhatsApp</th>
+                  <th>Fézinhas</th>
+                  <th>Chorinho</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Quando</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visiveis.map((c) => (
+                  <tr key={c.id}>
+                    <td>{c.nome}</td>
+                    <td>{c.whatsapp}</td>
                     <td>
-                      <b>{placar.replace("x", " x ")}</b>
+                      <b>{c.qtdPalpites}</b>
+                      <span style={{ color: "var(--grafite-70)" }}>
+                        {" "}
+                        ({c.palpites.join(", ")})
+                      </span>
                     </td>
-                    <td>{qtd}</td>
+                    <td>{c.doacaoCentavos > 0 ? brl(c.doacaoCentavos) : "—"}</td>
+                    <td>{brl(c.valorTotalCentavos)}</td>
+                    <td>{badge(c.status)}</td>
+                    <td>{new Date(c.createdAt).toLocaleString("pt-BR")}</td>
                   </tr>
                 ))}
-              {Object.keys(porPlacar).length === 0 && (
-                <tr>
-                  <td colSpan={2}>Nenhum palpite pago ainda.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="card">
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-          <button
-            className="btn-copiar"
-            style={{ background: filtro === "PAGO" ? "var(--azul)" : "#aaa" }}
-            onClick={() => setFiltro("PAGO")}
-          >
-            Só pagas
-          </button>
-          <button
-            className="btn-copiar"
-            style={{ background: filtro === "TODAS" ? "var(--grafite)" : "#aaa" }}
-            onClick={() => setFiltro("TODAS")}
-          >
-            Todas
-          </button>
-        </div>
-        <div className="scroll-x">
-          <table className="tabela">
-            <thead>
-              <tr>
-                <th>Nome</th>
-                <th>WhatsApp</th>
-                <th>Palpites</th>
-                <th>Chorinho</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th>Quando</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visiveis.map((c) => (
-                <tr key={c.id}>
-                  <td>{c.nome}</td>
-                  <td>{c.whatsapp}</td>
-                  <td>
-                    <b>{c.qtdPalpites}</b>
-                    <span style={{ color: "var(--cinza-texto)" }}>
-                      {" "}
-                      ({c.palpites.join(", ")})
-                    </span>
-                  </td>
-                  <td>{c.doacaoCentavos > 0 ? brl(c.doacaoCentavos) : "—"}</td>
-                  <td>{brl(c.valorTotalCentavos)}</td>
-                  <td>{badge(c.status)}</td>
-                  <td>{new Date(c.createdAt).toLocaleString("pt-BR")}</td>
-                </tr>
-              ))}
-              {visiveis.length === 0 && (
-                <tr>
-                  <td colSpan={7}>Nenhuma casinha.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                {visiveis.length === 0 && (
+                  <tr>
+                    <td colSpan={7}>Nenhuma casinha.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </main>
   );

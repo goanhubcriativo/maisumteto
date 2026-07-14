@@ -4,29 +4,39 @@ import {
   doacaoPresetsCentavos,
 } from "@/lib/config";
 import MontarCasinha from "@/components/MontarCasinha";
+import { IconCasa } from "@/components/icones";
 
 export const dynamic = "force-dynamic";
 
 export default function Home() {
   const valor = valorApostaCentavos();
   return (
-    <main className="container">
-      <div className="hero">
+    <main className="canvas">
+      <header className="masthead">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo-claro.svg" alt="Teto" className="hero-logo" />
-        <span className="tag">Casa Amiga de Dezembro · Teto</span>
-        <h1>Bolão da Final da Copa do Mundo</h1>
-        <p>
-          Cada palpite ajuda a erguer uma <b>casa emergencial</b> com a Teto.
-          Monte sua casinha, chute o placar da final e, se puder, deixe um
-          chorinho a mais. 🧱🏠
+        <img src="/logo-escuro.svg" alt="Teto" className="masthead-logo" />
+        <div className="sobre">
+          <IconCasa size={15} strokeWidth={2} />
+          Casa Amiga de Dezembro
+        </div>
+
+        <h1 className="lema">
+          Faça sua <span className="fe">fézinha</span>,
+          <br />
+          levante uma <span className="casa">casinha</span>.
+        </h1>
+        <p className="intro">
+          No Brasil, dar um palpite é “fazer uma fézinha”. Aqui, cada fézinha na
+          final da Copa finca um <b>piloti</b> de uma casa emergencial da Teto —
+          feita de madeira, sobre pilotis, pra uma família sair do chão batido.
         </p>
-        <div className="placar-jogo">
+
+        <div className="jogo">
           <span>{config.timeCasa}</span>
-          <span className="vs">{config.dataJogo}</span>
+          <span className="data">{config.dataJogo}</span>
           <span>{config.timeVisitante}</span>
         </div>
-      </div>
+      </header>
 
       <MontarCasinha
         timeCasa={config.timeCasa}
@@ -36,9 +46,10 @@ export default function Home() {
       />
 
       <p className="rodape">
-        Você pode dar quantos palpites quiser — cada um é um tijolo a mais.
-        <br />
-        Pagamento único e seguro via PIX (Asaas). 100% pra causa.
+        Quantas fézinhas você quiser — cada uma é um piloti a mais na obra.
+        <span className="cred">
+          <IconCasa size={13} strokeWidth={2} /> 100% pra causa · PIX seguro
+        </span>
       </p>
     </main>
   );

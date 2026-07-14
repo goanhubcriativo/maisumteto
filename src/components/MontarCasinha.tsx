@@ -3,15 +3,26 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatBRL, reaisParaCentavos } from "@/lib/config";
+import CasinhaObra from "@/components/CasinhaObra";
+import {
+  IconPiloti,
+  IconCoracao,
+  IconWhats,
+  IconCasa,
+  IconMais,
+  IconX,
+  IconCadeado,
+  IconSeta,
+} from "@/components/icones";
 
 interface Props {
   timeCasa: string;
   timeVisitante: string;
-  valorCentavos: number; // preço de cada palpite
-  doacaoPresets: number[]; // em centavos
+  valorCentavos: number;
+  doacaoPresets: number[];
 }
 
-interface Palpite {
+interface Fezinha {
   casa: number;
   visitante: number;
 }
@@ -24,14 +35,11 @@ function mascaraCpf(v: string) {
     .replace(/(\d{3})(\d)/, "$1.$2")
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
-
 function mascaraTel(v: string) {
   const d = v.replace(/\D/g, "").slice(0, 11);
-  if (d.length <= 10)
-    return d.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3").trim();
+  if (d.length <= 10) return d.replace(/(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3").trim();
   return d.replace(/(\d{2})(\d{5})(\d{0,4})/, "($1) $2-$3").trim();
 }
-
 function soPlacar(v: string) {
   return v.replace(/\D/g, "").slice(0, 2);
 }
@@ -44,16 +52,13 @@ export default function MontarCasinha({
 }: Props) {
   const router = useRouter();
 
-  // Carrinho
-  const [palpites, setPalpites] = useState<Palpite[]>([]);
+  const [fezinhas, setFezinhas] = useState<Fezinha[]>([]);
   const [novoCasa, setNovoCasa] = useState("");
   const [novoVisitante, setNovoVisitante] = useState("");
 
-  // Chorinho (doação)
   const [doacaoCentavos, setDoacaoCentavos] = useState(0);
   const [customStr, setCustomStr] = useState("");
 
-  // Dados
   const [nome, setNome] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [cpf, setCpf] = useState("");
@@ -62,41 +67,38 @@ export default function MontarCasinha({
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-  const totalPalpites = palpites.length * valorCentavos;
-  const total = totalPalpites + doacaoCentavos;
+  const totalFezinhas = fezinhas.length * valorCentavos;
+  const total = totalFezinhas + doacaoCentavos;
 
-  function adicionarPalpite() {
+  function adicionar() {
     setErro("");
     if (novoCasa === "" || novoVisitante === "") {
-      setErro("Preencha o placar dos dois times para adicionar o palpite.");
+      setErro("Preencha o placar dos dois times pra fincar o piloti.");
       return;
     }
-    setPalpites((p) => [
-      ...p,
+    setFezinhas((f) => [
+      ...f,
       { casa: parseInt(novoCasa, 10), visitante: parseInt(novoVisitante, 10) },
     ]);
     setNovoCasa("");
     setNovoVisitante("");
   }
-
-  function removerPalpite(i: number) {
-    setPalpites((p) => p.filter((_, idx) => idx !== i));
+  function remover(i: number) {
+    setFezinhas((f) => f.filter((_, idx) => idx !== i));
   }
-
-  function escolherPreset(centavos: number) {
+  function escolherPreset(c: number) {
     setCustomStr("");
-    setDoacaoCentavos((atual) => (atual === centavos ? 0 : centavos));
+    setDoacaoCentavos((a) => (a === c ? 0 : c));
+  }
+  function mudarCustom(t: string) {
+    setCustomStr(t);
+    setDoacaoCentavos(reaisParaCentavos(t));
   }
 
-  function mudarCustom(texto: string) {
-    setCustomStr(texto);
-    setDoacaoCentavos(reaisParaCentavos(texto));
-  }
-
-  async function fecharCasinha() {
+  async function fechar() {
     setErro("");
-    if (palpites.length < 1) {
-      setErro("Adicione pelo menos um palpite antes de fechar a casinha.");
+    if (fezinhas.length < 1) {
+      setErro("Finque pelo menos um piloti (uma fézinha) antes de fechar.");
       return;
     }
     setEnviando(true);
@@ -110,9 +112,9 @@ export default function MontarCasinha({
           cpf,
           email,
           doacaoCentavos,
-          palpites: palpites.map((p) => ({
-            placarCasa: p.casa,
-            placarVisitante: p.visitante,
+          palpites: fezinhas.map((f) => ({
+            placarCasa: f.casa,
+            placarVisitante: f.visitante,
           })),
         }),
       });
@@ -124,188 +126,233 @@ export default function MontarCasinha({
       }
       router.push(`/pagar/${data.id}`);
     } catch {
-      setErro("Erro de conexão. Tente novamente.");
+      setErro("Erro de conexão. Tente de novo.");
       setEnviando(false);
     }
   }
 
+  const n = fezinhas.length;
+
   return (
     <>
-      {/* 1. Montar palpites */}
-      <div className="card">
-        <h2>🏠 Monte sua casinha</h2>
-        <p className="sub">
-          Adicione quantos palpites quiser — cada um custa{" "}
-          <b>{formatBRL(valorCentavos)}</b> e vira tijolo pra obra.
+      {/* Ilustração da obra */}
+      <div className="obra">
+        <CasinhaObra pilotis={n} />
+        <p className="obra-legenda">
+          {n === 0 ? (
+            <>Sua obra começa com a primeira fézinha.</>
+          ) : (
+            <>
+              Sua casinha já está sobre <b>{n} piloti{n > 1 ? "s" : ""}</b>.
+            </>
+          )}
         </p>
-
-        <div className="add-palpite">
-          <div>
-            <div className="time-nome">{timeCasa}</div>
-            <input
-              value={novoCasa}
-              onChange={(e) => setNovoCasa(soPlacar(e.target.value))}
-              placeholder="0"
-              inputMode="numeric"
-              aria-label={`Gols ${timeCasa}`}
-            />
-          </div>
-          <span className="x">x</span>
-          <div>
-            <div className="time-nome">{timeVisitante}</div>
-            <input
-              value={novoVisitante}
-              onChange={(e) => setNovoVisitante(soPlacar(e.target.value))}
-              placeholder="0"
-              inputMode="numeric"
-              aria-label={`Gols ${timeVisitante}`}
-            />
-          </div>
-          <button type="button" className="btn-add" onClick={adicionarPalpite}>
-            + Adicionar
-          </button>
-        </div>
-
-        {palpites.length > 0 ? (
-          <ul className="casinha-lista">
-            {palpites.map((p, i) => (
-              <li key={i} className="casinha-item">
-                <span className="tijolo">🧱</span>
-                <span className="placar">
-                  {p.casa} <span className="x-mini">x</span> {p.visitante}
-                </span>
-                <span className="preco">{formatBRL(valorCentavos)}</span>
-                <button
-                  type="button"
-                  className="btn-remover"
-                  onClick={() => removerPalpite(i)}
-                  aria-label="Remover palpite"
-                >
-                  ✕
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="vazio">
-            Sua casinha está vazia. Adicione seu primeiro palpite acima. 👆
-          </div>
-        )}
       </div>
 
-      {/* 2. Chorinho */}
-      <div className="card">
-        <h2>💙 Dá um chorinho pra obra?</h2>
-        <p className="sub">
-          Opcional: um valor a mais que vai <b>100% pra casa emergencial</b>.
-        </p>
-        <div className="chorinho-presets">
-          {doacaoPresets.map((c) => (
-            <button
-              type="button"
-              key={c}
-              className={`preset-btn ${
-                customStr === "" && doacaoCentavos === c ? "ativo" : ""
-              }`}
-              onClick={() => escolherPreset(c)}
-            >
-              + {formatBRL(c)}
+      <div className="folha">
+        {/* 01 — Fézinha */}
+        <section className="passo">
+          <div className="passo-head">
+            <span className="passo-num">01</span>
+            <h2 className="passo-titulo">Sua fézinha</h2>
+            <IconPiloti className="icone" size={22} />
+          </div>
+          <p className="passo-sub">
+            Chute o placar da final. Cada fézinha custa{" "}
+            <b>{formatBRL(valorCentavos)}</b> e finca um piloti.
+          </p>
+
+          <div className="adder">
+            <div className="adder-time">
+              <div className="nome">{timeCasa}</div>
+              <input
+                value={novoCasa}
+                onChange={(e) => setNovoCasa(soPlacar(e.target.value))}
+                placeholder="0"
+                inputMode="numeric"
+                aria-label={`Gols ${timeCasa}`}
+              />
+            </div>
+            <span className="x">×</span>
+            <div className="adder-time">
+              <div className="nome">{timeVisitante}</div>
+              <input
+                value={novoVisitante}
+                onChange={(e) => setNovoVisitante(soPlacar(e.target.value))}
+                placeholder="0"
+                inputMode="numeric"
+                aria-label={`Gols ${timeVisitante}`}
+              />
+            </div>
+            <button type="button" className="btn-add" onClick={adicionar}>
+              <IconMais size={16} strokeWidth={2.2} /> Fincar
             </button>
-          ))}
-        </div>
-        <div className="campo" style={{ marginTop: 12, marginBottom: 0 }}>
-          <label htmlFor="custom">Outro valor (R$)</label>
-          <input
-            id="custom"
-            value={customStr}
-            onChange={(e) => mudarCustom(e.target.value)}
-            placeholder="Ex.: 15,00"
-            inputMode="decimal"
-          />
-        </div>
-      </div>
+          </div>
 
-      {/* 3. Dados */}
-      <div className="card">
-        <h2>Seus dados</h2>
-        <p className="sub">Pra confirmar o pagamento e avisar se você ganhar.</p>
+          {n > 0 ? (
+            <ul className="fezinhas">
+              {fezinhas.map((f, i) => (
+                <li key={i} className="fezinha-row">
+                  <span className="idx">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="placar">
+                    {f.casa} <span className="xs">×</span> {f.visitante}
+                  </span>
+                  <span className="val">{formatBRL(valorCentavos)}</span>
+                  <button
+                    type="button"
+                    className="btn-remover"
+                    onClick={() => remover(i)}
+                    aria-label="Remover fézinha"
+                  >
+                    <IconX size={16} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="vazio">Nenhuma fézinha ainda — finque a primeira.</p>
+          )}
+        </section>
 
-        {erro && <div className="erro">{erro}</div>}
-
-        <div className="campo">
-          <label htmlFor="nome">Nome completo</label>
-          <input
-            id="nome"
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            placeholder="Seu nome"
-          />
-        </div>
-        <div className="linha">
-          <div className="campo">
-            <label htmlFor="whatsapp">WhatsApp</label>
+        {/* 02 — Chorinho */}
+        <section className="passo">
+          <div className="passo-head">
+            <span className="passo-num">02</span>
+            <h2 className="passo-titulo">Um chorinho pra obra?</h2>
+            <IconCoracao className="icone" size={22} />
+          </div>
+          <p className="passo-sub">
+            Opcional: um extra que vai <b>direto pra construção</b>.
+          </p>
+          <div className="chips">
+            {doacaoPresets.map((c) => (
+              <button
+                type="button"
+                key={c}
+                className={`chip ${
+                  customStr === "" && doacaoCentavos === c ? "ativo" : ""
+                }`}
+                onClick={() => escolherPreset(c)}
+              >
+                +{formatBRL(c)}
+              </button>
+            ))}
+          </div>
+          <div className="campo" style={{ marginTop: 14, marginBottom: 0 }}>
+            <label htmlFor="custom">Outro valor (R$)</label>
             <input
-              id="whatsapp"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(mascaraTel(e.target.value))}
-              placeholder="(00) 00000-0000"
-              inputMode="numeric"
+              id="custom"
+              value={customStr}
+              onChange={(e) => mudarCustom(e.target.value)}
+              placeholder="ex.: 15,00"
+              inputMode="decimal"
             />
           </div>
+        </section>
+
+        {/* 03 — Dados */}
+        <section className="passo">
+          <div className="passo-head">
+            <span className="passo-num">03</span>
+            <h2 className="passo-titulo">Seus dados</h2>
+            <IconWhats className="icone" size={22} />
+          </div>
+          <p className="passo-sub">Pra confirmar o PIX e te avisar se ganhar.</p>
+
+          {erro && (
+            <div className="erro">
+              <IconX size={18} strokeWidth={2.4} />
+              <span>{erro}</span>
+            </div>
+          )}
+
           <div className="campo">
-            <label htmlFor="cpf">CPF</label>
+            <label htmlFor="nome">Nome completo</label>
             <input
-              id="cpf"
-              value={cpf}
-              onChange={(e) => setCpf(mascaraCpf(e.target.value))}
-              placeholder="000.000.000-00"
-              inputMode="numeric"
+              id="nome"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+              placeholder="Seu nome"
             />
           </div>
-        </div>
-        <div className="campo" style={{ marginBottom: 0 }}>
-          <label htmlFor="email">E-mail (opcional)</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="voce@email.com"
-          />
-        </div>
-      </div>
+          <div className="linha">
+            <div className="campo">
+              <label htmlFor="whatsapp">WhatsApp</label>
+              <input
+                id="whatsapp"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(mascaraTel(e.target.value))}
+                placeholder="(00) 00000-0000"
+                inputMode="numeric"
+              />
+            </div>
+            <div className="campo">
+              <label htmlFor="cpf">CPF</label>
+              <input
+                id="cpf"
+                value={cpf}
+                onChange={(e) => setCpf(mascaraCpf(e.target.value))}
+                placeholder="000.000.000-00"
+                inputMode="numeric"
+              />
+            </div>
+          </div>
+          <div className="campo" style={{ marginBottom: 0 }}>
+            <label htmlFor="email">E-mail (opcional)</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="voce@email.com"
+            />
+          </div>
+        </section>
 
-      {/* 4. Resumo + fechar */}
-      <div className="card">
-        <h2>Resumo da casinha</h2>
-        <div className="resumo">
-          <div className="resumo-linha">
-            <span>
-              {palpites.length} palpite(s) × {formatBRL(valorCentavos)}
-            </span>
-            <span>{formatBRL(totalPalpites)}</span>
+        {/* 04 — Fechar */}
+        <section className="passo">
+          <div className="passo-head">
+            <span className="passo-num">04</span>
+            <h2 className="passo-titulo">Fechar a casinha</h2>
+            <IconCasa className="icone" size={22} />
           </div>
-          <div className="resumo-linha">
-            <span>Chorinho pra obra 💙</span>
-            <span>{formatBRL(doacaoCentavos)}</span>
+          <div className="resumo">
+            <div className="resumo-linha">
+              <span>
+                {n} fézinha{n === 1 ? "" : "s"} × {formatBRL(valorCentavos)}
+              </span>
+              <span className="v">{formatBRL(totalFezinhas)}</span>
+            </div>
+            <div className="resumo-linha">
+              <span>Chorinho pra obra</span>
+              <span className="v">{formatBRL(doacaoCentavos)}</span>
+            </div>
+            <div className="resumo-total">
+              <span className="lbl">Total</span>
+              <span className="v">{formatBRL(total)}</span>
+            </div>
           </div>
-          <div className="resumo-total">
-            <span>Total</span>
-            <span>{formatBRL(total)}</span>
-          </div>
-        </div>
 
-        <button
-          className="btn btn-primario"
-          onClick={fecharCasinha}
-          disabled={enviando || palpites.length < 1}
-          style={{ marginTop: 18 }}
-        >
-          {enviando
-            ? "Gerando PIX..."
-            : `Fechar a casinha • ${formatBRL(total)}`}
-        </button>
-        <p className="valor-destaque">Pagamento único via PIX 🔒</p>
+          <button
+            className="cta"
+            onClick={fechar}
+            disabled={enviando || n < 1}
+            style={{ marginTop: 18 }}
+          >
+            {enviando ? (
+              "Gerando PIX..."
+            ) : (
+              <>
+                Fechar a casinha • {formatBRL(total)} <IconSeta size={18} />
+              </>
+            )}
+          </button>
+          <div className="seguranca">
+            <IconCadeado size={14} /> Pagamento único e seguro via PIX
+          </div>
+        </section>
       </div>
     </>
   );
