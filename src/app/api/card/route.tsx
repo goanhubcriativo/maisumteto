@@ -3,11 +3,17 @@ import { ImageResponse } from "next/og";
 export const runtime = "nodejs";
 
 // Cartão pronto (1080x1350) pra pessoa compartilhar no WhatsApp/Instagram.
-export async function GET() {
+export async function GET(req: Request) {
   const BEGE = "#b2ab97";
   const GRAFITE = "#273740";
   const AZUL = "#0291da";
   const PAPEL = "#f6f4ee";
+
+  // Detecta o domínio de onde o cartão é servido (adapta se trocar o domínio).
+  const host =
+    process.env.NEXT_PUBLIC_SITE_HOST ||
+    req.headers.get("host") ||
+    "maisumteto.vercel.app";
 
   return new ImageResponse(
     (
@@ -134,7 +140,7 @@ export async function GET() {
               fontWeight: 900,
             }}
           >
-            maisumteto.vercel.app
+            {host}
           </div>
           <div style={{ display: "flex", marginTop: "34px", fontSize: "28px", fontWeight: 700, letterSpacing: "1px" }}>
             100% PRA CAUSA · TETO PARANÁ
