@@ -3,17 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatBRL, reaisParaCentavos } from "@/lib/config";
-import CasinhaObra from "@/components/CasinhaObra";
-import {
-  IconPiloti,
-  IconCoracao,
-  IconWhats,
-  IconCasa,
-  IconMais,
-  IconX,
-  IconCadeado,
-  IconSeta,
-} from "@/components/icones";
+import { IconMais, IconX, IconCadeado, IconSeta } from "@/components/icones";
 
 interface Props {
   timeCasa: string;
@@ -62,18 +52,17 @@ export default function MontarCasinha({
   const [nome, setNome] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [cpf, setCpf] = useState("");
-  const [email, setEmail] = useState("");
 
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-  const totalFezinhas = fezinhas.length * valorCentavos;
-  const total = totalFezinhas + doacaoCentavos;
+  const n = fezinhas.length;
+  const total = n * valorCentavos + doacaoCentavos;
 
   function adicionar() {
     setErro("");
     if (novoCasa === "" || novoVisitante === "") {
-      setErro("Preencha o placar dos dois times pra fincar o piloti.");
+      setErro("Preencha o placar dos dois times pra fincar a fézinha.");
       return;
     }
     setFezinhas((f) => [
@@ -97,8 +86,8 @@ export default function MontarCasinha({
 
   async function fechar() {
     setErro("");
-    if (fezinhas.length < 1) {
-      setErro("Finque pelo menos um piloti (uma fézinha) antes de fechar.");
+    if (n < 1) {
+      setErro("Faça pelo menos uma fézinha antes de fechar.");
       return;
     }
     setEnviando(true);
@@ -110,7 +99,6 @@ export default function MontarCasinha({
           nome,
           whatsapp,
           cpf,
-          email,
           doacaoCentavos,
           palpites: fezinhas.map((f) => ({
             placarCasa: f.casa,
@@ -131,228 +119,158 @@ export default function MontarCasinha({
     }
   }
 
-  const n = fezinhas.length;
-
   return (
     <>
-      {/* Ilustração da obra */}
-      <div className="obra">
-        <CasinhaObra pilotis={n} />
-        <p className="obra-legenda">
-          {n === 0 ? (
-            <>Sua obra começa com a primeira fézinha.</>
+      {/* Caixa escura — a aposta, simples e direta */}
+      <section className="aposta">
+        <div className="aposta-topo">
+          <h2>Sua fézinha</h2>
+          <span className="aposta-jogo">
+            {timeCasa} × {timeVisitante} · {formatBRL(valorCentavos)} cada
+          </span>
+        </div>
+
+        <div className="aposta-adder">
+          <div className="lado">
+            <span className="time">{timeCasa}</span>
+            <input
+              value={novoCasa}
+              onChange={(e) => setNovoCasa(soPlacar(e.target.value))}
+              placeholder="0"
+              inputMode="numeric"
+              aria-label={`Gols ${timeCasa}`}
+            />
+          </div>
+          <span className="x">×</span>
+          <div className="lado">
+            <span className="time">{timeVisitante}</span>
+            <input
+              value={novoVisitante}
+              onChange={(e) => setNovoVisitante(soPlacar(e.target.value))}
+              placeholder="0"
+              inputMode="numeric"
+              aria-label={`Gols ${timeVisitante}`}
+            />
+          </div>
+          <button type="button" className="aposta-add" onClick={adicionar}>
+            <IconMais size={15} strokeWidth={2.4} /> Apostar
+          </button>
+        </div>
+
+        {n > 0 && (
+          <ul className="aposta-lista">
+            {fezinhas.map((f, i) => (
+              <li key={i}>
+                <span className="pl">
+                  {f.casa} <em>×</em> {f.visitante}
+                </span>
+                <span className="vl">{formatBRL(valorCentavos)}</span>
+                <button
+                  type="button"
+                  className="rm"
+                  onClick={() => remover(i)}
+                  aria-label="Remover fézinha"
+                >
+                  <IconX size={14} strokeWidth={2.4} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Dados — direto no fundo bege, sem caixa */}
+      <section className="dados">
+        <h3 className="dados-titulo">Seus dados</h3>
+        {erro && (
+          <div className="erro">
+            <span>{erro}</span>
+          </div>
+        )}
+        <div className="campo">
+          <label htmlFor="nome">Nome completo</label>
+          <input
+            id="nome"
+            value={nome}
+            onChange={(e) => setNome(e.target.value)}
+            placeholder="Seu nome"
+          />
+        </div>
+        <div className="linha">
+          <div className="campo">
+            <label htmlFor="whatsapp">WhatsApp</label>
+            <input
+              id="whatsapp"
+              value={whatsapp}
+              onChange={(e) => setWhatsapp(mascaraTel(e.target.value))}
+              placeholder="(00) 00000-0000"
+              inputMode="numeric"
+            />
+          </div>
+          <div className="campo">
+            <label htmlFor="cpf">CPF</label>
+            <input
+              id="cpf"
+              value={cpf}
+              onChange={(e) => setCpf(mascaraCpf(e.target.value))}
+              placeholder="000.000.000-00"
+              inputMode="numeric"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* Ajudinha extra — caixa azul clara */}
+      <section className="ajudinha">
+        <h3>Uma ajudinha extra</h3>
+        <p className="ajudinha-sub">
+          Aquela última batida para deixar o piloti no nível.
+        </p>
+        <div className="ajudinha-opcoes">
+          {doacaoPresets.map((c) => (
+            <button
+              type="button"
+              key={c}
+              className={`chip ${
+                customStr === "" && doacaoCentavos === c ? "ativo" : ""
+              }`}
+              onClick={() => escolherPreset(c)}
+            >
+              {c / 100}
+            </button>
+          ))}
+          <input
+            className="chip-outro"
+            value={customStr}
+            onChange={(e) => mudarCustom(e.target.value)}
+            placeholder="outro valor"
+            inputMode="decimal"
+            aria-label="Outro valor em reais"
+          />
+        </div>
+      </section>
+
+      {/* Fechar — resumo enxuto */}
+      <div className="fechar">
+        <div className="fechar-resumo">
+          <span>
+            {n} fézinha{n === 1 ? "" : "s"}
+            {doacaoCentavos > 0 && <> + ajudinha de {formatBRL(doacaoCentavos)}</>}
+          </span>
+          <span className="tot">{formatBRL(total)}</span>
+        </div>
+        <button className="cta" onClick={fechar} disabled={enviando || n < 1}>
+          {enviando ? (
+            "Gerando PIX..."
           ) : (
             <>
-              Sua casinha já está sobre <b>{n} piloti{n > 1 ? "s" : ""}</b>.
+              Fechar a casinha <IconSeta size={17} />
             </>
           )}
-        </p>
-      </div>
-
-      <div className="folha">
-        {/* 01 — Fézinha */}
-        <section className="passo">
-          <div className="passo-head">
-            <span className="passo-num">01</span>
-            <h2 className="passo-titulo">Sua fézinha</h2>
-            <IconPiloti className="icone" size={22} />
-          </div>
-          <p className="passo-sub">
-            Chute o placar da final. Cada fézinha custa{" "}
-            <b>{formatBRL(valorCentavos)}</b> e finca um piloti.
-          </p>
-
-          <div className="adder">
-            <div className="adder-time">
-              <div className="nome">{timeCasa}</div>
-              <input
-                value={novoCasa}
-                onChange={(e) => setNovoCasa(soPlacar(e.target.value))}
-                placeholder="0"
-                inputMode="numeric"
-                aria-label={`Gols ${timeCasa}`}
-              />
-            </div>
-            <span className="x">×</span>
-            <div className="adder-time">
-              <div className="nome">{timeVisitante}</div>
-              <input
-                value={novoVisitante}
-                onChange={(e) => setNovoVisitante(soPlacar(e.target.value))}
-                placeholder="0"
-                inputMode="numeric"
-                aria-label={`Gols ${timeVisitante}`}
-              />
-            </div>
-            <button type="button" className="btn-add" onClick={adicionar}>
-              <IconMais size={16} strokeWidth={2.2} /> Fincar
-            </button>
-          </div>
-
-          {n > 0 ? (
-            <ul className="fezinhas">
-              {fezinhas.map((f, i) => (
-                <li key={i} className="fezinha-row">
-                  <span className="idx">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="placar">
-                    {f.casa} <span className="xs">×</span> {f.visitante}
-                  </span>
-                  <span className="val">{formatBRL(valorCentavos)}</span>
-                  <button
-                    type="button"
-                    className="btn-remover"
-                    onClick={() => remover(i)}
-                    aria-label="Remover fézinha"
-                  >
-                    <IconX size={16} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="vazio">Nenhuma fézinha ainda — finque a primeira.</p>
-          )}
-        </section>
-
-        {/* 02 — Chorinho */}
-        <section className="passo">
-          <div className="passo-head">
-            <span className="passo-num">02</span>
-            <h2 className="passo-titulo">Um chorinho pra obra?</h2>
-            <IconCoracao className="icone" size={22} />
-          </div>
-          <p className="passo-sub">
-            Opcional: um extra que vai <b>direto pra construção</b>.
-          </p>
-          <div className="chips">
-            {doacaoPresets.map((c) => (
-              <button
-                type="button"
-                key={c}
-                className={`chip ${
-                  customStr === "" && doacaoCentavos === c ? "ativo" : ""
-                }`}
-                onClick={() => escolherPreset(c)}
-              >
-                +{formatBRL(c)}
-              </button>
-            ))}
-          </div>
-          <div className="campo" style={{ marginTop: 14, marginBottom: 0 }}>
-            <label htmlFor="custom">Outro valor (R$)</label>
-            <input
-              id="custom"
-              value={customStr}
-              onChange={(e) => mudarCustom(e.target.value)}
-              placeholder="ex.: 15,00"
-              inputMode="decimal"
-            />
-          </div>
-        </section>
-
-        {/* 03 — Dados */}
-        <section className="passo">
-          <div className="passo-head">
-            <span className="passo-num">03</span>
-            <h2 className="passo-titulo">Seus dados</h2>
-            <IconWhats className="icone" size={22} />
-          </div>
-          <p className="passo-sub">Pra confirmar o PIX e te avisar se ganhar.</p>
-
-          {erro && (
-            <div className="erro">
-              <IconX size={18} strokeWidth={2.4} />
-              <span>{erro}</span>
-            </div>
-          )}
-
-          <div className="campo">
-            <label htmlFor="nome">Nome completo</label>
-            <input
-              id="nome"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Seu nome"
-            />
-          </div>
-          <div className="linha">
-            <div className="campo">
-              <label htmlFor="whatsapp">WhatsApp</label>
-              <input
-                id="whatsapp"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(mascaraTel(e.target.value))}
-                placeholder="(00) 00000-0000"
-                inputMode="numeric"
-              />
-            </div>
-            <div className="campo">
-              <label htmlFor="cpf">CPF</label>
-              <input
-                id="cpf"
-                value={cpf}
-                onChange={(e) => setCpf(mascaraCpf(e.target.value))}
-                placeholder="000.000.000-00"
-                inputMode="numeric"
-              />
-            </div>
-          </div>
-          <div className="campo" style={{ marginBottom: 0 }}>
-            <label htmlFor="email">E-mail (opcional)</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="voce@email.com"
-            />
-          </div>
-        </section>
-
-        {/* 04 — Fechar */}
-        <section className="passo">
-          <div className="passo-head">
-            <span className="passo-num">04</span>
-            <h2 className="passo-titulo">Fechar a casinha</h2>
-            <IconCasa className="icone" size={22} />
-          </div>
-          <div className="resumo">
-            <div className="resumo-linha">
-              <span>
-                {n} fézinha{n === 1 ? "" : "s"} × {formatBRL(valorCentavos)}
-              </span>
-              <span className="v">{formatBRL(totalFezinhas)}</span>
-            </div>
-            <div className="resumo-linha">
-              <span>Chorinho pra obra</span>
-              <span className="v">{formatBRL(doacaoCentavos)}</span>
-            </div>
-            <div className="resumo-total">
-              <span className="lbl">Total</span>
-              <span className="v">{formatBRL(total)}</span>
-            </div>
-          </div>
-
-          <button
-            className="cta"
-            onClick={fechar}
-            disabled={enviando || n < 1}
-            style={{ marginTop: 18 }}
-          >
-            {enviando ? (
-              "Gerando PIX..."
-            ) : (
-              <>
-                Fechar a casinha • {formatBRL(total)} <IconSeta size={18} />
-              </>
-            )}
-          </button>
-          <div className="seguranca">
-            <IconCadeado size={14} /> Pagamento único e seguro via PIX
-          </div>
-        </section>
+        </button>
+        <div className="seguranca">
+          <IconCadeado size={13} /> Pagamento único e seguro via PIX
+        </div>
       </div>
     </>
   );

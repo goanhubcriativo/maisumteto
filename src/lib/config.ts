@@ -23,8 +23,8 @@ export function formatBRL(centavos: number): string {
   });
 }
 
-// Valores sugeridos de "chorinho" (doação extra), em centavos.
-export const doacaoPresetsCentavos = [500, 1000, 2500, 5000];
+// Valores sugeridos da "ajudinha extra" (doação), em centavos.
+export const doacaoPresetsCentavos = [500, 1000, 2500];
 
 // Converte um texto em reais ("10", "10,50", "R$ 7") para centavos.
 export function reaisParaCentavos(texto: string): number {
