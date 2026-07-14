@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { IconCheck, IconWhats } from "@/components/icones";
+import {
+  IconCheck,
+  IconWhats,
+  IconInstagram,
+  IconDownload,
+} from "@/components/icones";
 
 interface Palpite {
   placarCasa: number;
@@ -99,26 +104,29 @@ export default function TelaSucesso({
         <p className="share-legenda">
           Compartilhe que ajudou e incentive mais amigos a ajudar.
         </p>
-        <div className="acoes">
-          <button className="acao zap" onClick={() => compartilhar(false)}>
-            <IconWhats size={16} /> WhatsApp
+        <div className="acoes-share">
+          <button className="acao3" onClick={() => compartilhar(false)}>
+            <IconWhats size={20} />
+            WhatsApp
           </button>
-          <button className="acao stories" onClick={() => compartilhar(true)}>
-            Postar stories
+          <button className="acao3" onClick={() => compartilhar(true)}>
+            <IconInstagram size={20} />
+            Instagram
           </button>
           <button
-            className="acao baixar"
+            className="acao3"
             onClick={() => baixar("/api/card", "eu-contribui-teto.png")}
           >
-            Baixar imagem
-          </button>
-          <button
-            className={`acao recibo ${verRecibo ? "on" : ""}`}
-            onClick={() => setVerRecibo((v) => !v)}
-          >
-            {verRecibo ? "Ocultar recibo" : "Ver recibo da aposta"}
+            <IconDownload size={20} />
+            Baixar
           </button>
         </div>
+        <button
+          className={`acao-recibo ${verRecibo ? "on" : ""}`}
+          onClick={() => setVerRecibo((v) => !v)}
+        >
+          {verRecibo ? "Ocultar recibo" : "Ver recibo da aposta"}
+        </button>
       </div>
 
       {verRecibo && (

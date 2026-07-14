@@ -109,6 +109,13 @@ export async function GET(req: Request) {
         </div>
       </div>
     ),
-    { width: 1080, height: ALTURA }
+    {
+      width: 1080,
+      height: ALTURA,
+      headers: {
+        "Cache-Control":
+          "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
+      },
+    }
   );
 }

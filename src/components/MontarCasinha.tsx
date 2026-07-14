@@ -85,20 +85,23 @@ export default function MontarCasinha({
     "translate(72px, 10px) rotate(9deg)",
     "translate(-40px, 40px) rotate(-6deg)",
   ];
+  // 2ª corrida: sai do canto esquerdo (emerge pra direita) e corre — todos os
+  // pontos ficam à direita/centro pra ele não sumir enquanto a caixa corta.
   const PERCURSO_B = [
-    "translate(-66px, 40px) rotate(-9deg)",
-    "translate(74px, -26px) rotate(9deg)",
-    "translate(-48px, -44px) rotate(-7deg)",
-    "translate(58px, 42px) rotate(7deg)",
-    "translate(-72px, -10px) rotate(-9deg)",
-    "translate(40px, -40px) rotate(6deg)",
+    "translate(62px, -30px) rotate(9deg)",
+    "translate(18px, 42px) rotate(-6deg)",
+    "translate(72px, 14px) rotate(9deg)",
+    "translate(30px, -42px) rotate(-6deg)",
+    "translate(56px, 34px) rotate(7deg)",
+    "translate(12px, -8px) rotate(-5deg)",
   ];
   const DESCANSO = [
-    "translate(-82px, 8px) rotate(-8deg)", // 1ª vez: espia do canto esquerdo (o resto é cortado pela borda)
+    "translate(-98px, 10px) rotate(-9deg)", // 1ª vez: bem escondido no canto (o resto é cortado)
     "translate(0px, 0px) rotate(0deg)", // 2ª vez: volta pro lugar original
   ];
-  // A caixa "corta" o botão só quando ele está escondido no canto (após a 1ª corrida).
-  const boxEscondeu = naoFase === 1 && !naoCorrendo;
+  // A caixa "corta" o botão durante a fase escondida (descanso + 2ª corrida),
+  // então ele surge de trás da borda esquerda ao invés de piscar por fora.
+  const boxEscondeu = naoFase === 1;
 
   const n = fezinhas.length;
   const total = n * valorCentavos + doacaoCentavos;

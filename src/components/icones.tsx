@@ -126,3 +126,21 @@ export const IconTriste = (p: P) => (
     <path d="M8.3 16c1.2-1.8 6.2-1.8 7.4 0" />
   </Base>
 );
+
+// Instagram (stories)
+export const IconInstagram = (p: P) => (
+  <Base {...p}>
+    <rect x="3" y="3" width="18" height="18" rx="5" />
+    <circle cx="12" cy="12" r="4" />
+    <circle cx="16.6" cy="7.4" r="0.7" fill="currentColor" stroke="none" />
+  </Base>
+);
+
+// Baixar (download)
+export const IconDownload = (p: P) => (
+  <Base {...p}>
+    <path d="M12 4v11" />
+    <path d="M7.5 11L12 15.5 16.5 11" />
+    <path d="M5 20h14" />
+  </Base>
+);

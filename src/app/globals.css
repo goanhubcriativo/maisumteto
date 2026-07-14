@@ -1224,6 +1224,9 @@ input:focus {
 .card-preview {
   width: 100%;
   max-width: 300px;
+  aspect-ratio: 1080 / 1350;
+  object-fit: cover;
+  background: var(--papel);
   display: block;
   margin: 4px auto 0;
   border-radius: 12px;
@@ -1284,51 +1287,65 @@ input:focus {
   color: var(--grafite-70);
   margin: 12px 0 14px;
 }
-.acoes {
+.acoes-share {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 9px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   max-width: 380px;
   margin: 0 auto;
 }
-.acao {
-  display: inline-flex;
+.acao3 {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
+  background: var(--grafite);
+  color: #fff;
   border: none;
-  border-radius: 10px;
-  padding: 12px 10px;
-  font-size: 12.5px;
+  border-radius: 11px;
+  padding: 13px 6px;
+  font-size: 10.5px;
   font-weight: 800;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
   cursor: pointer;
   transition: opacity 0.15s;
 }
-.acao:active {
+.acao3 svg {
+  color: #fff;
+}
+.acao3:hover {
+  opacity: 0.9;
+}
+.acao3:active {
   transform: translateY(1px);
 }
-.acao.zap {
-  background: #25d366;
+.acao-recibo {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  margin: 9px auto 0;
+  background: var(--azul);
   color: #fff;
+  border: none;
+  border-radius: 11px;
+  padding: 14px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  transition: background 0.15s;
 }
-.acao.stories {
-  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
-  color: #fff;
+.acao-recibo:hover {
+  background: var(--azul-escuro);
 }
-.acao.baixar {
+.acao-recibo.on {
   background: var(--grafite);
-  color: var(--bege);
 }
-.acao.recibo {
-  background: transparent;
-  color: var(--grafite);
-  border: 1.5px solid var(--grafite);
-}
-.acao.recibo.on {
-  background: var(--grafite);
-  color: var(--bege);
+.acao-recibo:active {
+  transform: translateY(1px);
 }
 
 /* ---------- Recibo estilo comprovante de caixa (única caixa branca) ---------- */
