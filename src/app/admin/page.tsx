@@ -15,6 +15,8 @@ interface Casinha {
   palpites: string[];
   doacaoCentavos: number;
   valorTotalCentavos: number;
+  liquidoCentavos: number | null;
+  liquidoReal: boolean;
   createdAt: string;
   paidAt: string | null;
 }
@@ -24,7 +26,12 @@ interface Resumo {
   pendentes: number;
   palpitesPagos: number;
   totalArrecadadoCentavos: number;
+  totalApostasCentavos: number;
   totalDoacoesCentavos: number;
+  totalTaxaCentavos: number;
+  totalLiquidoCentavos: number;
+  taxaEstimadaCentavos: number;
+  liquidoTemEstimativa: boolean;
 }
 
 function brl(c: number) {
@@ -140,12 +147,59 @@ export default function AdminPage() {
           </div>
           <div className="stat">
             <div className="num">{brl(resumo.totalArrecadadoCentavos)}</div>
-            <div className="lbl">Arrecadado</div>
+            <div className="lbl">Arrecadado (bruto)</div>
           </div>
-          <div className="stat">
-            <div className="num">{brl(resumo.totalDoacoesCentavos)}</div>
-            <div className="lbl">Chorinho</div>
+          <div className="stat destaque">
+            <div className="num">{brl(resumo.totalLiquidoCentavos)}</div>
+            <div className="lbl">Líquido na conta</div>
           </div>
+        </div>
+      )}
+
+      {resumo && (
+        <div className="folha">
+          <section className="passo">
+            <h2 className="passo-titulo" style={{ marginBottom: 14 }}>
+              Prestação de contas
+            </h2>
+            <div className="contas">
+              <div className="conta-linha">
+                <span>Apostas (fézinhas)</span>
+                <span className="v">{brl(resumo.totalApostasCentavos)}</span>
+              </div>
+              <div className="conta-linha">
+                <span>Ajudinha extra (doações)</span>
+                <span className="v">{brl(resumo.totalDoacoesCentavos)}</span>
+              </div>
+              <div className="conta-linha forte">
+                <span>Total arrecadado (bruto)</span>
+                <span className="v">{brl(resumo.totalArrecadadoCentavos)}</span>
+              </div>
+              <div className="conta-linha neg">
+                <span>
+                  Taxas do Asaas
+                  <small>
+                    {" "}
+                    ({brl(resumo.taxaEstimadaCentavos)}/PIX ×{" "}
+                    {resumo.casinhasPagas})
+                  </small>
+                </span>
+                <span className="v">− {brl(resumo.totalTaxaCentavos)}</span>
+              </div>
+              <div className="conta-total">
+                <span>Líquido na conta</span>
+                <span className="v">{brl(resumo.totalLiquidoCentavos)}</span>
+              </div>
+            </div>
+            {resumo.liquidoTemEstimativa && (
+              <p className="conta-nota">
+                Alguns valores usam a taxa estimada de{" "}
+                {brl(resumo.taxaEstimadaCentavos)} por PIX. Quando o Asaas
+                confirmar cada pagamento, o líquido real substitui a
+                estimativa automaticamente.
+              </p>
+            )}
+          </section>
         </div>
       )}
 
@@ -219,6 +273,7 @@ export default function AdminPage() {
                   <th>Fézinhas</th>
                   <th>Chorinho</th>
                   <th>Total</th>
+                  <th>Líquido</th>
                   <th>Status</th>
                   <th>Quando</th>
                 </tr>
@@ -237,13 +292,28 @@ export default function AdminPage() {
                     </td>
                     <td>{c.doacaoCentavos > 0 ? brl(c.doacaoCentavos) : "·"}</td>
                     <td>{brl(c.valorTotalCentavos)}</td>
+                    <td>
+                      {c.liquidoCentavos !== null ? (
+                        <>
+                          {brl(c.liquidoCentavos)}
+                          {!c.liquidoReal && c.status === "PAGO" && (
+                            <span className="est" title="Estimado (aguardando confirmação do Asaas)">
+                              {" "}
+                              ~
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        "·"
+                      )}
+                    </td>
                     <td>{badge(c.status)}</td>
                     <td>{new Date(c.createdAt).toLocaleString("pt-BR")}</td>
                   </tr>
                 ))}
                 {visiveis.length === 0 && (
                   <tr>
-                    <td colSpan={7}>Nenhuma casinha.</td>
+                    <td colSpan={8}>Nenhuma casinha.</td>
                   </tr>
                 )}
               </tbody>

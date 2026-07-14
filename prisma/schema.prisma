@@ -26,8 +26,9 @@ model Casinha {
   email     String?
 
   // Valores (em centavos)
-  doacaoCentavos     Int @default(0) // "chorinho" extra
-  valorTotalCentavos Int             // palpites*preço + chorinho
+  doacaoCentavos     Int  @default(0) // "chorinho" extra
+  valorTotalCentavos Int              // palpites*preço + chorinho (bruto)
+  liquidoCentavos    Int?             // valor que caiu na conta (netValue do Asaas)
 
   // Pagamento
   status          String   @default("PENDENTE") // PENDENTE | PAGO | EXPIRADO | CANCELADO

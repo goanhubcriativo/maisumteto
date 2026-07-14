@@ -16,6 +16,19 @@ export function valorApostaCentavos(): number {
   return Number.isFinite(n) && n > 0 ? n : 1000;
 }
 
+// Grupo de clientes no Asaas para onde vão as cobranças desta campanha.
+export function grupoAsaas(): string {
+  return process.env.ASAAS_GRUPO || "DOAÇÕES TETO PARANÁ";
+}
+
+// Taxa estimada por PIX (centavos), usada só como estimativa enquanto o
+// valor líquido real (netValue do Asaas) ainda não chegou.
+export function taxaPixEstimadaCentavos(): number {
+  const raw = process.env.TAXA_PIX_ESTIMADA_CENTAVOS;
+  const n = raw ? parseInt(raw, 10) : 99;
+  return Number.isFinite(n) && n >= 0 ? n : 99;
+}
+
 export function formatBRL(centavos: number): string {
   return (centavos / 100).toLocaleString("pt-BR", {
     style: "currency",

@@ -58,6 +58,7 @@ export interface CriarCustomerInput {
 }
 
 export async function criarCustomer(input: CriarCustomerInput): Promise<string> {
+  const grupo = process.env.ASAAS_GRUPO || "DOAÇÕES TETO PARANÁ";
   const data = await asaasFetch("/customers", {
     method: "POST",
     body: JSON.stringify({
@@ -65,6 +66,7 @@ export async function criarCustomer(input: CriarCustomerInput): Promise<string> 
       cpfCnpj: input.cpf,
       mobilePhone: input.whatsapp || undefined,
       email: input.email || undefined,
+      groupName: grupo, // direciona ao grupo "DOAÇÕES TETO PARANÁ"
     }),
   });
   return data.id as string;
@@ -117,9 +119,17 @@ export async function obterQrCodePix(paymentId: string): Promise<PixQrCode> {
 
 export async function consultarPagamento(
   paymentId: string
-): Promise<{ status: string }> {
+): Promise<{ status: string; netValue: number | null }> {
   const data = await asaasFetch(`/payments/${paymentId}`, { method: "GET" });
-  return { status: data.status as string };
+  return {
+    status: data.status as string,
+    netValue: typeof data.netValue === "number" ? data.netValue : null,
+  };
+}
+
+// Converte o netValue (reais) do Asaas em centavos, se disponível.
+export function netValueParaCentavos(netValue: unknown): number | null {
+  return typeof netValue === "number" ? Math.round(netValue * 100) : null;
 }
 
 // Status do Asaas que consideramos "pago".

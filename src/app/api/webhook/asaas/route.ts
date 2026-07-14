@@ -41,7 +41,14 @@ export async function POST(req: NextRequest) {
   if (statusEhPago(payment.status) && casinha.status !== "PAGO") {
     await prisma.casinha.update({
       where: { id: casinha.id },
-      data: { status: "PAGO", paidAt: new Date() },
+      data: {
+        status: "PAGO",
+        paidAt: new Date(),
+        liquidoCentavos:
+          typeof payment.netValue === "number"
+            ? Math.round(payment.netValue * 100)
+            : null,
+      },
     });
   } else if (
     ["PAYMENT_DELETED", "PAYMENT_REFUNDED"].includes(body.event) &&

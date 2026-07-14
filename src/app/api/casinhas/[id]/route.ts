@@ -27,7 +27,12 @@ export async function GET(
       if (statusEhPago(r.status)) {
         await prisma.casinha.update({
           where: { id },
-          data: { status: "PAGO", paidAt: new Date() },
+          data: {
+            status: "PAGO",
+            paidAt: new Date(),
+            liquidoCentavos:
+              r.netValue !== null ? Math.round(r.netValue * 100) : null,
+          },
         });
         status = "PAGO";
       }
