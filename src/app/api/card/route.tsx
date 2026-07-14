@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 
 // Cartão pronto (1080x1350) pra pessoa compartilhar no WhatsApp/Instagram.
 export async function GET(req: Request) {
+  const BEGE = "#b2ab97";
   const GRAFITE = "#273740";
   const AZUL = "#0291da";
   const PAPEL = "#f6f4ee";
@@ -39,8 +40,8 @@ export async function GET(req: Request) {
           height: "1350px",
           display: "flex",
           flexDirection: "column",
-          backgroundColor: GRAFITE,
-          color: PAPEL,
+          backgroundColor: BEGE,
+          color: GRAFITE,
           padding: "78px 76px",
           fontFamily: "sans-serif",
         }}
@@ -48,13 +49,13 @@ export async function GET(req: Request) {
         {/* Logo da campanha, no topo */}
         {logo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={logo} width={660} height={387} alt="" />
+          <img src={logo} width={495} height={290} alt="" />
         ) : (
-          <div style={{ display: "flex", height: "180px" }} />
+          <div style={{ display: "flex", height: "140px" }} />
         )}
 
-        {/* Empurra o bloco de texto pra baixo */}
-        <div style={{ display: "flex", height: "120px" }} />
+        {/* Espaço entre logo e texto */}
+        <div style={{ display: "flex", height: "56px" }} />
 
         {/* Chamada */}
         <div style={{ display: "flex", flexDirection: "column" }}>
