@@ -1243,7 +1243,213 @@ input:focus {
   text-decoration: none;
 }
 
-/* ---------- Comprovante (recibo das apostas) ---------- */
+/* ---------- Tela de conclusão (sem caixa branca geral) ---------- */
+.sucesso-topo {
+  text-align: center;
+  margin-top: 8px;
+}
+.sucesso-topo .selo {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: var(--verde);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.st-titulo {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  color: var(--grafite);
+}
+.st-sub {
+  font-size: 14px;
+  color: var(--grafite-70);
+  max-width: 40ch;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+.sucesso-share {
+  margin-top: 22px;
+  text-align: center;
+}
+.share-legenda {
+  font-size: 13px;
+  color: var(--grafite-70);
+  margin: 12px 0 14px;
+}
+.acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  max-width: 380px;
+  margin: 0 auto;
+}
+.acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 10px;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.acao:active {
+  transform: translateY(1px);
+}
+.acao.zap {
+  background: #25d366;
+  color: #fff;
+}
+.acao.stories {
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  color: #fff;
+}
+.acao.baixar {
+  background: var(--grafite);
+  color: var(--bege);
+}
+.acao.recibo {
+  background: transparent;
+  color: var(--grafite);
+  border: 1.5px solid var(--grafite);
+}
+.acao.recibo.on {
+  background: var(--grafite);
+  color: var(--bege);
+}
+
+/* ---------- Recibo estilo comprovante de caixa (única caixa branca) ---------- */
+.recibo-caixa {
+  position: relative;
+  background: #fff;
+  color: #222;
+  max-width: 330px;
+  margin: 24px auto 0;
+  padding: 28px 26px 22px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  box-shadow: 0 12px 26px rgba(39, 55, 64, 0.18);
+}
+.recibo-caixa::before,
+.recibo-caixa::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-image: linear-gradient(45deg, var(--bege) 6px, transparent 0),
+    linear-gradient(-45deg, var(--bege) 6px, transparent 0);
+  background-size: 12px 10px;
+  background-repeat: repeat-x;
+}
+.recibo-caixa::before {
+  top: 0;
+}
+.recibo-caixa::after {
+  bottom: 0;
+  transform: scaleY(-1);
+}
+.rc-topo {
+  text-align: center;
+}
+.rc-tit {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
+.rc-sub {
+  font-size: 10px;
+  color: #666;
+  margin-top: 3px;
+  letter-spacing: 1px;
+}
+.rc-hr {
+  border-top: 2px dashed #c4c4c4;
+  margin: 13px 0;
+}
+.rc-linha {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #666;
+}
+.rc-linha span:last-child {
+  color: #222;
+}
+.rc-itens {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.rc-itens li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  padding: 5px 0;
+}
+.rc-itens li.mut {
+  color: #666;
+}
+.rc-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 800;
+}
+.rc-rodape {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #666;
+  margin-top: 14px;
+}
+.rc-rodape .pago {
+  color: var(--verde);
+  font-weight: 800;
+}
+.rc-obrigado {
+  text-align: center;
+  font-size: 9px;
+  color: #999;
+  margin-top: 12px;
+  letter-spacing: 1px;
+}
+.rc-baixar {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  background: #222;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 11px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.voltar-txt {
+  display: block;
+  text-align: center;
+  margin: 24px auto 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--grafite-70);
+  text-decoration: underline;
+}
+
+/* ---------- Comprovante antigo (admin/legado) ---------- */
 .recibo-itens {
   list-style: none;
   margin: 4px 0 0;

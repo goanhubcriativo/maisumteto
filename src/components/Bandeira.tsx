@@ -26,10 +26,18 @@ const ARGENTINA = (
   </>
 );
 
+const ESPANHA = (
+  <>
+    <rect width="24" height="16" fill="#c60b1e" />
+    <rect width="24" height="8" y="4" fill="#ffc400" />
+  </>
+);
+
 const MAPA: Record<string, React.ReactNode> = {
   franca: FRANCA,
   frança: FRANCA,
   argentina: ARGENTINA,
+  espanha: ESPANHA,
 };
 
 export default function Bandeira({

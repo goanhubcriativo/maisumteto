@@ -9,6 +9,9 @@ export async function GET(req: Request) {
   const AZUL = "#0291da";
   const PAPEL = "#f6f4ee";
 
+  const stories = new URL(req.url).searchParams.get("f") === "stories";
+  const ALTURA = stories ? 1920 : 1350;
+
   const reqHost = req.headers.get("host") || "";
   // Domínio MOSTRADO no cartão (canônico, por env).
   const host =
@@ -37,7 +40,7 @@ export async function GET(req: Request) {
       <div
         style={{
           width: "1080px",
-          height: "1350px",
+          height: `${ALTURA}px`,
           display: "flex",
           flexDirection: "column",
           backgroundColor: BEGE,
@@ -56,6 +59,7 @@ export async function GET(req: Request) {
 
         {/* Espaço entre logo e texto */}
         <div style={{ display: "flex", height: "56px" }} />
+        {stories && <div style={{ display: "flex", flex: 0.7 }} />}
 
         {/* Chamada */}
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -105,6 +109,6 @@ export async function GET(req: Request) {
         </div>
       </div>
     ),
-    { width: 1080, height: 1350 }
+    { width: 1080, height: ALTURA }
   );
 }
