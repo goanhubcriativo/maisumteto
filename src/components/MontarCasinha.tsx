@@ -56,6 +56,7 @@ export default function MontarCasinha({
 
   const [erro, setErro] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [martelo, setMartelo] = useState(0); // dispara a "marretada"
 
   const n = fezinhas.length;
   const total = n * valorCentavos + doacaoCentavos;
@@ -72,6 +73,7 @@ export default function MontarCasinha({
     ]);
     setNovoCasa("");
     setNovoVisitante("");
+    setMartelo((m) => m + 1);
   }
   function remover(i: number) {
     setFezinhas((f) => f.filter((_, idx) => idx !== i));
@@ -157,9 +159,26 @@ export default function MontarCasinha({
               aria-label={`Gols ${timeVisitante}`}
             />
           </div>
-          <button type="button" className="aposta-add" onClick={adicionar}>
-            <IconMais size={15} strokeWidth={2.4} /> Fincar
-          </button>
+          <span className="add-wrap">
+            <button
+              type="button"
+              className={`aposta-add ${martelo ? "recuo" : ""}`}
+              key={`btn-${martelo}`}
+              onClick={adicionar}
+            >
+              <IconMais size={15} strokeWidth={2.4} /> Fincar
+            </button>
+            {martelo > 0 && (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                key={martelo}
+                className="marretada"
+                src="/piloti-marretada.svg"
+                alt=""
+                aria-hidden
+              />
+            )}
+          </span>
         </div>
 
         {n > 0 && (

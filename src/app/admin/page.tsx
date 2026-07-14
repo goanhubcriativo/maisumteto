@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { IconSeta } from "@/components/icones";
+import LogoTeto from "@/components/LogoTeto";
 
 interface Casinha {
   id: string;
@@ -78,8 +79,7 @@ export default function AdminPage() {
     return (
       <main className="canvas">
         <header className="masthead">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-escuro.svg" alt="Teto" className="masthead-logo" />
+          <LogoTeto className="masthead-logo" />
           <div className="sobre">Painel da organização</div>
         </header>
         <div className="folha">
@@ -124,7 +124,7 @@ export default function AdminPage() {
     <main className="canvas admin-wide">
       <header className="masthead">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo-escuro.svg" alt="Teto" className="masthead-logo" />
+        <LogoTeto className="masthead-logo" />
         <div className="sobre">Painel · arrecadação da obra</div>
       </header>
 

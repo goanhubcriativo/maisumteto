@@ -6,6 +6,7 @@ import {
 import MontarCasinha from "@/components/MontarCasinha";
 import ProgressoPiloti from "@/components/ProgressoPiloti";
 import RegrasCampanha from "@/components/RegrasCampanha";
+import LogoTeto from "@/components/LogoTeto";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +21,7 @@ export default function Home() {
 
       {/* Logo grande sobre o bege */}
       <header className="masthead">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/logo-claro.svg"
-          alt="Um Teto, um recomeço"
-          className="masthead-logo"
-        />
+        <LogoTeto className="masthead-logo" />
       </header>
 
       {/* Piloti = barra de carregamento da meta */}
