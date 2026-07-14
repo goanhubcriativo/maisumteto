@@ -45,24 +45,25 @@ export async function GET(req: Request) {
           flexDirection: "column",
           backgroundColor: BEGE,
           color: GRAFITE,
-          padding: "78px 76px",
+          // No stories, margens grandes: topo evita o nome de quem posta,
+          // rodapé evita a área de resposta/comentário.
+          padding: stories ? "220px 76px 360px" : "78px 76px",
           fontFamily: "sans-serif",
         }}
       >
         {/* Logo da campanha, no topo */}
         {logo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={logo} width={495} height={290} alt="" />
+          <img src={logo} width={495} height={290} alt="" style={{ flexShrink: 0 }} />
         ) : (
-          <div style={{ display: "flex", height: "140px" }} />
+          <div style={{ display: "flex", height: "140px", flexShrink: 0 }} />
         )}
 
         {/* Espaço entre logo e texto */}
-        <div style={{ display: "flex", height: "56px" }} />
-        {stories && <div style={{ display: "flex", flex: 0.7 }} />}
+        <div style={{ display: "flex", height: stories ? "96px" : "56px", flexShrink: 0 }} />
 
         {/* Chamada */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
           <div style={{ display: "flex", fontSize: "40px", fontWeight: 600, lineHeight: 1.2 }}>
             Eu fiz uma fézinha para a Final da Copa e
           </div>
@@ -87,7 +88,7 @@ export async function GET(req: Request) {
         <div style={{ display: "flex", flex: 1 }} />
 
         {/* Convite + link */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
           <div style={{ display: "flex", fontSize: "42px", fontWeight: 700 }}>
             Contribua você também:
           </div>
