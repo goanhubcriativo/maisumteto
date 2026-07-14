@@ -144,3 +144,39 @@ export const IconDownload = (p: P) => (
     <path d="M5 20h14" />
   </Base>
 );
+
+// Mangueira de nível pisada — vetor ilustrativo (multicor) para o popup de erro.
+// Uma mangueira enrolada (o "nível" da obra) com uma bota pisando e água jorrando.
+export const MangueiraNivel = ({ size = 132 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={(size * 112) / 150}
+    viewBox="0 0 150 112"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    {/* poça d'água no chão */}
+    <ellipse cx="70" cy="99" rx="54" ry="9" fill="#0291da" opacity="0.16" />
+    {/* mangueira enrolada — traço grafite */}
+    <ellipse cx="66" cy="72" rx="44" ry="26" fill="none" stroke="#273740" strokeWidth="11" strokeLinecap="round" />
+    <ellipse cx="66" cy="72" rx="22" ry="12" fill="none" stroke="#273740" strokeWidth="11" strokeLinecap="round" />
+    {/* água translúcida dentro da mangueira */}
+    <ellipse cx="66" cy="72" rx="44" ry="26" fill="none" stroke="#7fd0f5" strokeWidth="3.4" />
+    <ellipse cx="66" cy="72" rx="22" ry="12" fill="none" stroke="#7fd0f5" strokeWidth="2.8" />
+    {/* ponta da mangueira saindo pra cima */}
+    <path d="M108 64 q28 -6 30 -32" fill="none" stroke="#273740" strokeWidth="11" strokeLinecap="round" />
+    {/* bota pisando (inclinada) */}
+    <g transform="rotate(-12 74 38)">
+      <rect x="56" y="12" width="36" height="40" rx="15" fill="#273740" />
+      <rect x="50" y="46" width="48" height="13" rx="6" fill="#141d22" />
+    </g>
+    {/* esguicho d'água pra esquerda */}
+    <path d="M40 47 q-9 -15 -3 -32" stroke="#0291da" strokeWidth="6" strokeLinecap="round" fill="none" />
+    <circle cx="34" cy="11" r="5" fill="#0291da" />
+    <circle cx="23" cy="25" r="3.6" fill="#7fd0f5" />
+    {/* esguicho d'água pra direita */}
+    <path d="M110 42 q7 -11 3 -24" stroke="#0291da" strokeWidth="5" strokeLinecap="round" fill="none" />
+    <circle cx="116" cy="13" r="4.2" fill="#7fd0f5" />
+  </svg>
+);

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { config } from "@/lib/config";
 import {
   IconCheck,
   IconWhats,
@@ -38,6 +39,9 @@ export default function TelaSucesso({
   origem,
 }: Props) {
   const [verRecibo, setVerRecibo] = useState(false);
+  const abbr = (s: string) => s.trim().slice(0, 3).toUpperCase();
+  const casaAb = abbr(config.timeCasa);
+  const visAb = abbr(config.timeVisitante);
   const qtd = palpites.length;
   const unit =
     qtd > 0 ? Math.round((valorTotalCentavos - doacaoCentavos) / qtd) : 0;
@@ -134,6 +138,9 @@ export default function TelaSucesso({
           <div className="rc-topo">
             <div className="rc-tit">COMPROVANTE</div>
             <div className="rc-sub">BOLÃO DA CASA AMIGA · TETO</div>
+            <div className="rc-jogo">
+              {config.timeCasa.toUpperCase()} × {config.timeVisitante.toUpperCase()}
+            </div>
           </div>
           <div className="rc-hr" />
           <div className="rc-linha">
@@ -145,8 +152,8 @@ export default function TelaSucesso({
             {palpites.map((p, i) => (
               <li key={i}>
                 <span>
-                  {String(i + 1).padStart(2, "0")} APOSTA {p.placarCasa} x{" "}
-                  {p.placarVisitante}
+                  {String(i + 1).padStart(2, "0")} {casaAb} {p.placarCasa} x{" "}
+                  {p.placarVisitante} {visAb}
                 </span>
                 <span>{brl(unit)}</span>
               </li>

@@ -10,6 +10,8 @@ import {
   IconSeta,
   IconFeliz,
   IconTriste,
+  IconCheck,
+  MangueiraNivel,
 } from "@/components/icones";
 import Bandeira from "@/components/Bandeira";
 
@@ -61,7 +63,8 @@ export default function MontarCasinha({
   const [whatsapp, setWhatsapp] = useState("");
   const [cpf, setCpf] = useState("");
 
-  const [erro, setErro] = useState("");
+  const [erroMsg, setErroMsg] = useState(""); // dispara o popup da mangueira
+  const [soAjuda, setSoAjuda] = useState(false); // "não quero apostar, só ajudar"
   const [enviando, setEnviando] = useState(false);
   const [martelo, setMartelo] = useState(0); // dispara a "marretada"
 
@@ -103,8 +106,23 @@ export default function MontarCasinha({
   // então ele surge de trás da borda esquerda ao invés de piscar por fora.
   const boxEscondeu = naoFase === 1;
 
-  const n = fezinhas.length;
+  const n = soAjuda ? 0 : fezinhas.length;
   const total = n * valorCentavos + doacaoCentavos;
+  const podeFechar = soAjuda ? doacaoCentavos > 0 : n >= 1;
+
+  // Marca "só ajudar": zera as fézinhas e o placar em digitação.
+  function alternarSoAjuda() {
+    setErroMsg("");
+    setSoAjuda((s) => {
+      const novo = !s;
+      if (novo) {
+        setFezinhas([]);
+        setNovoCasa("");
+        setNovoVisitante("");
+      }
+      return novo;
+    });
+  }
 
   function pararCorrida() {
     if (runInt.current) clearInterval(runInt.current);
@@ -134,9 +152,11 @@ export default function MontarCasinha({
   }, [popupPendente]);
 
   function adicionar() {
-    setErro("");
+    setErroMsg("");
     if (novoCasa === "" || novoVisitante === "") {
-      setErro("Preencha o placar dos dois times pra fincar a fézinha.");
+      setErroMsg(
+        "Faltou o placar de um dos times. Coloca quantos gols cada seleção faz e finca de novo."
+      );
       return;
     }
     const primeira = fezinhas.length === 0;
@@ -200,11 +220,35 @@ export default function MontarCasinha({
   }
 
   async function fechar() {
-    setErro("");
-    if (n < 1) {
-      setErro("Faça pelo menos uma fézinha antes de fechar.");
+    setErroMsg("");
+
+    // Validações amigáveis (todas caem no popup da mangueira).
+    if (!soAjuda && fezinhas.length < 1) {
+      setErroMsg(
+        "Você ainda não fez nenhuma fézinha. Finca um palpite — ou marque “só quero ajudar” pra doar sem apostar."
+      );
       return;
     }
+    if (soAjuda && doacaoCentavos <= 0) {
+      setErroMsg(
+        "Pra ajudar sem apostar, escolha um valor da ajudinha extra ali embaixo."
+      );
+      return;
+    }
+    if (nome.trim().length < 3) {
+      setErroMsg("Faltou seu nome completo — a gente quer saber quem levantou o piloti.");
+      return;
+    }
+    const telDigitos = whatsapp.replace(/\D/g, "");
+    if (telDigitos.length !== 10 && telDigitos.length !== 11) {
+      setErroMsg("Confere o WhatsApp: precisa do DDD + número completo.");
+      return;
+    }
+    if (cpf.replace(/\D/g, "").length !== 11) {
+      setErroMsg("Confere o CPF: são 11 dígitos (é ele que identifica o PIX).");
+      return;
+    }
+
     setEnviando(true);
     try {
       const res = await fetch("/api/casinhas", {
@@ -215,21 +259,23 @@ export default function MontarCasinha({
           whatsapp,
           cpf,
           doacaoCentavos,
-          palpites: fezinhas.map((f) => ({
-            placarCasa: f.casa,
-            placarVisitante: f.visitante,
-          })),
+          palpites: soAjuda
+            ? []
+            : fezinhas.map((f) => ({
+                placarCasa: f.casa,
+                placarVisitante: f.visitante,
+              })),
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setErro(data.erro || "Não foi possível fechar a casinha.");
+        setErroMsg(data.erro || "Não foi possível fechar a casinha. Tenta de novo.");
         setEnviando(false);
         return;
       }
       router.push(`/pagar/${data.id}`);
     } catch {
-      setErro("Erro de conexão. Tente de novo.");
+      setErroMsg("Deu ruim na conexão. Confere a internet e tenta de novo.");
       setEnviando(false);
     }
   }
@@ -245,6 +291,13 @@ export default function MontarCasinha({
           </span>
         </div>
 
+        {soAjuda ? (
+          <p className="so-ajuda-nota">
+            Fechado! Você vai <strong>ajudar sem apostar</strong>. É só escolher o
+            valor da contribuição na <em>ajudinha extra</em>, logo abaixo.
+          </p>
+        ) : (
+          <>
         <div className="aposta-adder">
           <div className="lado">
             <span className="time">
@@ -316,16 +369,28 @@ export default function MontarCasinha({
             ))}
           </ul>
         )}
+          </>
+        )}
+
+        <label className="so-ajuda">
+          <input
+            type="checkbox"
+            checked={soAjuda}
+            onChange={alternarSoAjuda}
+            aria-label="Não quero apostar, mas quero ajudar"
+          />
+          <span className="so-ajuda-box" aria-hidden>
+            {soAjuda && <IconCheck size={13} strokeWidth={3} />}
+          </span>
+          <span className="so-ajuda-txt">
+            Não quero apostar, <strong>mas quero ajudar</strong>
+          </span>
+        </label>
       </section>
 
       {/* Dados — direto no fundo bege, sem caixa */}
       <section className="dados">
         <h3 className="dados-titulo">Seus dados</h3>
-        {erro && (
-          <div className="erro">
-            <span>{erro}</span>
-          </div>
-        )}
         <div className="campo">
           <label htmlFor="nome">Nome completo</label>
           <input
@@ -393,12 +458,28 @@ export default function MontarCasinha({
       <div className="fechar">
         <div className="fechar-resumo">
           <span>
-            {n} fézinha{n === 1 ? "" : "s"}
-            {doacaoCentavos > 0 && <> + ajudinha de {formatBRL(doacaoCentavos)}</>}
+            {soAjuda ? (
+              doacaoCentavos > 0 ? (
+                <>Ajudinha de {formatBRL(doacaoCentavos)}</>
+              ) : (
+                <>Escolha o valor da ajudinha</>
+              )
+            ) : (
+              <>
+                {n} fézinha{n === 1 ? "" : "s"}
+                {doacaoCentavos > 0 && (
+                  <> + ajudinha de {formatBRL(doacaoCentavos)}</>
+                )}
+              </>
+            )}
           </span>
           <span className="tot">{formatBRL(total)}</span>
         </div>
-        <button className="cta" onClick={fechar} disabled={enviando || n < 1}>
+        <button
+          className={`cta ${!podeFechar ? "cta-espera" : ""}`}
+          onClick={fechar}
+          disabled={enviando}
+        >
           {enviando ? (
             "Gerando PIX..."
           ) : (
@@ -435,6 +516,26 @@ export default function MontarCasinha({
                 Sim <IconFeliz size={18} />
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup de erro — pisou na mangueira de nível */}
+      {erroMsg && (
+        <div className="pop-overlay" onClick={() => setErroMsg("")}>
+          <div className="pop-erro" onClick={(e) => e.stopPropagation()}>
+            <div className="pop-erro-vetor">
+              <MangueiraNivel size={140} />
+            </div>
+            <p className="pop-erro-tit">Ah, não! Pisou na mangueira de nível!</p>
+            <p className="pop-erro-msg">{erroMsg}</p>
+            <button
+              type="button"
+              className="pop-corrigir"
+              onClick={() => setErroMsg("")}
+            >
+              Corrigir
+            </button>
           </div>
         </div>
       )}

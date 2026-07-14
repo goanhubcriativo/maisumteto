@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { prisma } from "@/lib/db";
+import { config } from "@/lib/config";
 
 export const runtime = "nodejs";
 
@@ -69,9 +70,14 @@ export async function GET(
     protocolo = "A1B2C3D4";
   }
 
+  const abbr = (s: string) => s.trim().slice(0, 3).toUpperCase();
+  const casaAb = abbr(config.timeCasa);
+  const visAb = abbr(config.timeVisitante);
+  const jogo = `${config.timeCasa.toUpperCase()} × ${config.timeVisitante.toUpperCase()}`;
+
   const TINTA = "#222";
   const CINZA = "#666";
-  const H = 560 + itens.length * 58 + (doacao > 0 ? 50 : 0);
+  const H = 610 + itens.length * 58 + (doacao > 0 ? 50 : 0);
   const linhaPontilhada = {
     display: "flex",
     borderTop: "2px dashed #bbb",
@@ -100,6 +106,9 @@ export async function GET(
           <div style={{ display: "flex", fontSize: "22px", color: CINZA, marginTop: "6px" }}>
             BOLÃO DA CASA AMIGA · TETO
           </div>
+          <div style={{ display: "flex", fontSize: "26px", fontWeight: 800, marginTop: "12px", letterSpacing: "1px" }}>
+            {jogo}
+          </div>
         </div>
 
         <div style={linhaPontilhada} />
@@ -126,7 +135,7 @@ export async function GET(
               style={{ display: "flex", justifyContent: "space-between", fontSize: "26px", padding: "7px 0" }}
             >
               <span>
-                {String(i + 1).padStart(2, "0")}  APOSTA {it.placar}
+                {String(i + 1).padStart(2, "0")}  {casaAb} {it.placar} {visAb}
               </span>
               <span>{brl(it.valor)}</span>
             </div>

@@ -289,44 +289,59 @@ a {
   transform-origin: bottom center;
   z-index: 6;
   opacity: 0;
-  animation: marretada 1.15s cubic-bezier(0.3, 1.25, 0.5, 1) 0.1s forwards;
+  animation: marretada 2s cubic-bezier(0.3, 1.2, 0.5, 1) 0.32s forwards;
 }
 @keyframes marretada {
   0% {
-    transform: translate(-50%, -150%) rotate(-12deg) scale(0.5);
+    transform: translate(-50%, -155%) rotate(-13deg) scale(0.55);
     opacity: 0;
   }
-  18% {
-    transform: translate(-50%, -150%) rotate(-12deg) scale(0.5);
+  12% {
+    transform: translate(-50%, -155%) rotate(-13deg) scale(0.55);
     opacity: 0;
   }
-  30% {
-    transform: translate(-50%, -140%) rotate(-10deg) scale(0.8);
+  22% {
+    transform: translate(-50%, -140%) rotate(-11deg) scale(0.85);
     opacity: 1;
   }
-  52% {
-    transform: translate(-50%, 8%) rotate(0deg) scale(1.05);
+  /* 1ª batida */
+  38% {
+    transform: translate(-50%, 8%) rotate(0deg) scale(1.06);
     opacity: 1;
   }
-  64% {
-    transform: translate(-50%, -12%) rotate(3deg) scale(1);
+  /* levanta de novo */
+  56% {
+    transform: translate(-50%, -78%) rotate(-9deg) scale(0.94);
     opacity: 1;
   }
-  82% {
-    transform: translate(-50%, -6%) rotate(0deg) scale(1);
+  /* 2ª batida */
+  72% {
+    transform: translate(-50%, 6%) rotate(1deg) scale(1.03);
+    opacity: 1;
+  }
+  84% {
+    transform: translate(-50%, -8%) rotate(0deg) scale(1);
     opacity: 1;
   }
   100% {
-    transform: translate(-50%, -40%) rotate(0deg) scale(0.9);
+    transform: translate(-50%, -48%) rotate(0deg) scale(0.9);
     opacity: 0;
   }
 }
 @keyframes recuo {
   0%,
-  40% {
+  30% {
     transform: translateY(0);
   }
-  62% {
+  /* dip da 1ª batida */
+  38% {
+    transform: translateY(3px) scale(0.97);
+  }
+  52% {
+    transform: translateY(0);
+  }
+  /* dip da 2ª batida */
+  72% {
     transform: translateY(3px) scale(0.97);
   }
   100% {
@@ -334,7 +349,7 @@ a {
   }
 }
 .aposta-add.recuo {
-  animation: recuo 0.85s ease;
+  animation: recuo 2s ease 0.32s;
 }
 .aposta-lista {
   list-style: none;
@@ -389,6 +404,66 @@ a {
 }
 .aposta-lista .rm:hover {
   color: #ff8896;
+}
+/* "Não quero apostar, mas quero ajudar" */
+.so-ajuda {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(246, 244, 238, 0.14);
+  cursor: pointer;
+  user-select: none;
+}
+.so-ajuda input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.so-ajuda-box {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(246, 244, 238, 0.5);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: background 0.15s, border-color 0.15s;
+}
+.so-ajuda input:checked + .so-ajuda-box {
+  background: var(--azul);
+  border-color: var(--azul);
+}
+.so-ajuda input:focus-visible + .so-ajuda-box {
+  outline: 2px solid var(--azul);
+  outline-offset: 2px;
+}
+.so-ajuda-txt {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgba(246, 244, 238, 0.85);
+}
+.so-ajuda-txt strong {
+  color: #fff;
+  font-weight: 800;
+}
+.so-ajuda-nota {
+  margin: 4px 0 2px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(246, 244, 238, 0.85);
+}
+.so-ajuda-nota strong {
+  color: #fff;
+}
+.so-ajuda-nota em {
+  font-style: normal;
+  color: var(--azul-claro, #7fd0f5);
+  font-weight: 700;
 }
 
 /* ---------- Dados (sem caixa, direto no bege) ---------- */
@@ -563,6 +638,59 @@ a {
   color: #fff;
 }
 .pop-sim:hover {
+  background: var(--azul-escuro);
+}
+
+/* Popup de erro — "pisou na mangueira de nível" */
+.pop-erro {
+  width: 100%;
+  max-width: 380px;
+  background: var(--papel);
+  border: 1.5px solid var(--grafite);
+  border-radius: 18px;
+  box-shadow: 6px 6px 0 rgba(39, 55, 64, 0.25);
+  padding: 26px 26px 24px;
+  text-align: center;
+  animation: popIn 0.24s ease both;
+}
+.pop-erro-vetor {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+.pop-erro-tit {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--grafite);
+}
+.pop-erro-msg {
+  margin: 0 0 20px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: rgba(39, 55, 64, 0.82);
+}
+.pop-corrigir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 26px;
+  background: var(--azul);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+}
+.pop-corrigir:hover {
   background: var(--azul-escuro);
 }
 @keyframes fadeOverlay {
@@ -1116,6 +1244,15 @@ input:focus {
 .cta.secacao {
   background: var(--grafite);
 }
+/* Ainda falta algo pra fechar: clicável (mostra o popup), mas discreto. */
+.cta.cta-espera {
+  background: var(--grafite);
+  opacity: 0.72;
+}
+.cta.cta-espera:hover {
+  background: var(--grafite);
+  opacity: 0.85;
+}
 
 .seguranca {
   display: flex;
@@ -1391,6 +1528,13 @@ input:focus {
   font-size: 10px;
   color: #666;
   margin-top: 3px;
+  letter-spacing: 1px;
+}
+.rc-jogo {
+  font-size: 13px;
+  font-weight: 800;
+  color: #222;
+  margin-top: 8px;
   letter-spacing: 1px;
 }
 .rc-hr {

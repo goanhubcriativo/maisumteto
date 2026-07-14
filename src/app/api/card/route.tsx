@@ -21,19 +21,42 @@ export async function GET(req: Request) {
   // (o domínio novo pode ainda estar propagando).
   const fetchHost = reqHost || host;
 
+  const proto = fetchHost.startsWith("localhost") ? "http" : "https";
+
+  async function buscar(caminho: string): Promise<ArrayBuffer | null> {
+    try {
+      const buf = await (
+        await fetch(`${proto}://${fetchHost}${caminho}`, { cache: "no-store" })
+      ).arrayBuffer();
+      return buf.byteLength > 1000 ? buf : null;
+    } catch {
+      return null;
+    }
+  }
+
   // Logo da campanha (PNG rasterizado com a fonte Agilera) buscado da /public.
   let logo = "";
-  try {
-    const proto = fetchHost.startsWith("localhost") ? "http" : "https";
-    const buf = await (
-      await fetch(`${proto}://${fetchHost}/logo-card.png`, { cache: "no-store" })
-    ).arrayBuffer();
-    if (buf.byteLength > 1000) {
-      logo = `data:image/png;base64,${Buffer.from(buf).toString("base64")}`;
-    }
-  } catch {
-    // sem logo se falhar; o cartão ainda renderiza
-  }
+  const logoBuf = await buscar("/logo-card.png");
+  if (logoBuf) logo = `data:image/png;base64,${Buffer.from(logoBuf).toString("base64")}`;
+
+  // Fonte Raleway (a mesma do site) — para o cartão ter a MESMA tipografia
+  // que a gente aprovou, e não a fonte genérica do gerador de imagem.
+  const [f600, f800, f900] = await Promise.all([
+    buscar("/fonts/raleway-600.ttf"),
+    buscar("/fonts/raleway-800.ttf"),
+    buscar("/fonts/raleway-900.ttf"),
+  ]);
+  const fonts = [
+    f600 && { name: "Raleway", data: f600, weight: 600 as const, style: "normal" as const },
+    f800 && { name: "Raleway", data: f800, weight: 800 as const, style: "normal" as const },
+    f900 && { name: "Raleway", data: f900, weight: 900 as const, style: "normal" as const },
+  ].filter(Boolean) as {
+    name: string;
+    data: ArrayBuffer;
+    weight: 600 | 800 | 900;
+    style: "normal";
+  }[];
+  const fontFamily = fonts.length ? "Raleway" : "sans-serif";
 
   return new ImageResponse(
     (
@@ -45,13 +68,14 @@ export async function GET(req: Request) {
           flexDirection: "column",
           backgroundColor: BEGE,
           color: GRAFITE,
-          // No stories, margens grandes: topo evita o nome de quem posta,
-          // rodapé evita a área de resposta/comentário.
-          padding: stories ? "220px 76px 360px" : "78px 76px",
-          fontFamily: "sans-serif",
+          padding: stories ? "48px 76px" : "78px 76px",
+          fontFamily,
         }}
       >
-        {/* Logo da campanha, no topo */}
+        {/* No stories, centraliza o bloco de conteúdo (empurra do topo). */}
+        {stories && <div style={{ display: "flex", flex: 1 }} />}
+
+        {/* Logo da campanha */}
         {logo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={logo} width={495} height={290} alt="" style={{ flexShrink: 0 }} />
@@ -60,7 +84,7 @@ export async function GET(req: Request) {
         )}
 
         {/* Espaço entre logo e texto */}
-        <div style={{ display: "flex", height: stories ? "96px" : "56px", flexShrink: 0 }} />
+        <div style={{ display: "flex", height: "56px", flexShrink: 0 }} />
 
         {/* Chamada */}
         <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
@@ -85,11 +109,16 @@ export async function GET(req: Request) {
           </div>
         </div>
 
-        <div style={{ display: "flex", flex: 1 }} />
+        {/* No stories: gap fixo (bloco coeso). No feed: empurra o convite pro rodapé. */}
+        {stories ? (
+          <div style={{ display: "flex", height: "60px", flexShrink: 0 }} />
+        ) : (
+          <div style={{ display: "flex", flex: 1 }} />
+        )}
 
         {/* Convite + link */}
         <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
-          <div style={{ display: "flex", fontSize: "42px", fontWeight: 700 }}>
+          <div style={{ display: "flex", fontSize: "42px", fontWeight: 800 }}>
             Contribua você também:
           </div>
           <div
@@ -108,11 +137,16 @@ export async function GET(req: Request) {
             {host}
           </div>
         </div>
+
+        {/* No stories, espaçador de baixo — centraliza o bloco e o mantém
+            longe da barra de resposta do Instagram. */}
+        {stories && <div style={{ display: "flex", flex: 1 }} />}
       </div>
     ),
     {
       width: 1080,
       height: ALTURA,
+      ...(fonts.length ? { fonts } : {}),
       headers: {
         "Cache-Control":
           "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
