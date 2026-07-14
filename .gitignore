@@ -1,0 +1,32 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build
+
+# env — NUNCA comitar chaves!
+.env
+.env.local
+.env*.local
+
+# prisma / banco local
+/prisma/*.db
+/prisma/*.db-journal
+/prisma/dev.db*
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+.vercel
+*.tsbuildinfo
+
+# Config local de permissões do Claude Code
+.claude/settings.local.json

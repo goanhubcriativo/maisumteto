@@ -1,0 +1,62 @@
+// Bolão Teto — schema do banco.
+//
+// Uma "Casinha" é o carrinho: agrupa vários palpites (R$10 cada) + um
+// "chorinho" (doação extra opcional), pagos num único PIX.
+//
+// Provider = postgresql (Vercel/Neon). A DATABASE_URL vem das variáveis de
+// ambiente (na Vercel, o Vercel Postgres injeta automaticamente).
+// Para rodar localmente, aponte DATABASE_URL para um Postgres (o mesmo da nuvem serve).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Casinha {
+  id        String   @id @default(cuid())
+
+  // Dados de quem está montando a casinha (preenchidos uma vez)
+  nome      String
+  whatsapp  String
+  cpf       String
+  email     String?
+
+  // Valores (em centavos)
+  doacaoCentavos     Int @default(0) // "chorinho" extra
+  valorTotalCentavos Int             // palpites*preço + chorinho
+
+  // Pagamento
+  status          String   @default("PENDENTE") // PENDENTE | PAGO | EXPIRADO | CANCELADO
+  asaasPaymentId  String?  @unique
+  asaasCustomerId String?
+  pixPayload      String?  // "copia e cola"
+  pixQrCodeImage  String?  // imagem base64 (sem prefixo data:)
+  pixExpiraEm     DateTime?
+
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+
+  palpites  Palpite[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Palpite {
+  id        String   @id @default(cuid())
+
+  casinhaId String
+  casinha   Casinha  @relation(fields: [casinhaId], references: [id], onDelete: Cascade)
+
+  // Palpite de placar da final
+  placarCasa      Int
+  placarVisitante Int
+
+  createdAt DateTime @default(now())
+
+  @@index([casinhaId])
+}
