@@ -94,9 +94,11 @@ export default function MontarCasinha({
     "translate(40px, -40px) rotate(6deg)",
   ];
   const DESCANSO = [
-    "translate(-104px, 6px) rotate(-7deg)", // 1ª vez: escondidinho no canto esquerdo
+    "translate(-82px, 8px) rotate(-8deg)", // 1ª vez: espia do canto esquerdo (o resto é cortado pela borda)
     "translate(0px, 0px) rotate(0deg)", // 2ª vez: volta pro lugar original
   ];
+  // A caixa "corta" o botão só quando ele está escondido no canto (após a 1ª corrida).
+  const boxEscondeu = naoFase === 1 && !naoCorrendo;
 
   const n = fezinhas.length;
   const total = n * valorCentavos + doacaoCentavos;
@@ -410,7 +412,7 @@ export default function MontarCasinha({
       {/* Popup pós-primeira-aposta: o "Não" foge duas vezes */}
       {popupAberto && (
         <div className="pop-overlay">
-          <div className="pop-box">
+          <div className={`pop-box ${boxEscondeu ? "escondeu" : ""}`}>
             <p className="pop-titulo">
               A maioria das pessoas
               <br />

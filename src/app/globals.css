@@ -499,6 +499,9 @@ a {
   background: rgba(39, 55, 64, 0.4);
   animation: fadeOverlay 0.2s ease both;
 }
+.pop-box.escondeu {
+  overflow: hidden;
+}
 .pop-box {
   width: 100%;
   max-width: 370px;
