@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { formatBRL, reaisParaCentavos } from "@/lib/config";
 import { IconMais, IconX, IconCadeado, IconSeta } from "@/components/icones";
@@ -58,6 +58,12 @@ export default function MontarCasinha({
   const [enviando, setEnviando] = useState(false);
   const [martelo, setMartelo] = useState(0); // dispara a "marretada"
 
+  // Popup "a maioria fez 3 apostas" após a primeira aposta
+  const [popupAberto, setPopupAberto] = useState(false);
+  const [popupJaMostrado, setPopupJaMostrado] = useState(false);
+  const [naoTentativas, setNaoTentativas] = useState(0);
+  const casaRef = useRef<HTMLInputElement>(null);
+
   const n = fezinhas.length;
   const total = n * valorCentavos + doacaoCentavos;
 
@@ -67,6 +73,7 @@ export default function MontarCasinha({
       setErro("Preencha o placar dos dois times pra fincar a fézinha.");
       return;
     }
+    const primeira = fezinhas.length === 0;
     setFezinhas((f) => [
       ...f,
       { casa: parseInt(novoCasa, 10), visitante: parseInt(novoVisitante, 10) },
@@ -74,7 +81,32 @@ export default function MontarCasinha({
     setNovoCasa("");
     setNovoVisitante("");
     setMartelo((m) => m + 1);
+    if (primeira && !popupJaMostrado) {
+      setNaoTentativas(0);
+      setPopupAberto(true);
+      setPopupJaMostrado(true);
+    }
   }
+
+  // O "Não" foge duas vezes; na terceira tentativa, fecha.
+  function clicarNao() {
+    if (naoTentativas >= 2) {
+      setPopupAberto(false);
+      return;
+    }
+    setNaoTentativas((t) => t + 1);
+  }
+  function clicarSim() {
+    setPopupAberto(false);
+    setNaoTentativas(0);
+    setTimeout(() => casaRef.current?.focus(), 60);
+  }
+  const posNao =
+    naoTentativas === 0
+      ? "translate(0, 0)"
+      : naoTentativas === 1
+        ? "translate(38px, 66px)"
+        : "translate(-38px, -66px)";
   function remover(i: number) {
     setFezinhas((f) => f.filter((_, idx) => idx !== i));
   }
@@ -139,6 +171,7 @@ export default function MontarCasinha({
               <Bandeira nome={timeCasa} size={20} /> {timeCasa}
             </span>
             <input
+              ref={casaRef}
               value={novoCasa}
               onChange={(e) => setNovoCasa(soPlacar(e.target.value))}
               placeholder="0"
@@ -290,7 +323,7 @@ export default function MontarCasinha({
             "Gerando PIX..."
           ) : (
             <>
-              Finalizar contribuição e fazer aposta <IconSeta size={17} />
+              Finalizar contribuição <IconSeta size={17} />
             </>
           )}
         </button>
@@ -298,6 +331,29 @@ export default function MontarCasinha({
           <IconCadeado size={13} /> Pagamento único e seguro via PIX
         </div>
       </div>
+
+      {/* Popup pós-primeira-aposta: o "Não" foge duas vezes */}
+      {popupAberto && (
+        <div className="pop-overlay">
+          <div className="pop-box">
+            <p className="pop-titulo">A maioria das pessoas fez 3 apostas!</p>
+            <p className="pop-sub">Deseja fazer mais uma?</p>
+            <div className="pop-botoes">
+              <button
+                type="button"
+                className="pop-nao"
+                style={{ transform: posNao }}
+                onClick={clicarNao}
+              >
+                Não
+              </button>
+              <button type="button" className="pop-sim" onClick={clicarSim}>
+                Sim
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
