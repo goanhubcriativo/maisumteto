@@ -99,7 +99,7 @@ export default function MontarCasinha({
     "translate(12px, -8px) rotate(-5deg)",
   ];
   const DESCANSO = [
-    "translate(-98px, 10px) rotate(-9deg)", // 1ª vez: bem escondido no canto (o resto é cortado)
+    "translate(-152px, 14px) rotate(-15deg)", // 1ª vez: some quase todo atrás da borda (só uma pontinha aparece)
     "translate(0px, 0px) rotate(0deg)", // 2ª vez: volta pro lugar original
   ];
   // A caixa "corta" o botão durante a fase escondida (descanso + 2ª corrida),
@@ -380,7 +380,7 @@ export default function MontarCasinha({
             aria-label="Não quero apostar, mas quero ajudar"
           />
           <span className="so-ajuda-box" aria-hidden>
-            {soAjuda && <IconCheck size={13} strokeWidth={3} />}
+            {soAjuda && <IconCheck size={9} strokeWidth={3.4} />}
           </span>
           <span className="so-ajuda-txt">
             Não quero apostar, <strong>mas quero ajudar</strong>

@@ -2,7 +2,6 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import CasinhaObra from "@/components/CasinhaObra";
 import LogoTeto from "@/components/LogoTeto";
 import { IconCadeado, IconSeta, IconPix } from "@/components/icones";
 import TelaSucesso from "@/components/TelaSucesso";
@@ -115,7 +114,12 @@ export default function PagarPage({
       {casinha && casinha.status === "PENDENTE" && casinha.pixQrCodeImage && (
         <>
           <div className="obra">
-            <CasinhaObra pilotis={qtd} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className="obra-casa-real"
+              src="/casa.svg"
+              alt="Casa emergencial da Teto"
+            />
             <p className="obra-legenda">
               Sua casinha sobre <b>{qtd} piloti{qtd > 1 ? "s" : ""}</b>. Falta o
               PIX pra fincar de vez.

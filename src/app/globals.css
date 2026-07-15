@@ -405,14 +405,12 @@ a {
 .aposta-lista .rm:hover {
   color: #ff8896;
 }
-/* "Não quero apostar, mas quero ajudar" */
+/* "Não quero apostar, mas quero ajudar" — detalhezinho discreto no rodapé */
 .so-ajuda {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 18px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(246, 244, 238, 0.14);
+  gap: 6px;
+  margin-top: 12px;
   cursor: pointer;
   user-select: none;
 }
@@ -424,10 +422,10 @@ a {
 }
 .so-ajuda-box {
   flex: 0 0 auto;
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  border: 1.5px solid rgba(246, 244, 238, 0.5);
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(246, 244, 238, 0.4);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -440,16 +438,16 @@ a {
 }
 .so-ajuda input:focus-visible + .so-ajuda-box {
   outline: 2px solid var(--azul);
-  outline-offset: 2px;
+  outline-offset: 1px;
 }
 .so-ajuda-txt {
-  font-size: 13.5px;
+  font-size: 11px;
   font-weight: 600;
-  color: rgba(246, 244, 238, 0.85);
+  color: rgba(246, 244, 238, 0.55);
 }
 .so-ajuda-txt strong {
-  color: #fff;
-  font-weight: 800;
+  color: rgba(246, 244, 238, 0.8);
+  font-weight: 700;
 }
 .so-ajuda-nota {
   margin: 4px 0 2px;
@@ -729,21 +727,21 @@ a {
   text-align: right;
   text-transform: uppercase;
   font-weight: 800;
-  font-size: 9px;
+  font-size: 11px;
   line-height: 1.25;
   letter-spacing: 0.5px;
 }
 .responsa-social {
   font-style: italic;
   font-weight: 900;
-  font-size: 23px;
+  font-size: 28px;
   color: var(--azul);
   letter-spacing: -0.5px;
   line-height: 1;
 }
 .transparencia {
-  font-size: 12.5px;
-  line-height: 1.7;
+  font-size: 11px;
+  line-height: 1.42;
   color: var(--grafite-70);
   margin: 0 0 20px;
 }
@@ -878,6 +876,13 @@ a {
   width: 100%;
   max-width: 360px;
   height: auto;
+}
+.obra-casa-real {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin: 0 auto 4px;
 }
 .obra-chao {
   stroke: var(--grafite);

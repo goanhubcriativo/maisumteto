@@ -58,6 +58,12 @@ export async function GET(req: Request) {
   }[];
   const fontFamily = fonts.length ? "Raleway" : "sans-serif";
 
+  // Fundo do cartão: foto da comunidade (tom bege), pra não ficar bege liso.
+  const bgBuf = await buscar("/card-bg.jpg");
+  const bg = bgBuf
+    ? `data:image/jpeg;base64,${Buffer.from(bgBuf).toString("base64")}`
+    : "";
+
   return new ImageResponse(
     (
       <div
@@ -65,13 +71,51 @@ export async function GET(req: Request) {
           width: "1080px",
           height: `${ALTURA}px`,
           display: "flex",
-          flexDirection: "column",
+          position: "relative",
           backgroundColor: BEGE,
-          color: GRAFITE,
-          padding: stories ? "48px 76px" : "78px 76px",
           fontFamily,
         }}
       >
+        {/* Fundo (foto da comunidade) + véu bege pra manter o texto legível */}
+        {bg && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={bg}
+            width={1080}
+            height={ALTURA}
+            alt=""
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "1080px",
+              height: `${ALTURA}px`,
+              objectFit: "cover",
+            }}
+          />
+        )}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "1080px",
+            height: `${ALTURA}px`,
+            backgroundColor: "rgba(178, 171, 151, 0.64)",
+          }}
+        />
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            width: "100%",
+            height: "100%",
+            position: "relative",
+            color: GRAFITE,
+            padding: stories ? "48px 76px" : "78px 76px",
+          }}
+        >
         {/* No stories, centraliza o bloco de conteúdo (empurra do topo). */}
         {stories && <div style={{ display: "flex", flex: 1 }} />}
 
@@ -141,6 +185,7 @@ export async function GET(req: Request) {
         {/* No stories, espaçador de baixo — centraliza o bloco e o mantém
             longe da barra de resposta do Instagram. */}
         {stories && <div style={{ display: "flex", flex: 1 }} />}
+        </div>
       </div>
     ),
     {
