@@ -258,18 +258,18 @@ a {
 /* O botão É o piloti: usa a arte do Botão.svg, grande, com "Fincar" na face */
 .aposta-add {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-end; /* "Fincar" no corpo do piloti, não centralizado */
   justify-content: center;
   white-space: nowrap;
   background: url(/botao-piloti.svg) center/contain no-repeat;
   color: #fff;
   border: none;
-  width: 118px;
-  height: 62px;
-  padding: 0 0 8px; /* levanta o texto pra face de cima do piloti */
+  width: 98px;
+  height: 51px;
+  padding: 0 0 12px; /* desce o texto pro corpo do piloti */
   font-weight: 900;
-  font-size: 13.5px;
-  letter-spacing: 1px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   cursor: pointer;
   flex-shrink: 0;
@@ -289,8 +289,8 @@ a {
 .marretada {
   position: absolute;
   left: 50%;
-  bottom: 46%;
-  width: 132px;
+  bottom: 50%;
+  width: 118px;
   height: auto;
   pointer-events: none;
   transform-origin: bottom center;
