@@ -78,6 +78,11 @@ export default function MontarCasinha({
   const [naoPos, setNaoPos] = useState("translate(0px, 0px) rotate(0deg)");
   const runInt = useRef<ReturnType<typeof setInterval> | null>(null);
   const runTo = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Guarda SÍNCRONA da fuga: o estado (naoCorrendo) demora um render pra
+  // atualizar, e no celular o toque dispara mouseenter+click quase juntos.
+  // Sem isso, duas fugas partiam em paralelo e o timer da primeira vazava,
+  // deixando o botão pulando sem parar.
+  const fugaAtiva = useRef(false);
   const casaRef = useRef<HTMLInputElement>(null);
 
   // Percursos que o "Não" percorre (dois sentidos diferentes) + pontos de descanso.
@@ -161,6 +166,7 @@ export default function MontarCasinha({
         setErroMsg("");
       } else {
         pararCorrida();
+        fugaAtiva.current = false;
         setPopupAberto(false);
         setNaoFase(0);
         setNaoCorrendo(false);
@@ -202,6 +208,9 @@ export default function MontarCasinha({
 
   // Dispara a fuga do "Não": corre ~2s por um percurso e descansa no canto.
   function iniciarFuga(fase: number) {
+    if (fugaAtiva.current) return;
+    fugaAtiva.current = true;
+    pararCorrida(); // garante que não há timer antigo rodando
     const percurso = fase === 0 ? PERCURSO_A : PERCURSO_B;
     setNaoCorrendo(true);
     setNaoPos(percurso[0]);
@@ -215,21 +224,32 @@ export default function MontarCasinha({
       setNaoPos(DESCANSO[fase]);
       setNaoCorrendo(false);
       setNaoFase(fase + 1);
+      fugaAtiva.current = false;
     }, 2000);
+  }
+
+  // Hover de verdade (mouse). No celular não existe hover, e o mouseenter
+  // sintético do toque bagunçava a fuga.
+  function temMouse() {
+    return (
+      typeof window !== "undefined" &&
+      window.matchMedia("(hover: hover) and (pointer: fine)").matches
+    );
   }
 
   // Passar o mouse por cima já faz o "Não" fugir (antes mesmo de clicar).
   function passarNoNao() {
-    if (naoCorrendo || naoFase >= 2 || movimentoReduzido()) return;
+    if (!temMouse()) return;
+    if (fugaAtiva.current || naoFase >= 2 || movimentoReduzido()) return;
     iniciarFuga(naoFase);
   }
 
   // O "Não" corre ~2s (fugindo), para, corre de novo em outro sentido por mais
   // ~2s e só então (após ~4s) fica parado pra clicar.
   function clicarNao() {
-    if (naoCorrendo) return; // está fugindo, ignora o clique
-    // Acessibilidade: quem pediu menos movimento não leva o botão fugindo —
-    // "Não" fecha direto.
+    if (fugaAtiva.current) return; // está fugindo, ignora o clique
+    // Acessibilidade: quem pediu menos movimento não leva o botão fugindo,
+    // o "Não" fecha direto.
     if (naoFase >= 2 || movimentoReduzido()) {
       pararCorrida();
       setPopupAberto(false);
@@ -239,6 +259,7 @@ export default function MontarCasinha({
   }
   function clicarSim() {
     pararCorrida();
+    fugaAtiva.current = false;
     setPopupAberto(false);
     setNaoFase(0);
     setNaoCorrendo(false);
