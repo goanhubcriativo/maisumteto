@@ -11,7 +11,6 @@ import {
   IconFeliz,
   IconTriste,
   IconCheck,
-  MangueiraNivel,
 } from "@/components/icones";
 import Bandeira from "@/components/Bandeira";
 
@@ -531,7 +530,8 @@ export default function MontarCasinha({
         <div className="pop-overlay" onClick={() => setErroMsg("")}>
           <div className="pop-erro" onClick={(e) => e.stopPropagation()}>
             <div className="pop-erro-vetor">
-              <MangueiraNivel size={140} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/mangueira.svg" alt="" width={150} height={152} />
             </div>
             <p className="pop-erro-tit">
               Ah não! Pisou na

@@ -411,8 +411,8 @@ a {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  margin-top: 16px;
-  margin-bottom: -6px;
+  margin-top: 26px;
+  margin-bottom: -15px;
   cursor: pointer;
   user-select: none;
 }
