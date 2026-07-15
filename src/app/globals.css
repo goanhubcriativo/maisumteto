@@ -255,81 +255,75 @@ a {
   color: rgba(246, 244, 238, 0.55);
   padding-bottom: 8px;
 }
+/* O botão É o piloti: usa a arte do Botão.svg, grande, com "Fincar" na face */
 .aposta-add {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   white-space: nowrap;
-  background: var(--azul);
+  background: url(/botao-piloti.svg) center/contain no-repeat;
   color: #fff;
   border: none;
-  border-radius: 9px;
-  padding: 0 15px;
-  height: 40px;
-  font-weight: 800;
-  font-size: 12px;
-  letter-spacing: 0.6px;
+  width: 118px;
+  height: 62px;
+  padding: 0 0 8px; /* levanta o texto pra face de cima do piloti */
+  font-weight: 900;
+  font-size: 13.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   cursor: pointer;
-  /* base de piloti cravado: borda inferior mais escura (cara 3D do Botão.svg) */
-  box-shadow: inset 0 -4px 0 #0683b5, 0 3px 5px rgba(39, 55, 64, 0.22);
+  flex-shrink: 0;
+  text-shadow: 0 1px 2px rgba(6, 66, 92, 0.45);
 }
 .aposta-add:hover {
-  background: var(--azul-escuro);
+  filter: brightness(1.06);
 }
 .aposta-add:active {
-  box-shadow: inset 0 -2px 0 #0683b5, 0 1px 2px rgba(39, 55, 64, 0.2);
+  filter: brightness(0.95);
 }
 .add-wrap {
   position: relative;
   display: inline-flex;
 }
+/* A MARRETA que crava o piloti — grande, com uma marretada forte */
 .marretada {
   position: absolute;
   left: 50%;
-  bottom: 74%;
-  width: 68px;
+  bottom: 46%;
+  width: 132px;
   height: auto;
   pointer-events: none;
   transform-origin: bottom center;
   z-index: 6;
   opacity: 0;
-  animation: marretada 2s cubic-bezier(0.3, 1.2, 0.5, 1) 0.32s forwards;
+  animation: marretada 1.5s cubic-bezier(0.3, 1, 0.4, 1) 0.12s forwards;
 }
 @keyframes marretada {
   0% {
-    transform: translate(-50%, -155%) rotate(-13deg) scale(0.55);
+    transform: translate(-50%, -92%) rotate(-38deg) scale(1);
     opacity: 0;
   }
-  12% {
-    transform: translate(-50%, -155%) rotate(-13deg) scale(0.55);
-    opacity: 0;
-  }
-  22% {
-    transform: translate(-50%, -140%) rotate(-11deg) scale(0.85);
+  16% {
+    transform: translate(-50%, -92%) rotate(-38deg) scale(1);
     opacity: 1;
   }
-  /* 1ª batida */
-  38% {
-    transform: translate(-50%, 8%) rotate(0deg) scale(1.06);
+  /* MARRETADA forte */
+  42% {
+    transform: translate(-50%, 6%) rotate(10deg) scale(1.06);
     opacity: 1;
   }
-  /* levanta de novo */
+  /* recuo do impacto */
   56% {
-    transform: translate(-50%, -78%) rotate(-9deg) scale(0.94);
+    transform: translate(-50%, -26%) rotate(0deg) scale(1);
     opacity: 1;
   }
-  /* 2ª batida */
-  72% {
-    transform: translate(-50%, 6%) rotate(1deg) scale(1.03);
-    opacity: 1;
-  }
-  84% {
-    transform: translate(-50%, -8%) rotate(0deg) scale(1);
+  /* assenta */
+  70% {
+    transform: translate(-50%, -2%) rotate(6deg) scale(1);
     opacity: 1;
   }
   100% {
-    transform: translate(-50%, -48%) rotate(0deg) scale(0.9);
+    transform: translate(-50%, -82%) rotate(-26deg) scale(0.92);
     opacity: 0;
   }
 }
@@ -338,23 +332,19 @@ a {
   30% {
     transform: translateY(0);
   }
-  /* dip da 1ª batida */
-  38% {
-    transform: translateY(3px) scale(0.97);
+  /* leva a marretada (junto com o impacto ~42%) */
+  44% {
+    transform: translateY(5px) scale(0.98);
   }
-  52% {
+  68% {
     transform: translateY(0);
-  }
-  /* dip da 2ª batida */
-  72% {
-    transform: translateY(3px) scale(0.97);
   }
   100% {
     transform: translateY(0);
   }
 }
 .aposta-add.recuo {
-  animation: recuo 2s ease 0.32s;
+  animation: recuo 1.5s ease 0.12s;
 }
 .aposta-lista {
   list-style: none;

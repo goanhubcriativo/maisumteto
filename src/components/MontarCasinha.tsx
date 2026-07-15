@@ -10,7 +10,6 @@ import {
   IconFeliz,
   IconTriste,
   IconCheck,
-  IconPilotiPonta,
 } from "@/components/icones";
 import Bandeira from "@/components/Bandeira";
 
@@ -191,21 +190,15 @@ export default function MontarCasinha({
     }
   }
 
-  // O "Não" corre sem parar por ~2s (fugindo), para, corre de novo em outro
-  // sentido por mais ~2s e só então (após ~4s) fica parado pra clicar.
-  function clicarNao() {
-    if (naoCorrendo) return; // está fugindo, ignora o clique
-    // Acessibilidade: quem pediu menos movimento não leva o botão fugindo —
-    // "Não" fecha direto.
-    const semMovimento =
+  function movimentoReduzido() {
+    return (
       typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (naoFase >= 2 || semMovimento) {
-      pararCorrida();
-      setPopupAberto(false);
-      return;
-    }
-    const fase = naoFase;
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  }
+
+  // Dispara a fuga do "Não": corre ~2s por um percurso e descansa no canto.
+  function iniciarFuga(fase: number) {
     const percurso = fase === 0 ? PERCURSO_A : PERCURSO_B;
     setNaoCorrendo(true);
     setNaoPos(percurso[0]);
@@ -220,6 +213,26 @@ export default function MontarCasinha({
       setNaoCorrendo(false);
       setNaoFase(fase + 1);
     }, 2000);
+  }
+
+  // Passar o mouse por cima já faz o "Não" fugir (antes mesmo de clicar).
+  function passarNoNao() {
+    if (naoCorrendo || naoFase >= 2 || movimentoReduzido()) return;
+    iniciarFuga(naoFase);
+  }
+
+  // O "Não" corre ~2s (fugindo), para, corre de novo em outro sentido por mais
+  // ~2s e só então (após ~4s) fica parado pra clicar.
+  function clicarNao() {
+    if (naoCorrendo) return; // está fugindo, ignora o clique
+    // Acessibilidade: quem pediu menos movimento não leva o botão fugindo —
+    // "Não" fecha direto.
+    if (naoFase >= 2 || movimentoReduzido()) {
+      pararCorrida();
+      setPopupAberto(false);
+      return;
+    }
+    iniciarFuga(naoFase);
   }
   function clicarSim() {
     pararCorrida();
@@ -363,7 +376,7 @@ export default function MontarCasinha({
               key={`btn-${martelo}`}
               onClick={adicionar}
             >
-              <IconPilotiPonta size={17} strokeWidth={2.2} /> Fincar
+              Fincar
             </button>
             {martelo > 0 && (
               /* eslint-disable-next-line @next/next/no-img-element */
@@ -548,6 +561,7 @@ export default function MontarCasinha({
                 type="button"
                 className="pop-nao"
                 style={{ transform: naoPos }}
+                onMouseEnter={passarNoNao}
                 onClick={clicarNao}
               >
                 <IconTriste size={18} /> Não
