@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { LINK_CAMPANHA } from "@/lib/config";
 import { IconWhats } from "@/components/icones";
 
 // Botão de DIVULGAÇÃO da campanha — aparece pra todo mundo (mesmo quem não
@@ -12,11 +13,7 @@ export default function CompartilharCampanha() {
   async function compartilhar() {
     if (enviando) return;
     setEnviando(true);
-    const origem =
-      typeof window !== "undefined"
-        ? window.location.origin
-        : "https://maisumteto.com.br";
-    const texto = `Tô ajudando a TETO a erguer mais uma casa emergencial com um bolão da Final da Copa. Faça sua fézinha também e ajude: ${origem}`;
+    const texto = `Tô ajudando a TETO a erguer mais uma casa emergencial com um bolão da Final da Copa. Faça sua fézinha também e ajude: ${LINK_CAMPANHA}`;
     const url = `/api/card?tipo=convite&v=${Date.now()}`;
     try {
       const blob = await (await fetch(url, { cache: "no-store" })).blob();

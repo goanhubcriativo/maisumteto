@@ -17,13 +17,21 @@ export async function GET(req: Request) {
   const ALTURA = stories ? 1920 : 1350;
 
   const intro = convite
-    ? "Faça sua fézinha na Final da Copa e"
+    ? "Participe do Bolão da Final da Copa do Mundo e"
     : "Eu fiz uma fézinha para a Final da Copa e";
-  const palavraGrande = convite ? "AJUDE" : "CONTRIBUÍ";
+  const palavraGrande = convite ? "NOS AJUDE" : "CONTRIBUÍ";
   const fecho = convite
-    ? "a erguer mais uma casa da TETO em 2026!"
+    ? "a arrecadar para construir uma casa a mais com a Teto para ajudar quem precisa!"
     : "para ajudar a construir mais uma casa da TETO em 2026!";
   const convide = convite ? "Participe você também:" : "Contribua você também:";
+
+  // No cartão de convite o texto é ~10% menor.
+  const esc = convite ? 0.9 : 1;
+  const px = (n: number) => `${Math.round(n * esc)}px`;
+  const fsIntro = px(stories ? 52 : 40);
+  const fsGrande = px(convite ? 128 : 148); // "NOS AJUDE" é maior, começa menor
+  const fsFecho = px(stories ? 64 : 50);
+  const fsConvide = px(stories ? 54 : 42);
 
   const reqHost = req.headers.get("host") || "";
   // Domínio MOSTRADO no cartão (canônico, por env).
@@ -151,13 +159,13 @@ export async function GET(req: Request) {
 
         {/* Chamada */}
         <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
-          <div style={{ display: "flex", fontSize: stories ? "52px" : "40px", fontWeight: 600, lineHeight: 1.2 }}>
+          <div style={{ display: "flex", fontSize: fsIntro, fontWeight: 600, lineHeight: 1.2 }}>
             {intro}
           </div>
           <div
             style={{
               display: "flex",
-              fontSize: "148px",
+              fontSize: fsGrande,
               fontWeight: 900,
               lineHeight: 1,
               color: AZUL,
@@ -167,7 +175,7 @@ export async function GET(req: Request) {
           >
             {palavraGrande}
           </div>
-          <div style={{ display: "flex", fontSize: stories ? "64px" : "50px", fontWeight: 800, lineHeight: 1.18 }}>
+          <div style={{ display: "flex", fontSize: fsFecho, fontWeight: 800, lineHeight: 1.18 }}>
             {fecho}
           </div>
         </div>
@@ -181,7 +189,7 @@ export async function GET(req: Request) {
 
         {/* Convite + link */}
         <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
-          <div style={{ display: "flex", fontSize: stories ? "54px" : "42px", fontWeight: 800 }}>
+          <div style={{ display: "flex", fontSize: fsConvide, fontWeight: 800 }}>
             {convide}
           </div>
           <div

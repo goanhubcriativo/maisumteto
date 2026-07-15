@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { config } from "@/lib/config";
+import { config, LINK_CAMPANHA } from "@/lib/config";
 import {
   IconCheck,
   IconWhats,
@@ -20,7 +20,6 @@ interface Props {
   doacaoCentavos: number;
   valorTotalCentavos: number;
   reciboId: string;
-  origem: string;
 }
 
 function brl(c: number) {
@@ -36,7 +35,6 @@ export default function TelaSucesso({
   doacaoCentavos,
   valorTotalCentavos,
   reciboId,
-  origem,
 }: Props) {
   const [verRecibo, setVerRecibo] = useState(false);
   const [compartilhando, setCompartilhando] = useState(false);
@@ -46,7 +44,7 @@ export default function TelaSucesso({
   const qtd = palpites.length;
   const unit =
     qtd > 0 ? Math.round((valorTotalCentavos - doacaoCentavos) / qtd) : 0;
-  const texto = `Acabei de contribuir pra construir mais uma casa com a Teto. Faça sua fézinha também e ajude: ${origem}`;
+  const texto = `Acabei de contribuir pra construir mais uma casa com a Teto. Faça sua fézinha também e ajude: ${LINK_CAMPANHA}`;
 
   // Compartilha a IMAGEM + texto pelo menu nativo (WhatsApp/Instagram).
   async function compartilhar(stories: boolean) {

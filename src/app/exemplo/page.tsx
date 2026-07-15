@@ -6,11 +6,6 @@ import LogoTeto from "@/components/LogoTeto";
 import TelaSucesso from "@/components/TelaSucesso";
 
 export default function ExemploPage() {
-  const origem =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : "https://maisumteto.com.br";
-
   return (
     <main className="canvas">
       <header className="masthead">
@@ -31,7 +26,6 @@ export default function ExemploPage() {
         doacaoCentavos={1000}
         valorTotalCentavos={4000}
         reciboId="exemploA1B2C3D4"
-        origem={origem}
       />
     </main>
   );

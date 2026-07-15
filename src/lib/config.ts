@@ -9,6 +9,12 @@ export const config = {
     "Bolão da Casa Amiga · Teto",
 };
 
+// Link canônico da campanha, usado nos textos de compartilhamento.
+// Sempre o domínio oficial (nunca o .vercel.app de onde a pessoa acessou).
+export const LINK_CAMPANHA = `https://${
+  process.env.NEXT_PUBLIC_SITE_HOST || "maisumteto.com.br"
+}`;
+
 // Valor de cada aposta em centavos (só no servidor; nunca confie no cliente).
 export function valorApostaCentavos(): number {
   const raw = process.env.VALOR_APOSTA_CENTAVOS;

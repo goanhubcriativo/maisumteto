@@ -77,10 +77,6 @@ export default function PagarPage({
   }
 
   const qtd = casinha?.palpites.length ?? 0;
-  const origem =
-    typeof window !== "undefined"
-      ? window.location.origin
-      : "https://maisumteto.com.br";
 
   return (
     <main className="canvas">
@@ -118,7 +114,6 @@ export default function PagarPage({
           doacaoCentavos={casinha.doacaoCentavos}
           valorTotalCentavos={casinha.valorTotalCentavos}
           reciboId={casinha.id}
-          origem={origem}
         />
       )}
 
