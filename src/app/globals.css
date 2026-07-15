@@ -159,6 +159,10 @@ a {
   font-style: italic;
   font-weight: 900;
   color: var(--azul);
+  /* "fi" estava colando (ligadura da fonte) — desliga e dá uma folguinha */
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "dlig" 0;
+  letter-spacing: 0.3px;
 }
 .participe-meta {
   color: var(--grafite);
