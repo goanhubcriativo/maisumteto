@@ -32,12 +32,12 @@ export default function Privacidade() {
         <h2>Para que usamos</h2>
         <ul>
           <li>
-            <strong>CPF</strong> — obrigatório para emitir a cobrança PIX junto
+            <strong>CPF</strong>: obrigatório para emitir a cobrança PIX junto
             ao nosso provedor de pagamento e identificar o pagamento. Não usamos
             o CPF para nenhuma outra finalidade.
           </li>
           <li>
-            <strong>Nome e WhatsApp</strong> — para identificar sua
+            <strong>Nome e WhatsApp</strong>: para identificar sua
             contribuição, enviar a confirmação e, em caso de sorteio, entrar em
             contato com quem for sorteado.
           </li>
@@ -71,7 +71,7 @@ export default function Privacidade() {
 
         <h2>Responsável (controlador)</h2>
         <p>
-          GOAN | hub criativo — CNPJ 19.548.987/0001-01 — contato:{" "}
+          GOAN | hub criativo, CNPJ 19.548.987/0001-01. Contato:{" "}
           <a href={`mailto:${CONTATO}`}>{CONTATO}</a>.
         </p>
 

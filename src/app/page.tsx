@@ -34,13 +34,12 @@ export default function Home() {
 
       {/* Prazo pra apostar */}
       <div className={`prazo-banner ${encerrado ? "encerrado" : ""}`}>
-        <IconRelogio size={16} />
+        <IconRelogio size={12} />
         {encerrado ? (
           <span>Os palpites do bolão se encerraram.</span>
         ) : (
           <span>
-            Palpites até <strong>{PRAZO_LABEL}</strong> — um minutinho antes do
-            jogo começar.
+            Palpites até <strong>{PRAZO_LABEL}</strong> (1 min antes do jogo).
           </span>
         )}
       </div>
@@ -57,7 +56,7 @@ export default function Home() {
       {/* Divulgação — todo mundo pode compartilhar, mesmo sem apostar */}
       <section className="divulga">
         <p className="divulga-txt">
-          Não vai fazer sua fézinha agora? <strong>Ajuda divulgando</strong> —
+          Não vai fazer sua fézinha agora? <strong>Ajuda divulgando</strong>:
           quanto mais gente souber, mais rápido a casa sobe.
         </p>
         <CompartilharCampanha />
