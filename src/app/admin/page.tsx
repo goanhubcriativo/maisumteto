@@ -1,8 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { config } from "@/lib/config";
 import { IconSeta } from "@/components/icones";
 import LogoTeto from "@/components/LogoTeto";
+
+// Abreviação dos times (ESP, ARG) pra mostrar quem é quem nos placares.
+const ab = (s: string) => s.trim().slice(0, 3).toUpperCase();
+const CASA_AB = ab(config.timeCasa);
+const VIS_AB = ab(config.timeVisitante);
+// "2x1" vira "ESP 2x1 ARG"
+const comTimes = (placar: string) => `${CASA_AB} ${placar} ${VIS_AB}`;
 
 interface Casinha {
   id: string;
@@ -216,7 +224,9 @@ export default function AdminPage() {
             <table className="tabela">
               <thead>
                 <tr>
-                  <th>Placar</th>
+                  <th>
+                    Placar ({config.timeCasa} × {config.timeVisitante})
+                  </th>
                   <th>Fézinhas pagas</th>
                 </tr>
               </thead>
@@ -226,7 +236,7 @@ export default function AdminPage() {
                   .map(([placar, qtd]) => (
                     <tr key={placar}>
                       <td>
-                        <b>{placar.replace("x", " × ")}</b>
+                        <b>{comTimes(placar.replace("x", " × "))}</b>
                       </td>
                       <td>{qtd}</td>
                     </tr>
@@ -265,7 +275,7 @@ export default function AdminPage() {
                   <th>Nome</th>
                   <th>WhatsApp</th>
                   <th>Fézinhas</th>
-                  <th>Chorinho</th>
+                  <th>Ajudinha</th>
                   <th>Total</th>
                   <th>Líquido</th>
                   <th>Status</th>
@@ -281,7 +291,7 @@ export default function AdminPage() {
                       <b>{c.qtdPalpites}</b>
                       <span style={{ color: "var(--grafite-70)" }}>
                         {" "}
-                        ({c.palpites.join(", ")})
+                        ({c.palpites.map(comTimes).join(", ")})
                       </span>
                     </td>
                     <td>{c.doacaoCentavos > 0 ? brl(c.doacaoCentavos) : "·"}</td>
