@@ -30,7 +30,6 @@ interface Resumo {
   totalDoacoesCentavos: number;
   totalTaxaCentavos: number;
   totalLiquidoCentavos: number;
-  taxaEstimadaCentavos: number;
   liquidoTemEstimativa: boolean;
 }
 
@@ -177,12 +176,8 @@ export default function AdminPage() {
               </div>
               <div className="conta-linha neg">
                 <span>
-                  Taxas do Asaas
-                  <small>
-                    {" "}
-                    ({brl(resumo.taxaEstimadaCentavos)}/PIX ×{" "}
-                    {resumo.casinhasPagas})
-                  </small>
+                  Taxas do Mercado Pago
+                  <small> (≈ 0,99% por PIX)</small>
                 </span>
                 <span className="v">− {brl(resumo.totalTaxaCentavos)}</span>
               </div>
@@ -193,9 +188,8 @@ export default function AdminPage() {
             </div>
             {resumo.liquidoTemEstimativa && (
               <p className="conta-nota">
-                Alguns valores usam a taxa estimada de{" "}
-                {brl(resumo.taxaEstimadaCentavos)} por PIX. Quando o Asaas
-                confirmar cada pagamento, o líquido real substitui a
+                Alguns valores usam a taxa estimada de 0,99% por PIX. Quando o
+                Mercado Pago confirmar cada pagamento, o líquido real substitui a
                 estimativa automaticamente.
               </p>
             )}
@@ -297,7 +291,7 @@ export default function AdminPage() {
                         <>
                           {brl(c.liquidoCentavos)}
                           {!c.liquidoReal && c.status === "PAGO" && (
-                            <span className="est" title="Estimado (aguardando confirmação do Asaas)">
+                            <span className="est" title="Estimado (aguardando confirmação do Mercado Pago)">
                               {" "}
                               ~
                             </span>

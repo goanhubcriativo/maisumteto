@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { consultarPagamento, statusEhPago } from "@/lib/asaas";
+import { consultarPagamento, statusEhPago } from "@/lib/mercadopago";
 
 export const runtime = "nodejs";
 
@@ -30,14 +30,13 @@ export async function GET(
           data: {
             status: "PAGO",
             paidAt: new Date(),
-            liquidoCentavos:
-              r.netValue !== null ? Math.round(r.netValue * 100) : null,
+            liquidoCentavos: r.netValueCentavos,
           },
         });
         status = "PAGO";
       }
     } catch {
-      // Se o Asaas falhar, devolve o status atual.
+      // Se o Mercado Pago falhar, devolve o status atual.
     }
   }
 

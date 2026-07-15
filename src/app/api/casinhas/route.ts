@@ -8,19 +8,9 @@ import {
   placarValido,
   somenteDigitos,
 } from "@/lib/validacao";
-import {
-  criarCustomer,
-  criarCobrancaPix,
-  obterQrCodePix,
-} from "@/lib/asaas";
+import { criarPagamentoPix, expiracaoISO } from "@/lib/mercadopago";
 
 export const runtime = "nodejs";
-
-function vencimentoDaqui(dias: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() + dias);
-  return d.toISOString().slice(0, 10); // YYYY-MM-DD
-}
 
 interface PalpiteBody {
   placarCasa: number;
@@ -108,34 +98,34 @@ export async function POST(req: NextRequest) {
   });
 
   try {
-    // 2) Cliente no Asaas
-    const customerId = await criarCustomer({ nome, cpf, whatsapp, email });
-
-    // 3) Cobrança PIX (valor total da casinha)
+    // Descrição da cobrança
     const partes: string[] = [];
     if (palpites.length > 0) partes.push(`${palpites.length} fezinha(s)`);
     if (doacaoCentavos > 0) partes.push("ajudinha extra");
     const descricao = `${config.nomeEvento} · ${partes.join(" + ")} (${nome})`;
 
-    const cobranca = await criarCobrancaPix({
-      customerId,
+    const origin = req.nextUrl?.origin || "https://maisumteto.com.br";
+
+    // Cobrança PIX no Mercado Pago (uma chamada já devolve o QR)
+    const pix = await criarPagamentoPix({
+      nome,
+      cpf,
+      email: email || undefined,
       valorCentavos: valorTotal,
       descricao,
       externalReference: casinha.id,
-      vencimento: vencimentoDaqui(3),
+      expiraEmISO: expiracaoISO(72),
+      notificationUrl: `${origin}/api/webhook/mercadopago`,
     });
-
-    // 4) QR Code
-    const qr = await obterQrCodePix(cobranca.paymentId);
 
     const atualizada = await prisma.casinha.update({
       where: { id: casinha.id },
       data: {
-        asaasCustomerId: customerId,
-        asaasPaymentId: cobranca.paymentId,
-        pixPayload: qr.payload,
-        pixQrCodeImage: qr.encodedImage,
-        pixExpiraEm: qr.expirationDate ? new Date(qr.expirationDate) : null,
+        // reaproveitamos a coluna asaasPaymentId pro id do pagamento no MP
+        asaasPaymentId: pix.paymentId,
+        pixPayload: pix.pixPayload,
+        pixQrCodeImage: pix.pixQrCodeImage,
+        pixExpiraEm: pix.expiraEm ? new Date(pix.expiraEm) : null,
       },
     });
 

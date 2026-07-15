@@ -189,7 +189,7 @@ export default function PagarPage({
                 <span className="spinner" /> Aguardando pagamento...
               </div>
               <div className="seguranca" style={{ marginTop: 10 }}>
-                <IconCadeado size={14} /> Ambiente seguro · Asaas
+                <IconCadeado size={14} /> Ambiente seguro · Mercado Pago
               </div>
             </section>
           </div>

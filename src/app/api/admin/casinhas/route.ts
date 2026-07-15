@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { taxaPixEstimadaCentavos } from "@/lib/config";
 
 export const runtime = "nodejs";
 
@@ -15,7 +14,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ erro: "Senha incorreta." }, { status: 401 });
   }
 
-  const taxaEstimada = taxaPixEstimadaCentavos();
+  // Mercado Pago cobra ~0,99% por PIX. Usamos essa estimativa só enquanto o
+  // valor líquido real (net_received_amount) ainda não chegou.
+  const TAXA_MP = 0.0099;
+  const estLiquido = (v: number) => Math.max(0, Math.round(v * (1 - TAXA_MP)));
 
   const casinhas = await prisma.casinha.findMany({
     orderBy: { createdAt: "desc" },
@@ -41,7 +43,7 @@ export async function GET(req: NextRequest) {
       return s + c.liquidoCentavos;
     }
     algumEstimado = true;
-    return s + Math.max(0, c.valorTotalCentavos - taxaEstimada);
+    return s + estLiquido(c.valorTotalCentavos);
   }, 0);
   const totalTaxaCentavos = totalArrecadadoCentavos - totalLiquidoCentavos;
 
@@ -56,15 +58,12 @@ export async function GET(req: NextRequest) {
       totalDoacoesCentavos,
       totalTaxaCentavos,
       totalLiquidoCentavos,
-      taxaEstimadaCentavos: taxaEstimada,
       liquidoTemEstimativa: algumEstimado,
     },
     casinhas: casinhas.map((c) => {
       const liquido =
         c.liquidoCentavos ??
-        (c.status === "PAGO"
-          ? Math.max(0, c.valorTotalCentavos - taxaEstimada)
-          : null);
+        (c.status === "PAGO" ? estLiquido(c.valorTotalCentavos) : null);
       return {
         id: c.id,
         nome: c.nome,

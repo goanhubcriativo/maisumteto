@@ -46,9 +46,9 @@ export default function Home() {
         </p>
 
         <p className="transparencia">
-          As doações são feitas para a conta de GOAN no Asaas, responsáveis pelo
-          contrato da Casa Amiga. Cada doação tem uma taxa de R$&nbsp;0,99 do
-          sistema e todo o restante será depositado para a TETO.
+          As doações são feitas para a conta de GOAN no Mercado Pago,
+          responsáveis pelo contrato da Casa Amiga. Cada doação tem uma taxa de
+          0,99% por PIX e todo o restante será depositado para a TETO.
         </p>
 
         <RegrasCampanha />
