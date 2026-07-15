@@ -145,43 +145,5 @@ export const IconDownload = (p: P) => (
   </Base>
 );
 
-// Mangueira de nível — vetor ilustrativo (colorido) para o popup de erro.
-// Mangueira enrolada (azul, estilo mangueira de obra) com bico e água escapando.
-export const MangueiraNivel = ({ size = 150 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={(size * 185) / 210}
-    viewBox="0 0 210 185"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true"
-  >
-    {/* sombra no chão */}
-    <ellipse cx="95" cy="152" rx="82" ry="12" fill="#273740" opacity="0.1" />
-
-    {/* caracol (concêntrico, técnica de tubo) — contornos grafite */}
-    <ellipse cx="95" cy="82" rx="84" ry="46" fill="none" stroke="#273740" strokeWidth="15" />
-    <ellipse cx="95" cy="77" rx="57" ry="30" fill="none" stroke="#273740" strokeWidth="15" />
-    <ellipse cx="95" cy="72" rx="31" ry="15" fill="none" stroke="#273740" strokeWidth="15" />
-    {/* corpo azul */}
-    <ellipse cx="95" cy="82" rx="84" ry="46" fill="none" stroke="#2c95cf" strokeWidth="8" />
-    <ellipse cx="95" cy="77" rx="57" ry="30" fill="none" stroke="#2c95cf" strokeWidth="8" />
-    <ellipse cx="95" cy="72" rx="31" ry="15" fill="none" stroke="#2c95cf" strokeWidth="8" />
-    <ellipse cx="95" cy="82" rx="84" ry="46" fill="none" stroke="#8fd3f0" strokeWidth="2.5" />
-
-    {/* rabicho: sai da borda do caracol e desce pro bico (por cima, conecta) */}
-    <path d="M171 100 C 196 122, 192 150, 156 158" fill="none" stroke="#273740" strokeWidth="15" strokeLinecap="round" />
-    <path d="M171 100 C 196 122, 192 150, 156 158" fill="none" stroke="#41aee4" strokeWidth="8" strokeLinecap="round" />
-
-    {/* bico / gatilho na ponta */}
-    <g transform="rotate(30 156 158)">
-      <rect x="128" y="151" width="44" height="15" rx="7" fill="#273740" />
-      <rect x="131" y="153.5" width="38" height="10" rx="5" fill="#5a6b74" />
-      <rect x="166" y="148" width="10" height="21" rx="4" fill="#273740" />
-      <path d="M140 166 q-2 11 8 13" fill="none" stroke="#273740" strokeWidth="5" strokeLinecap="round" />
-    </g>
-    {/* pinguinho d'água saindo do bico */}
-    <circle cx="132" cy="172" r="3.6" fill="#2c95cf" />
-    <circle cx="140" cy="179" r="2.6" fill="#8fd3f0" />
-  </svg>
-);
+// (A mangueira do popup de erro agora é o arquivo public/mangueira.svg, a
+// ilustração do usuário — não há mais um componente aqui pra não divergir.)

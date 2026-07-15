@@ -398,8 +398,12 @@ a {
   border: none;
   color: rgba(246, 244, 238, 0.55);
   cursor: pointer;
-  padding: 3px;
+  /* área de toque maior (~40px) sem crescer o ícone */
+  padding: 10px;
+  margin: -4px;
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 4px;
 }
 .aposta-lista .rm:hover {
@@ -532,7 +536,7 @@ a {
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.12);
   padding: 8px 10px;
-  font-size: 14px;
+  font-size: 16px; /* evita zoom automático no iOS ao focar */
   text-align: center;
   color: #fff;
 }
@@ -1027,7 +1031,8 @@ input {
   border: none;
   border-bottom: 1.5px solid var(--linha-forte);
   border-radius: 0;
-  font-size: 15px;
+  /* 16px: abaixo disso o Safari iOS dá zoom automático ao focar o campo. */
+  font-size: 16px;
   background: transparent;
   color: var(--grafite);
   transition: border-color 0.15s;
@@ -1958,4 +1963,79 @@ input:focus {
   .marretada {
     display: none;
   }
+}
+
+/* ---------- Página de Aviso de Privacidade ---------- */
+.politica {
+  max-width: 620px;
+  margin: 8px auto 40px;
+  color: var(--grafite);
+  line-height: 1.6;
+}
+.politica h1 {
+  font-size: 26px;
+  font-weight: 900;
+  margin: 0 0 4px;
+}
+.politica-sub {
+  color: var(--grafite-70);
+  margin: 0 0 20px;
+  font-size: 14px;
+}
+.politica h2 {
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--azul);
+  margin: 22px 0 6px;
+}
+.politica p,
+.politica li {
+  font-size: 14.5px;
+  margin: 0 0 8px;
+}
+.politica ul {
+  padding-left: 18px;
+  margin: 0 0 8px;
+}
+.politica a {
+  color: var(--azul);
+  font-weight: 700;
+}
+.politica-idade {
+  margin-top: 22px;
+  font-weight: 700;
+}
+.politica-voltar {
+  display: inline-block;
+  margin-top: 24px;
+  color: var(--azul);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+/* Linha de consentimento/idade perto do botão de finalizar */
+.consentimento {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--grafite-70);
+  text-align: center;
+  margin: 10px 4px 0;
+}
+.consentimento a {
+  color: var(--azul);
+  font-weight: 700;
+}
+.rodape-links {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 16px;
+}
+.rodape-links a {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--grafite-70);
+  text-decoration: underline;
 }

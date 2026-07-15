@@ -150,6 +150,25 @@ export default function MontarCasinha({
     return () => window.removeEventListener("scroll", onScroll);
   }, [popupPendente]);
 
+  // Fecha os popups com a tecla Escape (acessibilidade).
+  useEffect(() => {
+    if (!popupAberto && !erroMsg) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (erroMsg) {
+        setErroMsg("");
+      } else {
+        pararCorrida();
+        setPopupAberto(false);
+        setNaoFase(0);
+        setNaoCorrendo(false);
+        setNaoPos("translate(0px, 0px) rotate(0deg)");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [popupAberto, erroMsg]);
+
   function adicionar() {
     setErroMsg("");
     if (novoCasa === "" || novoVisitante === "") {
@@ -176,7 +195,12 @@ export default function MontarCasinha({
   // sentido por mais ~2s e só então (após ~4s) fica parado pra clicar.
   function clicarNao() {
     if (naoCorrendo) return; // está fugindo, ignora o clique
-    if (naoFase >= 2) {
+    // Acessibilidade: quem pediu menos movimento não leva o botão fugindo —
+    // "Não" fecha direto.
+    const semMovimento =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (naoFase >= 2 || semMovimento) {
       pararCorrida();
       setPopupAberto(false);
       return;
@@ -312,6 +336,7 @@ export default function MontarCasinha({
               ref={casaRef}
               value={novoCasa}
               onChange={(e) => setNovoCasa(soPlacar(e.target.value))}
+              onKeyDown={(e) => e.key === "Enter" && adicionar()}
               placeholder="0"
               inputMode="numeric"
               aria-label={`Gols ${timeCasa}`}
@@ -325,6 +350,7 @@ export default function MontarCasinha({
             <input
               value={novoVisitante}
               onChange={(e) => setNovoVisitante(soPlacar(e.target.value))}
+              onKeyDown={(e) => e.key === "Enter" && adicionar()}
               placeholder="0"
               inputMode="numeric"
               aria-label={`Gols ${timeVisitante}`}
@@ -496,12 +522,21 @@ export default function MontarCasinha({
         <div className="seguranca">
           <IconCadeado size={13} /> Pagamento único e seguro via PIX
         </div>
+        <p className="consentimento">
+          Ao contribuir, você declara ser maior de 18 anos e concorda com o{" "}
+          <a href="/privacidade">Aviso de Privacidade</a>.
+        </p>
       </div>
 
       {/* Popup pós-primeira-aposta: o "Não" foge duas vezes */}
       {popupAberto && (
         <div className="pop-overlay">
-          <div className={`pop-box ${boxEscondeu ? "escondeu" : ""}`}>
+          <div
+            className={`pop-box ${boxEscondeu ? "escondeu" : ""}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Deseja fazer mais uma aposta?"
+          >
             <p className="pop-titulo">
               A maioria das pessoas
               <br />
@@ -528,7 +563,13 @@ export default function MontarCasinha({
       {/* Popup de erro — pisou na mangueira de nível */}
       {erroMsg && (
         <div className="pop-overlay" onClick={() => setErroMsg("")}>
-          <div className="pop-erro" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="pop-erro"
+            role="alertdialog"
+            aria-modal="true"
+            aria-label="Deu um probleminha"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="pop-erro-vetor">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/mangueira.svg" alt="" width={150} height={152} />

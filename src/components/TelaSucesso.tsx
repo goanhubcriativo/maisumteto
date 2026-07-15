@@ -39,6 +39,7 @@ export default function TelaSucesso({
   origem,
 }: Props) {
   const [verRecibo, setVerRecibo] = useState(false);
+  const [compartilhando, setCompartilhando] = useState(false);
   const abbr = (s: string) => s.trim().slice(0, 3).toUpperCase();
   const casaAb = abbr(config.timeCasa);
   const visAb = abbr(config.timeVisitante);
@@ -49,6 +50,8 @@ export default function TelaSucesso({
 
   // Compartilha a IMAGEM + texto pelo menu nativo (WhatsApp/Instagram).
   async function compartilhar(stories: boolean) {
+    if (compartilhando) return; // evita toque duplo enquanto busca o cartão
+    setCompartilhando(true);
     // cache-bust: garante a versão mais nova do cartão (evita cache do aparelho)
     const base = stories ? "/api/card?f=stories" : "/api/card";
     const url = `${base}${base.includes("?") ? "&" : "?"}v=${Date.now()}`;
@@ -68,6 +71,8 @@ export default function TelaSucesso({
       }
     } catch {
       /* cai no fallback */
+    } finally {
+      setCompartilhando(false);
     }
     if (stories) window.open(url, "_blank");
     else
@@ -96,8 +101,12 @@ export default function TelaSucesso({
         </div>
         <h2 className="st-titulo">Casinha erguida!</h2>
         <p className="st-sub">
-          Valeu, {nome.split(" ")[0]}! Suas {qtd} fézinha
-          {qtd > 1 ? "s" : ""} viraram piloti na obra da Teto.
+          Valeu, {nome.split(" ")[0]}!{" "}
+          {qtd === 0
+            ? "Sua ajuda virou piloti na obra da Teto."
+            : qtd === 1
+            ? "Sua fézinha virou piloti na obra da Teto."
+            : `Suas ${qtd} fézinhas viraram pilotis na obra da Teto.`}
         </p>
       </div>
 
@@ -112,17 +121,26 @@ export default function TelaSucesso({
           Compartilhe que ajudou e incentive mais amigos a ajudar.
         </p>
         <div className="acoes-share">
-          <button className="acao3" onClick={() => compartilhar(false)}>
+          <button
+            className="acao3"
+            onClick={() => compartilhar(false)}
+            disabled={compartilhando}
+          >
             <IconWhats size={20} />
             WhatsApp
           </button>
-          <button className="acao3" onClick={() => compartilhar(true)}>
+          <button
+            className="acao3"
+            onClick={() => compartilhar(true)}
+            disabled={compartilhando}
+          >
             <IconInstagram size={20} />
             Instagram
           </button>
           <button
             className="acao3"
             onClick={() => baixar("/api/card", "eu-contribui-teto.png")}
+            disabled={compartilhando}
           >
             <IconDownload size={20} />
             Baixar
@@ -132,7 +150,11 @@ export default function TelaSucesso({
           className={`acao-recibo ${verRecibo ? "on" : ""}`}
           onClick={() => setVerRecibo((v) => !v)}
         >
-          {verRecibo ? "Ocultar recibo" : "Ver recibo da aposta"}
+          {verRecibo
+            ? "Ocultar recibo"
+            : qtd === 0
+            ? "Ver recibo da doação"
+            : "Ver recibo da aposta"}
         </button>
       </div>
 

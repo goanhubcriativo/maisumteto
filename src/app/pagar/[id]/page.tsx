@@ -37,24 +37,35 @@ export default function PagarPage({
 
   useEffect(() => {
     let ativo = true;
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const parar = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
     async function checar() {
       try {
         const res = await fetch(`/api/casinhas/${id}`, { cache: "no-store" });
         const data = await res.json();
         if (!res.ok) {
           if (ativo) setErro(data.erro || "Casinha não encontrada.");
+          parar(); // 404/erro definitivo: para de perguntar
           return;
         }
         if (ativo) setCasinha(data);
+        // Quando não está mais PENDENTE (pago/cancelado), encerra o polling.
+        if (data.status && data.status !== "PENDENTE") parar();
       } catch {
+        // Erro de rede transitório: mantém tentando (pode voltar).
         if (ativo) setErro("Erro de conexão.");
       }
     }
     checar();
-    const t = setInterval(checar, 4000);
+    timer = setInterval(checar, 4000);
     return () => {
       ativo = false;
-      clearInterval(t);
+      parar();
     };
   }, [id]);
 
@@ -141,7 +152,7 @@ export default function PagarPage({
               </ul>
               {casinha.doacaoCentavos > 0 && (
                 <div className="resumo-linha" style={{ marginTop: 12 }}>
-                  <span>Chorinho pra obra</span>
+                  <span>Ajudinha extra</span>
                   <span className="v">{brl(casinha.doacaoCentavos)}</span>
                 </div>
               )}

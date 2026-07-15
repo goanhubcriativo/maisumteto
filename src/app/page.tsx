@@ -52,6 +52,10 @@ export default function Home() {
         </p>
 
         <RegrasCampanha />
+
+        <div className="rodape-links">
+          <a href="/privacidade">Aviso de Privacidade</a>
+        </div>
       </footer>
     </main>
   );
