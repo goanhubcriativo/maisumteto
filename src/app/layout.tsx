@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Raleway } from "next/font/google";
 import "./globals.css";
+import ProtecaoConteudo from "@/components/ProtecaoConteudo";
 
 // Todo o material da campanha é composto em Raleway.
 const raleway = Raleway({
@@ -23,7 +24,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className={raleway.variable}>
-      <body>{children}</body>
+      <body>
+        <ProtecaoConteudo />
+        {children}
+      </body>
     </html>
   );
 }
