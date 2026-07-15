@@ -264,11 +264,11 @@ a {
   background: url(/botao-piloti.svg) center/contain no-repeat;
   color: #fff;
   border: none;
-  width: 98px;
-  height: 51px;
-  padding: 0 0 12px; /* desce o texto pro corpo do piloti */
+  width: 88px;
+  height: 46px;
+  padding: 0 0 9px; /* desce o texto pro corpo do piloti */
   font-weight: 900;
-  font-size: 12px;
+  font-size: 11.5px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   cursor: pointer;
