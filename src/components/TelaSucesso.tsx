@@ -49,9 +49,11 @@ export default function TelaSucesso({
 
   // Compartilha a IMAGEM + texto pelo menu nativo (WhatsApp/Instagram).
   async function compartilhar(stories: boolean) {
-    const url = stories ? "/api/card?f=stories" : "/api/card";
+    // cache-bust: garante a versão mais nova do cartão (evita cache do aparelho)
+    const base = stories ? "/api/card?f=stories" : "/api/card";
+    const url = `${base}${base.includes("?") ? "&" : "?"}v=${Date.now()}`;
     try {
-      const blob = await (await fetch(url)).blob();
+      const blob = await (await fetch(url, { cache: "no-store" })).blob();
       const file = new File(
         [blob],
         stories ? "teto-stories.png" : "eu-contribui-teto.png",
@@ -76,8 +78,9 @@ export default function TelaSucesso({
   }
 
   function baixar(url: string, filename: string) {
+    const busted = `${url}${url.includes("?") ? "&" : "?"}v=${Date.now()}`;
     const a = document.createElement("a");
-    a.href = url;
+    a.href = busted;
     a.download = filename;
     a.rel = "noopener";
     document.body.appendChild(a);
