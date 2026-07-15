@@ -224,43 +224,11 @@ export default function AdminPage() {
               marginBottom: 14,
             }}
           >
-            <h2 className="passo-titulo">Fézinhas por placar (pagas)</h2>
+            <h2 className="passo-titulo">Apostadores</h2>
             <button className="mini" onClick={atualizar}>
               Atualizar
             </button>
           </div>
-          <div className="scroll-x">
-            <table className="tabela">
-              <thead>
-                <tr>
-                  <th>
-                    Placar ({config.timeCasa} × {config.timeVisitante})
-                  </th>
-                  <th>Fézinhas pagas</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(porPlacar)
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([placar, qtd]) => (
-                    <tr key={placar}>
-                      <td>
-                        <b>{comTimes(placar.replace("x", " × "))}</b>
-                      </td>
-                      <td>{qtd}</td>
-                    </tr>
-                  ))}
-                {Object.keys(porPlacar).length === 0 && (
-                  <tr>
-                    <td colSpan={2}>Nenhuma fézinha paga ainda.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="passo">
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
             <button
               className="mini"
@@ -327,6 +295,41 @@ export default function AdminPage() {
                 {visiveis.length === 0 && (
                   <tr>
                     <td colSpan={8}>Nenhuma casinha.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="passo">
+          <h2 className="passo-titulo" style={{ marginBottom: 14 }}>
+            Fézinhas por placar (pagas)
+          </h2>
+          <div className="scroll-x">
+            <table className="tabela">
+              <thead>
+                <tr>
+                  <th>
+                    Placar ({config.timeCasa} × {config.timeVisitante})
+                  </th>
+                  <th>Fézinhas pagas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(porPlacar)
+                  .sort((a, b) => b[1] - a[1])
+                  .map(([placar, qtd]) => (
+                    <tr key={placar}>
+                      <td>
+                        <b>{comTimes(placar.replace("x", " × "))}</b>
+                      </td>
+                      <td>{qtd}</td>
+                    </tr>
+                  ))}
+                {Object.keys(porPlacar).length === 0 && (
+                  <tr>
+                    <td colSpan={2}>Nenhuma fézinha paga ainda.</td>
                   </tr>
                 )}
               </tbody>
