@@ -126,7 +126,7 @@ export default function PagarPage({
             <section className="passo">
               <div className="passo-head">
                 <span className="passo-num">01</span>
-                <h2 className="passo-titulo">O que tem na sua mochila de construção</h2>
+                <h2 className="passo-titulo">Sua Bolsa de Terreno tem:</h2>
               </div>
               <ul className="fezinhas">
                 {casinha.palpites.map((p, i) => (

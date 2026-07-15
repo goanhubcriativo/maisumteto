@@ -101,7 +101,7 @@ export async function GET(req: Request) {
             left: 0,
             width: "1080px",
             height: `${ALTURA}px`,
-            backgroundColor: "rgba(178, 171, 151, 0.32)",
+            backgroundColor: "rgba(178, 171, 151, 0.1)",
           }}
         />
 
@@ -119,20 +119,26 @@ export async function GET(req: Request) {
         {/* No stories, centraliza o bloco de conteúdo (empurra do topo). */}
         {stories && <div style={{ display: "flex", flex: 1 }} />}
 
-        {/* Logo da campanha */}
+        {/* Logo da campanha (maior no stories, pra preencher a tela) */}
         {logo ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={logo} width={495} height={290} alt="" style={{ flexShrink: 0 }} />
+          <img
+            src={logo}
+            width={stories ? 640 : 495}
+            height={stories ? 375 : 290}
+            alt=""
+            style={{ flexShrink: 0 }}
+          />
         ) : (
           <div style={{ display: "flex", height: "140px", flexShrink: 0 }} />
         )}
 
         {/* Espaço entre logo e texto */}
-        <div style={{ display: "flex", height: "56px", flexShrink: 0 }} />
+        <div style={{ display: "flex", height: stories ? "104px" : "56px", flexShrink: 0 }} />
 
         {/* Chamada */}
         <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
-          <div style={{ display: "flex", fontSize: "40px", fontWeight: 600, lineHeight: 1.2 }}>
+          <div style={{ display: "flex", fontSize: stories ? "52px" : "40px", fontWeight: 600, lineHeight: 1.2 }}>
             Eu fiz uma fézinha para a Final da Copa e
           </div>
           <div
@@ -143,38 +149,38 @@ export async function GET(req: Request) {
               lineHeight: 1,
               color: AZUL,
               letterSpacing: "-5px",
-              margin: "10px 0 12px",
+              margin: stories ? "28px 0 30px" : "10px 0 12px",
             }}
           >
             CONTRIBUÍ
           </div>
-          <div style={{ display: "flex", fontSize: "50px", fontWeight: 800, lineHeight: 1.18 }}>
+          <div style={{ display: "flex", fontSize: stories ? "64px" : "50px", fontWeight: 800, lineHeight: 1.18 }}>
             para ajudar a construir mais uma casa da TETO em 2026!
           </div>
         </div>
 
-        {/* No stories: gap fixo (bloco coeso). No feed: empurra o convite pro rodapé. */}
+        {/* No stories: gap generoso (bloco respira). No feed: empurra o convite pro rodapé. */}
         {stories ? (
-          <div style={{ display: "flex", height: "60px", flexShrink: 0 }} />
+          <div style={{ display: "flex", height: "200px", flexShrink: 0 }} />
         ) : (
           <div style={{ display: "flex", flex: 1 }} />
         )}
 
         {/* Convite + link */}
         <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
-          <div style={{ display: "flex", fontSize: "42px", fontWeight: 800 }}>
+          <div style={{ display: "flex", fontSize: stories ? "54px" : "42px", fontWeight: 800 }}>
             Contribua você também:
           </div>
           <div
             style={{
               display: "flex",
               alignSelf: "flex-start",
-              marginTop: "18px",
+              marginTop: stories ? "24px" : "18px",
               backgroundColor: AZUL,
               color: PAPEL,
               borderRadius: "16px",
-              padding: "22px 36px",
-              fontSize: "48px",
+              padding: stories ? "28px 44px" : "22px 36px",
+              fontSize: stories ? "60px" : "48px",
               fontWeight: 900,
             }}
           >

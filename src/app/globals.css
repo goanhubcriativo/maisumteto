@@ -424,10 +424,10 @@ a {
 }
 .so-ajuda-box {
   flex: 0 0 auto;
-  width: 14px;
-  height: 14px;
-  border-radius: 4px;
-  border: 1px solid rgba(246, 244, 238, 0.4);
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  border: 1px solid rgba(246, 244, 238, 0.3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -443,12 +443,13 @@ a {
   outline-offset: 1px;
 }
 .so-ajuda-txt {
-  font-size: 10.5px;
+  font-size: 6.5px;
   font-weight: 600;
-  color: rgba(246, 244, 238, 0.5);
+  letter-spacing: 0.2px;
+  color: rgba(246, 244, 238, 0.4);
 }
 .so-ajuda-txt strong {
-  color: rgba(246, 244, 238, 0.8);
+  color: rgba(246, 244, 238, 0.6);
   font-weight: 700;
 }
 .so-ajuda-nota {

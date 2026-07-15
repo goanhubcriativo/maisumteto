@@ -225,7 +225,7 @@ export default function MontarCasinha({
     // Validações amigáveis (todas caem no popup da mangueira).
     if (!soAjuda && fezinhas.length < 1) {
       setErroMsg(
-        "Você ainda não fez nenhuma fézinha. Finca um palpite — ou marque “só quero ajudar” pra doar sem apostar."
+        "Você ainda não fez nenhuma fézinha. Finca um palpite, ou marque “só quero ajudar” pra doar sem apostar."
       );
       return;
     }
@@ -236,7 +236,7 @@ export default function MontarCasinha({
       return;
     }
     if (nome.trim().length < 3) {
-      setErroMsg("Faltou seu nome completo — a gente quer saber quem levantou o piloti.");
+      setErroMsg("Faltou seu nome completo, a gente quer saber quem ergueu essa casa!");
       return;
     }
     const telDigitos = whatsapp.replace(/\D/g, "");
@@ -250,7 +250,7 @@ export default function MontarCasinha({
     }
     if (total < 500) {
       setErroMsg(
-        "O PIX tem um mínimo de R$ 5. Junte mais fézinhas — ou uma ajudinha extra — pra chegar lá."
+        "O PIX tem um mínimo de R$ 5. Junte mais fézinhas ou uma ajudinha extra pra chegar lá."
       );
       return;
     }
@@ -275,7 +275,7 @@ export default function MontarCasinha({
       });
       const data = await res.json();
       if (!res.ok) {
-        setErroMsg(data.erro || "Não foi possível fechar a casinha. Tenta de novo.");
+        setErroMsg(data.erro || "Não foi possível fechar a aposta. Tenta de novo.");
         setEnviando(false);
         return;
       }
@@ -386,7 +386,7 @@ export default function MontarCasinha({
             aria-label="Não quero apostar, mas quero ajudar"
           />
           <span className="so-ajuda-box" aria-hidden>
-            {soAjuda && <IconCheck size={9} strokeWidth={3.4} />}
+            {soAjuda && <IconCheck size={6} strokeWidth={4} />}
           </span>
           <span className="so-ajuda-txt">
             Não quero apostar, <strong>mas quero ajudar</strong>
@@ -533,7 +533,11 @@ export default function MontarCasinha({
             <div className="pop-erro-vetor">
               <MangueiraNivel size={140} />
             </div>
-            <p className="pop-erro-tit">Ah, não! Pisou na mangueira de nível!</p>
+            <p className="pop-erro-tit">
+              Ah não! Pisou na
+              <br />
+              Mangueira de Nível
+            </p>
             <p className="pop-erro-msg">{erroMsg}</p>
             <button
               type="button"

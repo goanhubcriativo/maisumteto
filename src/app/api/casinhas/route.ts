@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ erro: "E-mail inválido." }, { status: 400 });
   if (palpites.length < 1 && doacaoCentavos <= 0)
     return NextResponse.json(
-      { erro: "Adicione pelo menos um palpite — ou uma ajudinha extra — à sua casinha." },
+      { erro: "Adicione pelo menos um palpite ou uma ajudinha extra à sua casinha." },
       { status: 400 }
     );
   if (palpites.length > 100)
