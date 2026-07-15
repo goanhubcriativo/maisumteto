@@ -71,7 +71,7 @@ export default function Privacidade() {
 
         <h2>Responsável (controlador)</h2>
         <p>
-          GOAN | hub criativo — contato:{" "}
+          GOAN | hub criativo — CNPJ 19.548.987/0001-01 — contato:{" "}
           <a href={`mailto:${CONTATO}`}>{CONTATO}</a>.
         </p>
 
