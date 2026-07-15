@@ -4,13 +4,13 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { formatBRL, reaisParaCentavos } from "@/lib/config";
 import {
-  IconMais,
   IconX,
   IconCadeado,
   IconSeta,
   IconFeliz,
   IconTriste,
   IconCheck,
+  IconPilotiPonta,
 } from "@/components/icones";
 import Bandeira from "@/components/Bandeira";
 
@@ -363,14 +363,14 @@ export default function MontarCasinha({
               key={`btn-${martelo}`}
               onClick={adicionar}
             >
-              <IconMais size={15} strokeWidth={2.4} /> Fincar
+              <IconPilotiPonta size={17} strokeWidth={2.2} /> Fincar
             </button>
             {martelo > 0 && (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 key={martelo}
                 className="marretada"
-                src="/piloti-marretada.svg"
+                src="/marreta.png"
                 alt=""
                 aria-hidden
               />

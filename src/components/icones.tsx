@@ -145,5 +145,13 @@ export const IconDownload = (p: P) => (
   </Base>
 );
 
+// Pontinha de piloti já cravada no chão (topo arredondado saindo da terra)
+export const IconPilotiPonta = (p: P) => (
+  <Base {...p}>
+    <path d="M9 19V9a3 3 0 0 1 6 0v10" />
+    <path d="M4 15h16" />
+  </Base>
+);
+
 // (A mangueira do popup de erro agora é o arquivo public/mangueira.svg, a
 // ilustração do usuário — não há mais um componente aqui pra não divergir.)

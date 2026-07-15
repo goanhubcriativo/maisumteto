@@ -6,6 +6,7 @@ import {
 import MontarCasinha from "@/components/MontarCasinha";
 import ProgressoPiloti from "@/components/ProgressoPiloti";
 import RegrasCampanha from "@/components/RegrasCampanha";
+import CompartilharCampanha from "@/components/CompartilharCampanha";
 import LogoTeto from "@/components/LogoTeto";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +35,15 @@ export default function Home() {
         valorCentavos={valor}
         doacaoPresets={doacaoPresetsCentavos}
       />
+
+      {/* Divulgação — todo mundo pode compartilhar, mesmo sem apostar */}
+      <section className="divulga">
+        <p className="divulga-txt">
+          Não vai fazer sua fézinha agora? <strong>Ajuda divulgando</strong> —
+          quanto mais gente souber, mais rápido a casa sobe.
+        </p>
+        <CompartilharCampanha />
+      </section>
 
       {/* Rodapé da campanha */}
       <footer className="rodape">

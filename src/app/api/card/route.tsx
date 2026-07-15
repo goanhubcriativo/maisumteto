@@ -9,8 +9,21 @@ export async function GET(req: Request) {
   const AZUL = "#0291da";
   const PAPEL = "#f6f4ee";
 
-  const stories = new URL(req.url).searchParams.get("f") === "stories";
+  const params = new URL(req.url).searchParams;
+  const stories = params.get("f") === "stories";
+  // Modo "convite": imagem de DIVULGAÇÃO (chama pra participar), no lugar do
+  // depoimento "eu contribuí".
+  const convite = params.get("tipo") === "convite";
   const ALTURA = stories ? 1920 : 1350;
+
+  const intro = convite
+    ? "Faça sua fézinha na Final da Copa e"
+    : "Eu fiz uma fézinha para a Final da Copa e";
+  const palavraGrande = convite ? "AJUDE" : "CONTRIBUÍ";
+  const fecho = convite
+    ? "a erguer mais uma casa da TETO em 2026!"
+    : "para ajudar a construir mais uma casa da TETO em 2026!";
+  const convide = convite ? "Participe você também:" : "Contribua você também:";
 
   const reqHost = req.headers.get("host") || "";
   // Domínio MOSTRADO no cartão (canônico, por env).
@@ -139,7 +152,7 @@ export async function GET(req: Request) {
         {/* Chamada */}
         <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
           <div style={{ display: "flex", fontSize: stories ? "52px" : "40px", fontWeight: 600, lineHeight: 1.2 }}>
-            Eu fiz uma fézinha para a Final da Copa e
+            {intro}
           </div>
           <div
             style={{
@@ -152,10 +165,10 @@ export async function GET(req: Request) {
               margin: stories ? "28px 0 30px" : "10px 0 12px",
             }}
           >
-            CONTRIBUÍ
+            {palavraGrande}
           </div>
           <div style={{ display: "flex", fontSize: stories ? "64px" : "50px", fontWeight: 800, lineHeight: 1.18 }}>
-            para ajudar a construir mais uma casa da TETO em 2026!
+            {fecho}
           </div>
         </div>
 
@@ -169,7 +182,7 @@ export async function GET(req: Request) {
         {/* Convite + link */}
         <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
           <div style={{ display: "flex", fontSize: stories ? "54px" : "42px", fontWeight: 800 }}>
-            Contribua você também:
+            {convide}
           </div>
           <div
             style={{

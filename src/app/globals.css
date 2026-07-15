@@ -263,17 +263,22 @@ a {
   background: var(--azul);
   color: #fff;
   border: none;
-  border-radius: 6px;
-  padding: 0 14px;
-  height: 38px;
+  border-radius: 9px;
+  padding: 0 15px;
+  height: 40px;
   font-weight: 800;
   font-size: 12px;
   letter-spacing: 0.6px;
   text-transform: uppercase;
   cursor: pointer;
+  /* base de piloti cravado: borda inferior mais escura (cara 3D do Botão.svg) */
+  box-shadow: inset 0 -4px 0 #0683b5, 0 3px 5px rgba(39, 55, 64, 0.22);
 }
 .aposta-add:hover {
   background: var(--azul-escuro);
+}
+.aposta-add:active {
+  box-shadow: inset 0 -2px 0 #0683b5, 0 1px 2px rgba(39, 55, 64, 0.2);
 }
 .add-wrap {
   position: relative;
@@ -282,8 +287,8 @@ a {
 .marretada {
   position: absolute;
   left: 50%;
-  bottom: 78%;
-  width: 46px;
+  bottom: 74%;
+  width: 68px;
   height: auto;
   pointer-events: none;
   transform-origin: bottom center;
@@ -2038,4 +2043,48 @@ input:focus {
   font-weight: 700;
   color: var(--grafite-70);
   text-decoration: underline;
+}
+
+/* ---------- Divulgação (compartilhar campanha com todos) ---------- */
+.divulga {
+  margin: 30px 0 4px;
+  text-align: center;
+}
+.divulga-txt {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--grafite-70);
+  margin: 0 auto 14px;
+  max-width: 350px;
+}
+.divulga-txt strong {
+  color: var(--grafite);
+}
+.compartilhar-campanha {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 15px 16px;
+  background: var(--azul);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: inset 0 -4px 0 #0683b5, 0 3px 6px rgba(39, 55, 64, 0.22);
+}
+.compartilhar-campanha:hover {
+  background: var(--azul-escuro);
+}
+.compartilhar-campanha:active {
+  box-shadow: inset 0 -2px 0 #0683b5, 0 1px 2px rgba(39, 55, 64, 0.2);
+}
+.compartilhar-campanha:disabled {
+  opacity: 0.7;
+  cursor: default;
 }
