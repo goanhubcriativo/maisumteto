@@ -2,17 +2,21 @@ import {
   config,
   valorApostaCentavos,
   doacaoPresetsCentavos,
+  bolaoEncerrado,
+  PRAZO_LABEL,
 } from "@/lib/config";
 import MontarCasinha from "@/components/MontarCasinha";
 import ProgressoPiloti from "@/components/ProgressoPiloti";
 import RegrasCampanha from "@/components/RegrasCampanha";
 import CompartilharCampanha from "@/components/CompartilharCampanha";
 import LogoTeto from "@/components/LogoTeto";
+import { IconRelogio } from "@/components/icones";
 
 export const dynamic = "force-dynamic";
 
 export default function Home() {
   const valor = valorApostaCentavos();
+  const encerrado = bolaoEncerrado();
   return (
     <main className="canvas">
       {/* Selo da campanha */}
@@ -28,12 +32,26 @@ export default function Home() {
       {/* Piloti = barra de carregamento da meta */}
       <ProgressoPiloti />
 
+      {/* Prazo pra apostar */}
+      <div className={`prazo-banner ${encerrado ? "encerrado" : ""}`}>
+        <IconRelogio size={16} />
+        {encerrado ? (
+          <span>Os palpites do bolão se encerraram.</span>
+        ) : (
+          <span>
+            Palpites até <strong>{PRAZO_LABEL}</strong> — um minutinho antes do
+            jogo começar.
+          </span>
+        )}
+      </div>
+
       {/* Aposta + ajudinha + dados */}
       <MontarCasinha
         timeCasa={config.timeCasa}
         timeVisitante={config.timeVisitante}
         valorCentavos={valor}
         doacaoPresets={doacaoPresetsCentavos}
+        encerrado={encerrado}
       />
 
       {/* Divulgação — todo mundo pode compartilhar, mesmo sem apostar */}

@@ -153,5 +153,13 @@ export const IconPilotiPonta = (p: P) => (
   </Base>
 );
 
+// Relógio (prazo)
+export const IconRelogio = (p: P) => (
+  <Base {...p}>
+    <circle cx="12" cy="12" r="8.5" />
+    <path d="M12 7.5V12l3 2" />
+  </Base>
+);
+
 // (A mangueira do popup de erro agora é o arquivo public/mangueira.svg, a
 // ilustração do usuário — não há mais um componente aqui pra não divergir.)

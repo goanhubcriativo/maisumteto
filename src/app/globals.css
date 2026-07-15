@@ -2082,3 +2082,66 @@ input:focus {
   opacity: 0.7;
   cursor: default;
 }
+
+/* ---------- Prazo pra apostar ---------- */
+.prazo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0 2px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--azul);
+  border-radius: 9px;
+  background: rgba(2, 145, 218, 0.07);
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--grafite);
+  text-align: center;
+}
+.prazo-banner svg {
+  color: var(--azul);
+  flex-shrink: 0;
+}
+.prazo-banner strong {
+  color: var(--azul);
+  font-weight: 800;
+}
+.prazo-banner.encerrado {
+  border-color: var(--linha-forte);
+  background: rgba(39, 55, 64, 0.06);
+}
+.prazo-banner.encerrado svg {
+  color: var(--grafite);
+}
+
+/* Estado "bolão encerrado" (no lugar do formulário) */
+.encerrado-box {
+  text-align: center;
+  padding: 30px 22px;
+}
+.encerrado-selo {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: rgba(246, 244, 238, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--papel);
+}
+.encerrado-tit {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--papel);
+}
+.encerrado-txt {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(246, 244, 238, 0.85);
+}

@@ -15,6 +15,17 @@ export const LINK_CAMPANHA = `https://${
   process.env.NEXT_PUBLIC_SITE_HOST || "maisumteto.com.br"
 }`;
 
+// Prazo final pra fazer palpites: 1 minuto antes do jogo (domingo, 15h59).
+// Formato ISO com fuso de Brasília. Pode ser sobrescrito por env.
+export const PRAZO_FINAL_ISO =
+  process.env.NEXT_PUBLIC_PRAZO || "2026-07-19T15:59:00-03:00";
+export const PRAZO_LABEL = "domingo (19/07), às 15h59";
+
+export function bolaoEncerrado(): boolean {
+  const t = new Date(PRAZO_FINAL_ISO).getTime();
+  return Number.isFinite(t) && Date.now() > t;
+}
+
 // Valor de cada aposta em centavos (só no servidor; nunca confie no cliente).
 export function valorApostaCentavos(): number {
   const raw = process.env.VALOR_APOSTA_CENTAVOS;

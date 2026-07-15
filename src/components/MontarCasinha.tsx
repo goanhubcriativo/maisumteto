@@ -10,6 +10,7 @@ import {
   IconFeliz,
   IconTriste,
   IconCheck,
+  IconRelogio,
 } from "@/components/icones";
 import Bandeira from "@/components/Bandeira";
 
@@ -18,6 +19,7 @@ interface Props {
   timeVisitante: string;
   valorCentavos: number;
   doacaoPresets: number[];
+  encerrado: boolean;
 }
 
 interface Fezinha {
@@ -47,6 +49,7 @@ export default function MontarCasinha({
   timeVisitante,
   valorCentavos,
   doacaoPresets,
+  encerrado,
 }: Props) {
   const router = useRouter();
 
@@ -320,6 +323,21 @@ export default function MontarCasinha({
       setErroMsg("Deu ruim na conexão. Confere a internet e tenta de novo.");
       setEnviando(false);
     }
+  }
+
+  if (encerrado) {
+    return (
+      <section className="aposta encerrado-box">
+        <div className="encerrado-selo">
+          <IconRelogio size={30} strokeWidth={2} />
+        </div>
+        <h2 className="encerrado-tit">Bolão encerrado</h2>
+        <p className="encerrado-txt">
+          Os palpites se encerraram no horário do jogo. Muito obrigado a quem
+          participou e ajudou a levantar mais uma casa com a TETO!
+        </p>
+      </section>
+    );
   }
 
   return (

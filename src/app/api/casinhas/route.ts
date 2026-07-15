@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { valorApostaCentavos, config } from "@/lib/config";
+import { valorApostaCentavos, config, bolaoEncerrado } from "@/lib/config";
 import {
   cpfValido,
   whatsappValido,
@@ -24,6 +24,15 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ erro: "JSON inválido." }, { status: 400 });
   }
+
+  // Bolão fechado após o prazo (1 min antes do jogo).
+  if (bolaoEncerrado())
+    return NextResponse.json(
+      {
+        erro: "O bolão encerrou (palpites só até domingo, 15h59). Muito obrigado por participar!",
+      },
+      { status: 400 }
+    );
 
   const nome = String(body.nome || "").trim();
   const whatsapp = somenteDigitos(String(body.whatsapp || ""));
