@@ -81,6 +81,13 @@ export async function POST(req: NextRequest) {
   const valorPalpites = palpites.length * precoUnit;
   const valorTotal = valorPalpites + doacaoCentavos;
 
+  // Asaas exige um mínimo de R$ 5,00 por cobrança PIX.
+  if (valorTotal < 500)
+    return NextResponse.json(
+      { erro: "O PIX tem um mínimo de R$ 5,00. Some mais fézinhas ou uma ajudinha extra." },
+      { status: 400 }
+    );
+
   // 1) Cria a casinha (PENDENTE) com os palpites
   const casinha = await prisma.casinha.create({
     data: {

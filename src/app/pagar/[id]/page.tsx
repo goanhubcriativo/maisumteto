@@ -77,7 +77,7 @@ export default function PagarPage({
         <LogoTeto className="masthead-logo" />
       </header>
 
-      {erro && (
+      {erro && !casinha && (
         <div className="folha">
           <section className="passo">
             <div className="erro">
@@ -120,17 +120,13 @@ export default function PagarPage({
               src="/casa.svg"
               alt="Casa emergencial da Teto"
             />
-            <p className="obra-legenda">
-              Sua casinha sobre <b>{qtd} piloti{qtd > 1 ? "s" : ""}</b>. Falta o
-              PIX pra fincar de vez.
-            </p>
           </div>
 
           <div className="folha">
             <section className="passo">
               <div className="passo-head">
                 <span className="passo-num">01</span>
-                <h2 className="passo-titulo">O que tem na casinha</h2>
+                <h2 className="passo-titulo">O que tem na sua mochila de construção</h2>
               </div>
               <ul className="fezinhas">
                 {casinha.palpites.map((p, i) => (

@@ -248,6 +248,12 @@ export default function MontarCasinha({
       setErroMsg("Confere o CPF: são 11 dígitos (é ele que identifica o PIX).");
       return;
     }
+    if (total < 500) {
+      setErroMsg(
+        "O PIX tem um mínimo de R$ 5. Junte mais fézinhas — ou uma ajudinha extra — pra chegar lá."
+      );
+      return;
+    }
 
     setEnviando(true);
     try {

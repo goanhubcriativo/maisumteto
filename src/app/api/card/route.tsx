@@ -101,7 +101,7 @@ export async function GET(req: Request) {
             left: 0,
             width: "1080px",
             height: `${ALTURA}px`,
-            backgroundColor: "rgba(178, 171, 151, 0.64)",
+            backgroundColor: "rgba(178, 171, 151, 0.32)",
           }}
         />
 

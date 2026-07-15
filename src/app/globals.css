@@ -409,8 +409,10 @@ a {
 .so-ajuda {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-top: 12px;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 16px;
+  margin-bottom: -6px;
   cursor: pointer;
   user-select: none;
 }
@@ -441,9 +443,9 @@ a {
   outline-offset: 1px;
 }
 .so-ajuda-txt {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  color: rgba(246, 244, 238, 0.55);
+  color: rgba(246, 244, 238, 0.5);
 }
 .so-ajuda-txt strong {
   color: rgba(246, 244, 238, 0.8);
