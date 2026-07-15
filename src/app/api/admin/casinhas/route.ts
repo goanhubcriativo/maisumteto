@@ -14,10 +14,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ erro: "Senha incorreta." }, { status: 401 });
   }
 
-  // Mercado Pago cobra ~0,99% por PIX. Usamos essa estimativa só enquanto o
-  // valor líquido real (net_received_amount) ainda não chegou.
+  // Mercado Pago cobra ~0,99% por PIX e arredonda o líquido PRA BAIXO no
+  // centavo, em cada pagamento. Esta estimativa imita isso e só é usada
+  // enquanto o valor líquido real (net_received_amount) ainda não chegou.
   const TAXA_MP = 0.0099;
-  const estLiquido = (v: number) => Math.max(0, Math.round(v * (1 - TAXA_MP)));
+  const estLiquido = (v: number) => Math.max(0, Math.floor(v * (1 - TAXA_MP)));
 
   const casinhas = await prisma.casinha.findMany({
     orderBy: { createdAt: "desc" },

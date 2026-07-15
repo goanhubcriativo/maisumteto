@@ -185,7 +185,16 @@ export default function AdminPage() {
               <div className="conta-linha neg">
                 <span>
                   Taxas do Mercado Pago
-                  <small> (≈ 0,99% por PIX)</small>
+                  <small>
+                    {" "}
+                    (soma real por PIX
+                    {resumo.totalArrecadadoCentavos > 0 &&
+                      `, ${(
+                        (100 * resumo.totalTaxaCentavos) /
+                        resumo.totalArrecadadoCentavos
+                      ).toFixed(2)}% efetivo`}
+                    )
+                  </small>
                 </span>
                 <span className="v">− {brl(resumo.totalTaxaCentavos)}</span>
               </div>
