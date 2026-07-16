@@ -309,14 +309,17 @@ export default function AdminPage() {
                     <span style={{ flex: "0 0 110px", fontSize: 13, fontWeight: 800, textAlign: "right" }}>
                       {resumo.casinhasPagas}{" "}
                       <small style={{ color: "var(--grafite-70)" }}>
-                        ({base > 0 ? Math.round((100 * resumo.casinhasPagas) / base) : 0}%)
+                        {base > 0 && resumo.casinhasPagas <= base
+                          ? `(${Math.round((100 * resumo.casinhasPagas) / base)}%)`
+                          : "(·)"}
                       </small>
                     </span>
                   </div>
                   <p className="conta-nota" style={{ marginTop: 8 }}>
                     Extras: {funil["ajudinha_escolhida"] || 0} escolheram ajudinha,{" "}
                     {funil["so_ajudar"] || 0} marcaram só ajudar,{" "}
-                    {funil["erro_validacao"] || 0} esbarraram em erro de validação.
+                    {funil["erro_validacao"] || 0} esbarraram em erro de validação. O
+                    funil conta a partir de agora (visitas antigas não foram medidas).
                   </p>
                 </div>
               );
