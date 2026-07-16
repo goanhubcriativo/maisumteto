@@ -28,6 +28,11 @@ export default function Privacidade() {
 
         <h2>Quais dados coletamos</h2>
         <p>Nome completo, WhatsApp e CPF.</p>
+        <p>
+          Também registramos eventos anônimos de navegação (por exemplo, quantas
+          pessoas visitam a página), sem nenhum dado pessoal, só para melhorar a
+          campanha.
+        </p>
 
         <h2>Para que usamos</h2>
         <ul>

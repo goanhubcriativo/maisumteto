@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
+import { registrar } from "@/lib/metricas";
 import LogoTeto from "@/components/LogoTeto";
 import { IconCadeado, IconSeta, IconPix } from "@/components/icones";
 import TelaSucesso from "@/components/TelaSucesso";
@@ -69,9 +70,15 @@ export default function PagarPage({
     };
   }, [id]);
 
+  // Métrica: chegou na tela do PIX (pendente)
+  useEffect(() => {
+    if (casinha?.status === "PENDENTE") registrar("pix_visualizado");
+  }, [casinha?.status]);
+
   function copiar() {
     if (!casinha?.pixPayload) return;
     navigator.clipboard.writeText(casinha.pixPayload);
+    registrar("pix_copiado");
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000);
   }

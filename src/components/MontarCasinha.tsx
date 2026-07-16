@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { formatBRL, reaisParaCentavos } from "@/lib/config";
+import { registrar } from "@/lib/metricas";
 import {
   IconX,
   IconCadeado,
@@ -157,6 +158,28 @@ export default function MontarCasinha({
     return () => window.removeEventListener("scroll", onScroll);
   }, [popupPendente]);
 
+  // Métricas do funil (anônimas, 1x por sessão cada)
+  useEffect(() => {
+    if (novoCasa !== "" || novoVisitante !== "") registrar("placar_digitado");
+  }, [novoCasa, novoVisitante]);
+  useEffect(() => {
+    if (
+      nome.trim().length >= 3 &&
+      whatsapp.replace(/\D/g, "").length >= 10 &&
+      cpf.replace(/\D/g, "").length === 11
+    )
+      registrar("dados_completos");
+  }, [nome, whatsapp, cpf]);
+  useEffect(() => {
+    if (doacaoCentavos > 0) registrar("ajudinha_escolhida");
+  }, [doacaoCentavos]);
+  useEffect(() => {
+    if (soAjuda) registrar("so_ajudar");
+  }, [soAjuda]);
+  useEffect(() => {
+    if (erroMsg) registrar("erro_validacao");
+  }, [erroMsg]);
+
   // Fecha os popups com a tecla Escape (acessibilidade).
   useEffect(() => {
     if (!popupAberto && !erroMsg) return;
@@ -185,6 +208,7 @@ export default function MontarCasinha({
       );
       return;
     }
+    registrar("fezinha_fincada");
     const primeira = fezinhas.length === 0;
     setFezinhas((f) => [
       ...f,
@@ -280,6 +304,7 @@ export default function MontarCasinha({
   }
 
   async function fechar() {
+    registrar("finalizar_clicou");
     setErroMsg("");
 
     // Validações amigáveis (todas caem no popup da mangueira).
@@ -339,6 +364,7 @@ export default function MontarCasinha({
         setEnviando(false);
         return;
       }
+      registrar("pix_gerado");
       router.push(`/pagar/${data.id}`);
     } catch {
       setErroMsg("Deu ruim na conexão. Confere a internet e tenta de novo.");

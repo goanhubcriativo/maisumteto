@@ -47,6 +47,18 @@ model Casinha {
   @@index([createdAt])
 }
 
+// Evento anônimo de navegação (métricas do funil no admin).
+// Sem dado pessoal: só um id aleatório de visitante (localStorage) e o tipo.
+model Evento {
+  id        String   @id @default(cuid())
+  tipo      String   // visita | rolou_50 | placar_digitado | fezinha_fincada | ...
+  visitante String   // id anônimo gerado no navegador
+  createdAt DateTime @default(now())
+
+  @@index([tipo])
+  @@index([createdAt])
+}
+
 model Palpite {
   id        String   @id @default(cuid())
 

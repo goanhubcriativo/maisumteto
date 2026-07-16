@@ -56,6 +56,7 @@ export default function AdminPage() {
   const [carregando, setCarregando] = useState(false);
   const [casinhas, setCasinhas] = useState<Casinha[]>([]);
   const [resumo, setResumo] = useState<Resumo | null>(null);
+  const [funil, setFunil] = useState<Record<string, number>>({});
   const [filtro, setFiltro] = useState<"TODAS" | "PAGO">("PAGO");
 
   async function carregar(comSenha: string) {
@@ -67,6 +68,7 @@ export default function AdminPage() {
     if (!res.ok) throw new Error(data.erro || "Erro ao carregar.");
     setCasinhas(data.casinhas);
     setResumo(data.resumo);
+    setFunil(data.funil || {});
   }
 
   async function entrar(e: React.FormEvent) {
@@ -210,6 +212,115 @@ export default function AdminPage() {
                 estimativa automaticamente.
               </p>
             )}
+          </section>
+        </div>
+      )}
+
+      {resumo && (
+        <div className="folha">
+          <section className="passo">
+            <h2 className="passo-titulo" style={{ marginBottom: 4 }}>
+              Funil de visitantes
+            </h2>
+            <p className="conta-nota" style={{ marginBottom: 14 }}>
+              Visitantes únicos por etapa (anônimo, 1x por sessão). Mostra onde
+              o pessoal para quando não aposta.
+            </p>
+            {(() => {
+              const ETAPAS: [string, string][] = [
+                ["visita", "Visitaram a página"],
+                ["rolou_50", "Rolaram até a metade"],
+                ["rolou_100", "Chegaram ao fim da página"],
+                ["placar_digitado", "Digitaram um placar"],
+                ["fezinha_fincada", "Fincaram uma fézinha"],
+                ["dados_completos", "Preencheram os dados"],
+                ["finalizar_clicou", "Clicaram em finalizar"],
+                ["pix_gerado", "Geraram o PIX"],
+                ["pix_copiado", "Copiaram o código PIX"],
+              ];
+              const base = funil["visita"] || 0;
+              return (
+                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                  {ETAPAS.map(([tipo, rotulo]) => {
+                    const n = funil[tipo] || 0;
+                    const pct = base > 0 ? Math.round((100 * n) / base) : 0;
+                    return (
+                      <div key={tipo} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span style={{ flex: "0 0 210px", fontSize: 13, fontWeight: 600 }}>
+                          {rotulo}
+                        </span>
+                        <div
+                          style={{
+                            flex: 1,
+                            height: 16,
+                            background: "rgba(39,55,64,0.1)",
+                            borderRadius: 8,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${Math.min(100, pct)}%`,
+                              height: "100%",
+                              background: "var(--azul)",
+                              borderRadius: 8,
+                            }}
+                          />
+                        </div>
+                        <span
+                          style={{
+                            flex: "0 0 110px",
+                            fontSize: 13,
+                            fontWeight: 800,
+                            textAlign: "right",
+                          }}
+                        >
+                          {n} <small style={{ color: "var(--grafite-70)" }}>({pct}%)</small>
+                        </span>
+                      </div>
+                    );
+                  })}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4 }}>
+                    <span style={{ flex: "0 0 210px", fontSize: 13, fontWeight: 800 }}>
+                      Pagaram de verdade
+                    </span>
+                    <div
+                      style={{
+                        flex: 1,
+                        height: 16,
+                        background: "rgba(39,55,64,0.1)",
+                        borderRadius: 8,
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${
+                            base > 0
+                              ? Math.min(100, Math.round((100 * resumo.casinhasPagas) / base))
+                              : 0
+                          }%`,
+                          height: "100%",
+                          background: "var(--verde, #1a9e5f)",
+                          borderRadius: 8,
+                        }}
+                      />
+                    </div>
+                    <span style={{ flex: "0 0 110px", fontSize: 13, fontWeight: 800, textAlign: "right" }}>
+                      {resumo.casinhasPagas}{" "}
+                      <small style={{ color: "var(--grafite-70)" }}>
+                        ({base > 0 ? Math.round((100 * resumo.casinhasPagas) / base) : 0}%)
+                      </small>
+                    </span>
+                  </div>
+                  <p className="conta-nota" style={{ marginTop: 8 }}>
+                    Extras: {funil["ajudinha_escolhida"] || 0} escolheram ajudinha,{" "}
+                    {funil["so_ajudar"] || 0} marcaram só ajudar,{" "}
+                    {funil["erro_validacao"] || 0} esbarraram em erro de validação.
+                  </p>
+                </div>
+              );
+            })()}
           </section>
         </div>
       )}

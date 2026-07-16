@@ -48,7 +48,17 @@ export async function GET(req: NextRequest) {
   }, 0);
   const totalTaxaCentavos = totalArrecadadoCentavos - totalLiquidoCentavos;
 
+  // Funil: visitantes ÚNICOS por tipo de evento (métricas anônimas).
+  const funil: Record<string, number> = {};
+  try {
+    const grupos = await prisma.evento.groupBy({ by: ["tipo", "visitante"] });
+    for (const g of grupos) funil[g.tipo] = (funil[g.tipo] || 0) + 1;
+  } catch {
+    // tabela vazia/indisponível: funil fica vazio
+  }
+
   return NextResponse.json({
+    funil,
     resumo: {
       totalCasinhas: casinhas.length,
       casinhasPagas: pagas.length,

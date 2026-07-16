@@ -9,6 +9,7 @@ import MontarCasinha from "@/components/MontarCasinha";
 import ProgressoPiloti from "@/components/ProgressoPiloti";
 import RegrasCampanha from "@/components/RegrasCampanha";
 import CompartilharCampanha from "@/components/CompartilharCampanha";
+import RastreioHome from "@/components/RastreioHome";
 import LogoTeto from "@/components/LogoTeto";
 import { IconRelogio } from "@/components/icones";
 
@@ -19,6 +20,7 @@ export default function Home() {
   const encerrado = bolaoEncerrado();
   return (
     <main className="canvas">
+      <RastreioHome />
       {/* Selo da campanha */}
       <div className="selo-campanha">
         Campanha de arrecadação para Casa Amiga
