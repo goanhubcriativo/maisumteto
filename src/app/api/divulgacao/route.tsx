@@ -360,7 +360,7 @@ export async function GET(req: Request) {
     // MOMENTUM: X% da meta em menos de 24h + chamada pra quem não fez ontem
     conteudo = (
       <div style={{ ...raiz, backgroundColor: GRAFITE }}>
-        <Fundo opacidade={0.16} />
+        <Fundo opacidade={0.42} />
         <div style={{ ...corpo, color: PAPEL }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={logo} width={290} height={170} alt="" style={{ flexShrink: 0 }} />
@@ -411,12 +411,13 @@ export async function GET(req: Request) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={pilotiMestre} width={62} height={81} alt="" style={{ flexShrink: 0 }} />
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", fontSize: "30px", fontWeight: 900, letterSpacing: "1.5px" }}>
+            <div style={{ display: "flex", flexDirection: "column", maxWidth: "660px" }}>
+              <div style={{ display: "flex", fontSize: "30px", fontWeight: 900, letterSpacing: "1.5px", whiteSpace: "nowrap" }}>
                 PILOTI MESTRE FIXADO E TRAVADO
               </div>
-              <div style={{ display: "flex", fontSize: "25px", fontWeight: 600, color: "rgba(246,244,238,0.7)" }}>
-                os primeiros R$ 1.000 já são história
+              <div style={{ display: "flex", fontSize: "25px", fontWeight: 600, lineHeight: 1.3, color: "rgba(246,244,238,0.75)" }}>
+                Já passamos de R$ 1.000 arrecadados para mudar a vida de uma
+                família.
               </div>
             </div>
           </div>
@@ -441,10 +442,6 @@ export async function GET(req: Request) {
           </div>
           <div style={{ display: "flex", height: "28px" }} />
           <div style={cta(AZUL)}>{host}</div>
-          <div style={{ display: "flex", height: "18px" }} />
-          <div style={{ display: "flex", fontSize: "26px", fontWeight: 600, color: "rgba(246,244,238,0.75)" }}>
-            Palpites até domingo, 15h59 (1 min antes do jogo).
-          </div>
         </div>
       </div>
     );
