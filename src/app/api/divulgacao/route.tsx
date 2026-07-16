@@ -413,8 +413,13 @@ export async function GET(req: Request) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={pilotiMestre} width={62} height={81} alt="" style={{ flexShrink: 0 }} />
-            <div style={{ display: "flex", fontSize: "32px", fontWeight: 900, letterSpacing: "1.5px", whiteSpace: "nowrap" }}>
-              PILOTI MESTRE FIXADO E TRAVADO
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", fontSize: "30px", fontWeight: 900, letterSpacing: "1.5px", whiteSpace: "nowrap" }}>
+                PILOTI MESTRE FIXADO E TRAVADO
+              </div>
+              <div style={{ display: "flex", fontSize: "25px", fontWeight: 600, color: "rgba(246,244,238,0.75)", whiteSpace: "nowrap" }}>
+                Agora nos ajude a fixar o segundo piloti.
+              </div>
             </div>
           </div>
 
@@ -434,7 +439,7 @@ export async function GET(req: Request) {
           </div>
           <div style={{ display: "flex", height: "22px" }} />
           <div style={{ display: "flex", fontSize: "33px", fontWeight: 600, lineHeight: 1.4, color: "rgba(246,244,238,0.88)" }}>
-            Agora nos ajude a fixar o segundo piloti. Faça sua fézinha de R$ 10.
+            Sua fézinha de R$ 10 ajuda a fixar o 2º piloti e a TETO a construir mais uma casa.
           </div>
           <div style={{ display: "flex", height: "28px" }} />
           <div style={cta(AZUL)}>{host}</div>
