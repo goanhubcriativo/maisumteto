@@ -87,11 +87,11 @@ export default function ProgressoPiloti() {
       <div className="participe">
         <h2 className="participe-chamada">
           Participe do Bolão e<br />
-          ajude a <span className="script-azul">fixar o 1º piloti</span>
+          ajude a <span className="script-azul">fixar o 2º piloti</span>
         </h2>
         <p className="participe-meta">
-          Nossa meta com o bolão é arrecadar os primeiros 1000 reais para nossa
-          casa amiga. Cada aposta ajuda muito!
+          O 1º piloti (R$ 1.000) foi fincado em um dia! Agora a meta é dobrar:
+          2000 reais para nossa casa amiga. Cada aposta ajuda muito!
         </p>
       </div>
     </section>
