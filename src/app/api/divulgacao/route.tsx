@@ -32,21 +32,36 @@ export async function GET(req: Request) {
   const uri = (b: ArrayBuffer | null, mime: string) =>
     b ? `data:${mime};base64,${Buffer.from(b).toString("base64")}` : "";
 
-  const [logoB, logoInvB, bgB, casaB, botaoB, f600, f800, f900] = await Promise.all([
-    buscar("/logo-card.png"),
-    buscar("/logo-invertido.png"),
-    buscar("/card-bg.jpg"),
-    buscar("/casa.svg"),
-    buscar("/botao-piloti.svg"),
-    buscar("/fonts/raleway-600.ttf"),
-    buscar("/fonts/raleway-800.ttf"),
-    buscar("/fonts/raleway-900.ttf"),
-  ]);
+  const [logoB, logoInvB, bgB, casaB, botaoB, mestreB, f600, f800, f900] =
+    await Promise.all([
+      buscar("/logo-card.png"),
+      buscar("/logo-invertido.png"),
+      buscar("/card-bg.jpg"),
+      buscar("/casa.svg"),
+      buscar("/botao-piloti.svg"),
+      buscar("/piloti-mestre.svg"),
+      buscar("/fonts/raleway-600.ttf"),
+      buscar("/fonts/raleway-800.ttf"),
+      buscar("/fonts/raleway-900.ttf"),
+    ]);
   const logo = uri(logoB, "image/png");
   const logoInv = uri(logoInvB, "image/png");
   const bg = uri(bgB, "image/jpeg");
   const casa = uri(casaB, "image/svg+xml");
   const botaoPiloti = uri(botaoB, "image/svg+xml");
+  const pilotiMestre = uri(mestreB, "image/svg+xml");
+
+  // Percentual REAL da campanha (pra arte nunca sair com número errado).
+  let pct = 0;
+  try {
+    const r = await fetch(`${proto}://${fetchHost}/api/progresso`, {
+      cache: "no-store",
+    });
+    const d = await r.json();
+    pct = Number(d?.pct) || 0;
+  } catch {
+    // sem número: a arte ainda renderiza
+  }
 
   const fonts = [
     f600 && { name: "Raleway", data: f600, weight: 600 as const, style: "normal" as const },
@@ -336,6 +351,98 @@ export async function GET(req: Request) {
           <div style={cta(GRAFITE)}>{host}</div>
           <div style={{ display: "flex", height: "20px" }} />
           <div style={{ display: "flex", fontSize: "27px", fontWeight: 600, color: "rgba(246,244,238,0.9)" }}>
+            Palpites até domingo, 15h59 (1 min antes do jogo).
+          </div>
+        </div>
+      </div>
+    );
+  } else if (v === "5") {
+    // MOMENTUM: X% da meta em menos de 24h + chamada pra quem não fez ontem
+    conteudo = (
+      <div style={{ ...raiz, backgroundColor: GRAFITE }}>
+        <Fundo opacidade={0.16} />
+        <div style={{ ...corpo, color: PAPEL }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logo} width={290} height={170} alt="" style={{ flexShrink: 0 }} />
+          <div style={{ display: "flex", flex: 1 }} />
+
+          <div style={olho(AZUL)}>EM MENOS DE 24 HORAS</div>
+          <div style={{ display: "flex", height: "10px" }} />
+          <div style={{ display: "flex", alignItems: "flex-end" }}>
+            <div
+              style={{
+                display: "flex",
+                fontSize: "232px",
+                fontWeight: 900,
+                color: AZUL,
+                letterSpacing: "-10px",
+                lineHeight: 0.9,
+              }}
+            >
+              {pct}%
+            </div>
+            <div
+              style={{
+                display: "flex",
+                fontSize: "58px",
+                fontWeight: 900,
+                letterSpacing: "-1px",
+                paddingBottom: "18px",
+                paddingLeft: "18px",
+              }}
+            >
+              DA META
+            </div>
+          </div>
+
+          <div style={{ display: "flex", height: "30px" }} />
+          {/* selo do piloti mestre */}
+          <div
+            style={{
+              display: "flex",
+              alignSelf: "flex-start",
+              alignItems: "center",
+              gap: "16px",
+              backgroundColor: "rgba(246,244,238,0.1)",
+              border: `2px solid ${AZUL}`,
+              borderRadius: "14px",
+              padding: "14px 22px 14px 18px",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={pilotiMestre} width={62} height={81} alt="" style={{ flexShrink: 0 }} />
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", fontSize: "30px", fontWeight: 900, letterSpacing: "1.5px" }}>
+                PILOTI MESTRE FIXADO E TRAVADO
+              </div>
+              <div style={{ display: "flex", fontSize: "25px", fontWeight: 600, color: "rgba(246,244,238,0.7)" }}>
+                os primeiros R$ 1.000 já são história
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flex: 1 }} />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              fontSize: "72px",
+              fontWeight: 900,
+              letterSpacing: "-2px",
+              lineHeight: 1.08,
+            }}
+          >
+            <div style={{ display: "flex" }}>QUEM NÃO FEZ ONTEM,</div>
+            <div style={{ display: "flex", color: AZUL }}>FAZ HOJE.</div>
+          </div>
+          <div style={{ display: "flex", height: "22px" }} />
+          <div style={{ display: "flex", fontSize: "33px", fontWeight: 600, lineHeight: 1.4, color: "rgba(246,244,238,0.88)" }}>
+            Sua fézinha de R$ 10 ajuda a fixar o 2º piloti e a TETO a construir mais uma casa.
+          </div>
+          <div style={{ display: "flex", height: "28px" }} />
+          <div style={cta(AZUL)}>{host}</div>
+          <div style={{ display: "flex", height: "18px" }} />
+          <div style={{ display: "flex", fontSize: "26px", fontWeight: 600, color: "rgba(246,244,238,0.75)" }}>
             Palpites até domingo, 15h59 (1 min antes do jogo).
           </div>
         </div>
