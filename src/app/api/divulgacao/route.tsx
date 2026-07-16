@@ -1,6 +1,8 @@
 import { ImageResponse } from "next/og";
+import { prisma } from "@/lib/db";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 // TEMPORÁRIO: gera as opções de material de divulgação (1080x1350).
 // Usa a mesma tipografia/assets do cartão. ?v=1..4
@@ -51,17 +53,17 @@ export async function GET(req: Request) {
   const botaoPiloti = uri(botaoB, "image/svg+xml");
   const pilotiMestre = uri(mestreB, "image/svg+xml");
 
-  // Percentual REAL da campanha (pra arte nunca sair com número errado).
-  let pct = 0;
-  try {
-    const r = await fetch(`${proto}://${fetchHost}/api/progresso`, {
-      cache: "no-store",
-    });
-    const d = await r.json();
-    pct = Number(d?.pct) || 0;
-  } catch {
-    // sem número: a arte ainda renderiza
-  }
+  // Percentual REAL da campanha, direto do banco (sem chamada HTTP interna,
+  // que já falhou e fez a arte sair com 0%). Se o banco falhar, joga o erro:
+  // é melhor não gerar do que gerar um número mentiroso pra divulgação.
+  const metaCentavos =
+    parseInt(process.env.META_CENTAVOS || "200000", 10) || 200000;
+  const somaPagas = await prisma.casinha.aggregate({
+    where: { status: "PAGO" },
+    _sum: { valorTotalCentavos: true },
+  });
+  const arrecadado = somaPagas._sum.valorTotalCentavos || 0;
+  const pct = Math.min(100, Math.floor((arrecadado / metaCentavos) * 100));
 
   const fonts = [
     f600 && { name: "Raleway", data: f600, weight: 600 as const, style: "normal" as const },
@@ -411,14 +413,8 @@ export async function GET(req: Request) {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={pilotiMestre} width={62} height={81} alt="" style={{ flexShrink: 0 }} />
-            <div style={{ display: "flex", flexDirection: "column", maxWidth: "660px" }}>
-              <div style={{ display: "flex", fontSize: "30px", fontWeight: 900, letterSpacing: "1.5px", whiteSpace: "nowrap" }}>
-                PILOTI MESTRE FIXADO E TRAVADO
-              </div>
-              <div style={{ display: "flex", fontSize: "25px", fontWeight: 600, lineHeight: 1.3, color: "rgba(246,244,238,0.75)" }}>
-                Já passamos de R$ 1.000 arrecadados para mudar a vida de uma
-                família.
-              </div>
+            <div style={{ display: "flex", fontSize: "32px", fontWeight: 900, letterSpacing: "1.5px", whiteSpace: "nowrap" }}>
+              PILOTI MESTRE FIXADO E TRAVADO
             </div>
           </div>
 
@@ -438,7 +434,7 @@ export async function GET(req: Request) {
           </div>
           <div style={{ display: "flex", height: "22px" }} />
           <div style={{ display: "flex", fontSize: "33px", fontWeight: 600, lineHeight: 1.4, color: "rgba(246,244,238,0.88)" }}>
-            Sua fézinha de R$ 10 ajuda a fixar o 2º piloti e a TETO a construir mais uma casa.
+            Agora nos ajude a fixar o segundo piloti. Faça sua fézinha de R$ 10.
           </div>
           <div style={{ display: "flex", height: "28px" }} />
           <div style={cta(AZUL)}>{host}</div>
