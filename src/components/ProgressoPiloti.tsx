@@ -90,8 +90,8 @@ export default function ProgressoPiloti() {
           ajude a <span className="script-azul">fixar o 2º piloti</span>
         </h2>
         <p className="participe-meta">
-          A cada R$ 1000 um piloti é fixado na nossa campanha! Já conseguimos
-          fixar o piloti mestre e agora nossa meta é fixar mais 1 piloti!
+          A cada R$ 1000 fixamos um piloti na campanha! O piloti mestre já foi
+          fixado e agora a meta é fixar mais 1!
         </p>
       </div>
     </section>
