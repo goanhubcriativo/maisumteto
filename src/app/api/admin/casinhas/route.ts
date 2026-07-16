@@ -49,16 +49,31 @@ export async function GET(req: NextRequest) {
   const totalTaxaCentavos = totalArrecadadoCentavos - totalLiquidoCentavos;
 
   // Funil: visitantes ÚNICOS por tipo de evento (métricas anônimas).
+  // TUDO na mesma janela: da 1ª medição pra cá. Pagamentos anteriores ao
+  // início da medição não entram (não existe visita registrada pra eles).
   const funil: Record<string, number> = {};
+  let funilDesde: Date | null = null;
+  let funilPagas = 0;
   try {
+    const primeiro = await prisma.evento.findFirst({
+      orderBy: { createdAt: "asc" },
+      select: { createdAt: true },
+    });
+    funilDesde = primeiro?.createdAt ?? null;
     const grupos = await prisma.evento.groupBy({ by: ["tipo", "visitante"] });
     for (const g of grupos) funil[g.tipo] = (funil[g.tipo] || 0) + 1;
+    if (funilDesde) {
+      const desde = funilDesde;
+      funilPagas = pagas.filter((c) => c.paidAt && c.paidAt >= desde).length;
+    }
   } catch {
     // tabela vazia/indisponível: funil fica vazio
   }
 
   return NextResponse.json({
     funil,
+    funilDesde,
+    funilPagas,
     resumo: {
       totalCasinhas: casinhas.length,
       casinhasPagas: pagas.length,

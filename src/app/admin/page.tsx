@@ -57,6 +57,8 @@ export default function AdminPage() {
   const [casinhas, setCasinhas] = useState<Casinha[]>([]);
   const [resumo, setResumo] = useState<Resumo | null>(null);
   const [funil, setFunil] = useState<Record<string, number>>({});
+  const [funilDesde, setFunilDesde] = useState<string | null>(null);
+  const [funilPagas, setFunilPagas] = useState(0);
   const [filtro, setFiltro] = useState<"TODAS" | "PAGO">("PAGO");
 
   async function carregar(comSenha: string) {
@@ -69,6 +71,8 @@ export default function AdminPage() {
     setCasinhas(data.casinhas);
     setResumo(data.resumo);
     setFunil(data.funil || {});
+    setFunilDesde(data.funilDesde || null);
+    setFunilPagas(data.funilPagas || 0);
   }
 
   async function entrar(e: React.FormEvent) {
@@ -223,8 +227,21 @@ export default function AdminPage() {
               Funil de visitantes
             </h2>
             <p className="conta-nota" style={{ marginBottom: 14 }}>
-              Visitantes únicos por etapa (anônimo, 1x por sessão). Mostra onde
-              o pessoal para quando não aposta.
+              Visitantes únicos por etapa (anônimo, 1x por sessão). Mostra onde o
+              pessoal para quando não aposta.
+              {funilDesde ? (
+                <>
+                  {" "}
+                  <b>
+                    Contando desde {new Date(funilDesde).toLocaleString("pt-BR")}
+                  </b>
+                  , quando a medição entrou no ar. As {resumo.casinhasPagas}{" "}
+                  casinhas pagas antes disso não têm visita registrada e estão só
+                  na prestação de contas acima.
+                </>
+              ) : (
+                " Nenhuma visita registrada ainda."
+              )}
             </p>
             {(() => {
               const ETAPAS: [string, string][] = [
@@ -296,9 +313,7 @@ export default function AdminPage() {
                       <div
                         style={{
                           width: `${
-                            base > 0
-                              ? Math.min(100, Math.round((100 * resumo.casinhasPagas) / base))
-                              : 0
+                            base > 0 ? Math.min(100, Math.round((100 * funilPagas) / base)) : 0
                           }%`,
                           height: "100%",
                           background: "var(--verde, #1a9e5f)",
@@ -307,19 +322,16 @@ export default function AdminPage() {
                       />
                     </div>
                     <span style={{ flex: "0 0 110px", fontSize: 13, fontWeight: 800, textAlign: "right" }}>
-                      {resumo.casinhasPagas}{" "}
+                      {funilPagas}{" "}
                       <small style={{ color: "var(--grafite-70)" }}>
-                        {base > 0 && resumo.casinhasPagas <= base
-                          ? `(${Math.round((100 * resumo.casinhasPagas) / base)}%)`
-                          : "(·)"}
+                        ({base > 0 ? Math.round((100 * funilPagas) / base) : 0}%)
                       </small>
                     </span>
                   </div>
                   <p className="conta-nota" style={{ marginTop: 8 }}>
                     Extras: {funil["ajudinha_escolhida"] || 0} escolheram ajudinha,{" "}
                     {funil["so_ajudar"] || 0} marcaram só ajudar,{" "}
-                    {funil["erro_validacao"] || 0} esbarraram em erro de validação. O
-                    funil conta a partir de agora (visitas antigas não foram medidas).
+                    {funil["erro_validacao"] || 0} esbarraram em erro de validação.
                   </p>
                 </div>
               );
