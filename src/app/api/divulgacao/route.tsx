@@ -64,6 +64,8 @@ export async function GET(req: Request) {
   });
   const arrecadado = somaPagas._sum.valorTotalCentavos || 0;
   const pct = Math.min(100, Math.floor((arrecadado / metaCentavos) * 100));
+  // Quantas fézinhas de R$10 ainda faltam pra bater a meta.
+  const faltamFezinhas = Math.max(0, Math.ceil((metaCentavos - arrecadado) / 1000));
 
   const fonts = [
     f600 && { name: "Raleway", data: f600, weight: 600 as const, style: "normal" as const },
@@ -353,6 +355,68 @@ export async function GET(req: Request) {
           <div style={cta(GRAFITE)}>{host}</div>
           <div style={{ display: "flex", height: "20px" }} />
           <div style={{ display: "flex", fontSize: "27px", fontWeight: 600, color: "rgba(246,244,238,0.9)" }}>
+            Palpites até domingo, 15h59 (1 min antes do jogo).
+          </div>
+        </div>
+      </div>
+    );
+  } else if (v === "6") {
+    // RETA FINAL: faltam N fézinhas pra bater a meta (azul, urgência)
+    conteudo = (
+      <div style={{ ...raiz, backgroundColor: AZUL }}>
+        <Fundo opacidade={0.14} />
+        <div style={{ ...corpo, color: PAPEL }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logoInv || logo} width={300} height={176} alt="" style={{ flexShrink: 0 }} />
+          <div style={{ display: "flex", flex: 1 }} />
+
+          <div style={olho(GRAFITE)}>RETA FINAL DA META</div>
+          <div style={{ display: "flex", height: "6px" }} />
+          <div style={{ display: "flex", fontSize: "58px", fontWeight: 800, letterSpacing: "-1px" }}>
+            FALTAM APENAS
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end" }}>
+            <div
+              style={{
+                display: "flex",
+                fontSize: "300px",
+                fontWeight: 900,
+                color: GRAFITE,
+                letterSpacing: "-12px",
+                lineHeight: 0.85,
+              }}
+            >
+              {faltamFezinhas}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                paddingBottom: "26px",
+                paddingLeft: "22px",
+              }}
+            >
+              <div style={{ display: "flex", fontSize: "62px", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1 }}>
+                FÉZINHAS
+              </div>
+              <div style={{ display: "flex", fontSize: "40px", fontWeight: 700, lineHeight: 1.1 }}>
+                de R$ 10
+              </div>
+            </div>
+          </div>
+          <div style={{ display: "flex", height: "10px" }} />
+          <div style={{ display: "flex", fontSize: "50px", fontWeight: 900, letterSpacing: "-1px" }}>
+            PRA BATER A META!
+          </div>
+
+          <div style={{ display: "flex", flex: 1 }} />
+          <div style={{ display: "flex", fontSize: "34px", fontWeight: 600, lineHeight: 1.4, color: "rgba(246,244,238,0.9)" }}>
+            Estamos em {pct}% e a linha de chegada está logo ali. Faça a sua e ajude a TETO a levantar mais uma casa.
+          </div>
+          <div style={{ display: "flex", height: "28px" }} />
+          <div style={cta(GRAFITE)}>{host}</div>
+          <div style={{ display: "flex", height: "18px" }} />
+          <div style={{ display: "flex", fontSize: "26px", fontWeight: 600, color: "rgba(246,244,238,0.8)" }}>
             Palpites até domingo, 15h59 (1 min antes do jogo).
           </div>
         </div>
