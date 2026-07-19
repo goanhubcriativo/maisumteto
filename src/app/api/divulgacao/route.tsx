@@ -375,15 +375,15 @@ export async function GET(req: Request) {
           <div style={{ display: "flex", fontSize: "58px", fontWeight: 800, letterSpacing: "-1px" }}>
             FALTAM APENAS
           </div>
-          <div style={{ display: "flex", alignItems: "flex-end" }}>
+          <div style={{ display: "flex", alignItems: "flex-end", marginTop: "6px" }}>
             <div
               style={{
                 display: "flex",
-                fontSize: "300px",
+                fontSize: "248px",
                 fontWeight: 900,
                 color: GRAFITE,
-                letterSpacing: "-12px",
-                lineHeight: 0.85,
+                letterSpacing: "-10px",
+                lineHeight: 1,
               }}
             >
               {faltamFezinhas}
@@ -392,11 +392,11 @@ export async function GET(req: Request) {
               style={{
                 display: "flex",
                 flexDirection: "column",
-                paddingBottom: "26px",
+                paddingBottom: "34px",
                 paddingLeft: "22px",
               }}
             >
-              <div style={{ display: "flex", fontSize: "62px", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1 }}>
+              <div style={{ display: "flex", fontSize: "60px", fontWeight: 900, letterSpacing: "-1px", lineHeight: 1 }}>
                 FÉZINHAS
               </div>
               <div style={{ display: "flex", fontSize: "40px", fontWeight: 700, lineHeight: 1.1 }}>
@@ -404,7 +404,7 @@ export async function GET(req: Request) {
               </div>
             </div>
           </div>
-          <div style={{ display: "flex", height: "10px" }} />
+          <div style={{ display: "flex", height: "22px" }} />
           <div style={{ display: "flex", fontSize: "50px", fontWeight: 900, letterSpacing: "-1px" }}>
             PRA BATER A META!
           </div>
