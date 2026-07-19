@@ -5,10 +5,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // Progresso público da campanha: soma das casinhas PAGAS sobre a meta.
-// Meta padrão: R$ 2.000,00 (a primeira, de R$ 1.000, bateu no primeiro dia).
-// Cada 5% é um "nível" do piloti.
+// Meta padrão: R$ 1.500,00. Cada 5% é um "nível" do piloti.
 export async function GET() {
-  const meta = parseInt(process.env.META_CENTAVOS || "200000", 10) || 200000;
+  const meta = parseInt(process.env.META_CENTAVOS || "150000", 10) || 150000;
 
   let arrecadado = 0;
   try {

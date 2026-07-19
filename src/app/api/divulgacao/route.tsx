@@ -57,7 +57,7 @@ export async function GET(req: Request) {
   // que já falhou e fez a arte sair com 0%). Se o banco falhar, joga o erro:
   // é melhor não gerar do que gerar um número mentiroso pra divulgação.
   const metaCentavos =
-    parseInt(process.env.META_CENTAVOS || "200000", 10) || 200000;
+    parseInt(process.env.META_CENTAVOS || "150000", 10) || 150000;
   const somaPagas = await prisma.casinha.aggregate({
     where: { status: "PAGO" },
     _sum: { valorTotalCentavos: true },
