@@ -8,6 +8,7 @@
 // aqui, fale com a equipe". Botao morto em pagina de doacao queima confianca.
 
 import { notFound } from "next/navigation";
+import { usuarioAtual } from "@/lib/sessao";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
@@ -29,9 +30,10 @@ export const dynamic = "force-dynamic";
 
 interface Props {
   params: Promise<{ slug: string; acao: string }>;
+  searchParams: Promise<{ previa?: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: Omit<Props, "searchParams">): Promise<Metadata> {
   const { acao: slugDaAcao } = await params;
   const acao = await buscarAcao(slugDaAcao);
   if (!acao) return { title: "Ação não encontrada" };
@@ -65,15 +67,22 @@ function dataCurta(d: Date) {
   return d.toLocaleDateString("pt-BR", { day: "numeric", month: "long" });
 }
 
-export default async function PaginaDaAcao({ params }: Props) {
+export default async function PaginaDaAcao({ params, searchParams }: Props) {
   const { slug, acao: slugDaAcao } = await params;
+  const { previa } = await searchParams;
 
   const acao = await buscarAcao(slugDaAcao);
   if (!acao) notFound();
 
   // Rascunho nao tem pagina publica: se tivesse, bastaria adivinhar o endereco
   // pra ver o que a equipe ainda esta preparando.
-  if (acao.rascunho) notFound();
+  //
+  // A excecao e a PREVIA, que exige login. Quem organiza precisa ver como a
+  // pagina vai ficar ANTES de publicar, senao so descobre o erro de texto ou a
+  // foto torta depois que a acao ja esta no ar.
+  const usuario = previa === "1" ? await usuarioAtual() : null;
+  const emPrevia = Boolean(usuario);
+  if (acao.rascunho && !emPrevia) notFound();
 
   // Acabou = encerrada ou esgotada. Nesses dois casos a pagina deixa de ser
   // convite e vira prestacao de contas: quanto rendeu, quanta gente entrou,
@@ -134,6 +143,12 @@ export default async function PaginaDaAcao({ params }: Props) {
 
       {/* A faixa usa a cor da acao, e nao o azul da campanha: e o que faz a
           pagina da rifa parecer da rifa, sem sair da identidade da Teto. */}
+      {emPrevia && (
+        <p className="faixa-previa" role="status">
+          Prévia. {acao.rascunho ? "Esta ação ainda é rascunho e não aparece para o público." : "É assim que a página vai ficar."}
+        </p>
+      )}
+
       <section className="hero acao-hero">
         <div className="container">
           <Link href="/" className="acao-voltar">

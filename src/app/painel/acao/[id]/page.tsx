@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import CampoDeImagem from "@/components/CampoDeImagem";
 import { revalidatePath } from "next/cache";
 import {
   adicionarBloco,
@@ -75,10 +76,10 @@ export default async function EditarAcao({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ novo?: string }>;
+  searchParams: Promise<{ novo?: string; salvo?: string }>;
 }) {
   const { id } = await params;
-  const { novo } = await searchParams;
+  const { novo, salvo } = await searchParams;
 
   const acao = await buscarAcao(id);
   if (!acao) notFound();
@@ -123,6 +124,7 @@ export default async function EditarAcao({
     // Nao precisa recalcular nada aqui: o repositorio deriva o estado ("no ar",
     // "em breve", "esgotada") na leitura, a partir das datas e do estoque.
     recarregar(acaoId);
+    redirect(`/painel/acao/${acaoId}?salvo=1`);
   }
 
   async function publicar(dados: FormData) {
@@ -172,15 +174,35 @@ export default async function EditarAcao({
 
   return (
     <div className="painel-largura">
-      <Link href="/painel" className="painel-voltar">
-        Voltar para a campanha
-      </Link>
+      <div className="painel-topo-acoes">
+        <Link href="/painel" className="painel-voltar">
+          Voltar para a campanha
+        </Link>
+
+        {/* Ver antes de publicar. Acao em rascunho ou marcada pra abrir no
+            futuro nao e clicavel na pagina publica, entao sem este link a
+            equipe so descobria o erro de texto depois de ja estar no ar. */}
+        <a
+          className="botao botao-contorno botao-pequeno"
+          href={`/c/${campanha.slug}/${acao.slug}?previa=1`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Ver prévia da página
+        </a>
+      </div>
 
       {novo && (
         <div className="aviso-bom">
           <strong>Ação criada.</strong> A página dela já nasceu montada com os blocos típicos de{" "}
           {receita?.nome.toLowerCase() ?? "ação"}. Ajuste o texto e publique quando estiver pronta.
         </div>
+      )}
+
+      {salvo && (
+        <p className="aviso-salvo" role="status">
+          Alterações salvas.
+        </p>
       )}
 
       <div className="painel-cabeca">
@@ -339,18 +361,12 @@ export default async function EditarAcao({
             )}
           </fieldset>
 
-          <label className="campo">
-            <span className="campo-rotulo">Imagem de capa</span>
-            <input
-              className="campo-entrada"
-              name="capa"
-              defaultValue={acao.capaUrl ?? ""}
-              placeholder="https://..."
-            />
-            <span className="campo-ajuda">
-              Endereço de uma imagem. Foto de verdade da equipe vale mais que banco de imagem.
-            </span>
-          </label>
+          <CampoDeImagem
+            name="capa"
+            valorInicial={acao.capaUrl}
+            rotulo="Foto da ação"
+            ajuda="Aparece no alto do cartão desta ação, em preto e branco com um véu azul."
+          />
 
           <button className="botao botao-contorno botao-pequeno" type="submit">
             Salvar

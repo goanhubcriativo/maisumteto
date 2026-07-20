@@ -2534,3 +2534,181 @@ body {
     font-size: 12px;
   }
 }
+
+/* ===========================================================================
+   Ajustes pedidos: foto padronizada, barra por cima da capa, botao sempre
+   solido, cabecalho de secao alinhado.
+=========================================================================== */
+
+/* --- 7) A foto ocupa a capa inteira, em preto e branco com veu azul -------
+
+   Padroniza qualquer foto que a equipe subir. Foto de mutirao vem de celular,
+   com luz e cor imprevisiveis; sem tratamento, cada campanha ficaria de uma
+   temperatura. Cinza + azul da a mesma cara pra todas e garante que o texto
+   branco tenha fundo previsivel. */
+.capa-foto {
+  inset: 0;
+  width: 100%;
+  filter: grayscale(1) contrast(1.06) brightness(0.92);
+  /* A mascara lateral sai: agora a foto vale a largura toda. */
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+/* O veu azul, por cima da foto e por baixo do texto. Dois passes: o azul da
+   marca para padronizar, e um escurecimento pela esquerda pro texto ter
+   contraste onde ele de fato fica. */
+.capa::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(5, 32, 47, 0.94) 0%, rgba(5, 32, 47, 0.72) 46%, rgba(5, 32, 47, 0.5) 100%),
+    linear-gradient(0deg, rgba(0, 146, 221, 0.42), rgba(0, 146, 221, 0.42));
+}
+.capa-corpo {
+  z-index: 2;
+}
+.capa-foto-vazia {
+  filter: none;
+}
+
+/* --- 6) A barra de arrecadacao, por cima da capa ------------------------ */
+
+.placar {
+  position: relative;
+  z-index: 3;
+}
+.placar-caixa {
+  margin-top: -46px;
+  background: var(--branco);
+  border-radius: var(--raio-g);
+  box-shadow: var(--sombra-forte);
+  padding: 26px 30px 24px;
+}
+.placar-topo {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.placar-forte {
+  display: grid;
+  gap: 3px;
+}
+.placar-valor {
+  font-size: 42px;
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  line-height: 1;
+  color: var(--tinta);
+  font-variant-numeric: tabular-nums;
+}
+.placar-de {
+  font-size: 14px;
+  color: var(--tinta-70);
+}
+.placar-pct {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  color: var(--teto);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Grossa de verdade: e a barra que ele pediu maior. */
+.placar-barra {
+  display: flex;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--cinza);
+  overflow: hidden;
+}
+.placar-fatia {
+  height: 100%;
+}
+.placar-fatia + .placar-fatia {
+  box-shadow: -1.5px 0 0 var(--branco);
+}
+
+.placar-pes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 26px;
+  margin-top: 14px;
+  font-size: 14px;
+  color: var(--tinta-70);
+}
+.placar-pes strong {
+  color: var(--tinta);
+  font-weight: 700;
+}
+.placar-falta {
+  margin-left: auto;
+}
+
+/* --- 2) A pilula do cartao e sempre solida ----------------------------- */
+
+/* Ela sumia no cartao azul porque era branca sobre claro e transparente no
+   hover. Agora e sempre o azul da marca, em qualquer tom de cartao. */
+.acao-mais,
+.acao-tom-claro .acao-mais,
+.acao-tom-cor .acao-mais,
+.acao-tom-escuro .acao-mais {
+  background: var(--teto);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(0, 146, 221, 0.32);
+}
+.acao-mais::after {
+  opacity: 0.85;
+}
+.acao:hover .acao-mais {
+  background: var(--azul);
+}
+
+/* --- 5) Cabecalho de secao alinhado ------------------------------------ */
+
+/* Estava com align-items:end, entao um paragrafo comprido subia ACIMA do
+   titulo e os dois pareciam desencontrados. Alinhado pelo topo, com a primeira
+   linha do texto na mesma altura da primeira linha do titulo. */
+.secao-cabeca {
+  align-items: start;
+}
+.secao-cabeca .secao-intro {
+  padding-bottom: 0;
+  margin-top: 10px;
+  max-width: 46ch;
+  font-size: 15.5px;
+}
+
+@media (max-width: 900px) {
+  .placar-caixa {
+    margin-top: -30px;
+    padding: 20px 18px 18px;
+  }
+  .placar-valor {
+    font-size: 32px;
+  }
+  .placar-pct {
+    font-size: 24px;
+  }
+  .placar-falta {
+    margin-left: 0;
+  }
+  .secao-cabeca .secao-intro {
+    margin-top: 0;
+  }
+}
+
+/* Aviso de previa: quem organiza esta vendo algo que o publico nao ve. */
+.faixa-previa {
+  margin: 0;
+  padding: 11px 16px;
+  text-align: center;
+  background: #ffd28a;
+  color: #4a3208;
+  font-size: 14px;
+  font-weight: 650;
+}

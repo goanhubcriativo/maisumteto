@@ -474,14 +474,59 @@ export default function CampanhaView({
         </div>
       </section>
 
-      <nav className="menu">
-        <div className="container menu-linha">
-          <a href="#ajudar">Formas de ajudar</a>
-          <a href="#arrecadacao">De onde veio</a>
-          <a href="#sobre-teto">Sobre a Teto</a>
-          <a href="#contribuiu">Quem contribuiu</a>
+      {/* A barra de arrecadacao sobe POR CIMA da capa. Ela e o numero que
+          decide se a pessoa doa, entao nao pode ficar perdida no meio da
+          pagina: fica na emenda, onde o olho ja esta. */}
+      <section className="placar">
+        <div className="container placar-caixa">
+          <div className="placar-topo">
+            <div className="placar-forte">
+              <Numero className="placar-valor" valor={arrecadado} formato="brl" />
+              <span className="placar-de">
+                de {formatarBRL(resumo.metaCentavos)}, o custo da casa
+              </span>
+            </div>
+            <span className="placar-pct">{Math.floor(resumo.percentual)}%</span>
+          </div>
+
+          <div
+            className="placar-barra"
+            role="img"
+            aria-label={`${Math.floor(resumo.percentual)} por cento da meta`}
+          >
+            {fatias.map((f) => (
+              <span
+                key={f.nome}
+                className="placar-fatia"
+                style={{
+                  width: `${(f.valor / resumo.metaCentavos) * 100}%`,
+                  background: f.cor,
+                }}
+                title={`${f.nome}: ${formatarBRL(f.valor)}`}
+              />
+            ))}
+          </div>
+
+          <div className="placar-pes">
+            <span>
+              <strong>{resumo.apoiadores}</strong>{" "}
+              {resumo.apoiadores === 1 ? "pessoa" : "pessoas"}
+            </span>
+            <span>
+              <strong>{vitrine.length}</strong>{" "}
+              {vitrine.length === 1 ? "ação" : "ações"}
+            </span>
+            {dias !== null && (
+              <span>
+                <strong>{dias}</strong> {dias === 1 ? "dia restante" : "dias restantes"}
+              </span>
+            )}
+            <span className="placar-falta">
+              faltam <strong>{formatarBRL(falta)}</strong>
+            </span>
+          </div>
         </div>
-      </nav>
+      </section>
 
       <main className="corpo">
         <div className="container">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import {
   adicionarBloco,
   alternarBloco,
@@ -13,6 +14,7 @@ import {
 import { paraCentavos } from "@/lib/dinheiro";
 import type { TipoBloco } from "@/lib/blocos";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
+import CampoDeImagem from "@/components/CampoDeImagem";
 
 export const dynamic = "force-dynamic";
 
@@ -44,7 +46,12 @@ function recarregar() {
   revalidatePath("/");
 }
 
-export default async function EditarCampanha() {
+export default async function EditarCampanha({
+  searchParams,
+}: {
+  searchParams: Promise<{ salvo?: string }>;
+}) {
+  const { salvo } = await searchParams;
   const campanha = await campanhaAtual();
   const blocos = await listarBlocos({ tipo: "campanha", id: campanha.id });
   const alvo = { tipo: "campanha" as const, id: campanha.id };
@@ -69,6 +76,9 @@ export default async function EditarCampanha() {
     });
 
     recarregar();
+    // Sem isso a tela volta identica e parece que nada aconteceu. O parametro
+    // e o que faz o aviso de "salvo" aparecer depois do recarregamento.
+    redirect("/painel/campanha?salvo=1");
   }
 
   const acoesDoEditor = {
@@ -108,6 +118,12 @@ export default async function EditarCampanha() {
         Voltar para a campanha
       </Link>
 
+      {salvo && (
+        <p className="aviso-salvo" role="status">
+          Alterações salvas.
+        </p>
+      )}
+
       <div className="painel-cabeca">
         <div>
           <span className="painel-sobre">Editar</span>
@@ -142,19 +158,12 @@ export default async function EditarCampanha() {
             </label>
           </div>
 
-          <label className="campo">
-            <span className="campo-rotulo">Imagem de capa</span>
-            <input
-              className="campo-entrada"
-              name="capa"
-              defaultValue={campanha.capaUrl ?? ""}
-              placeholder="https://..."
-            />
-            <span className="campo-ajuda">
-              Endereço de uma foto para o topo da página. Deitada e larga funciona melhor,
-              a partir de 1600 pixels. Em branco, o topo usa a planta baixa da casa.
-            </span>
-          </label>
+          <CampoDeImagem
+            name="capa"
+            valorInicial={campanha.capaUrl}
+            rotulo="Foto de capa"
+            ajuda="Aparece no topo da página, em preto e branco com um véu azul por cima. Foto deitada e larga funciona melhor. Sem foto, o topo usa o desenho da casa."
+          />
 
           <label className="campo">
             <span className="campo-rotulo">Equipe de arrecadação</span>

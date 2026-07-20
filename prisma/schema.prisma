@@ -544,3 +544,24 @@ model Palpite {
 
   @@index([casinhaId])
 }
+
+// ---------------------------------------------------------------------------
+// Imagem: foto enviada pelo painel.
+// ---------------------------------------------------------------------------
+
+// Guardada no proprio banco, e nao num servico de arquivos, de proposito: assim
+// a equipe nao precisa criar conta em lugar nenhum nem colar token. O navegador
+// reduz a foto antes de enviar (1600px, JPEG), entao cada capa fica na casa das
+// centenas de KB e uma campanha inteira nao passa de alguns MB.
+//
+// Se um dia o volume crescer, trocar por armazenamento de objetos mexe so em
+// src/app/api/imagem, porque o resto do sistema so conhece a URL.
+model Imagem {
+  id     String @id @default(cuid())
+  mime   String
+  bytes  Bytes
+  tamanho Int
+  nome   String?
+
+  createdAt DateTime @default(now())
+}
