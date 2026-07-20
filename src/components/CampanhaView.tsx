@@ -16,6 +16,7 @@ import ObraDaCasa from "@/components/ObraDaCasa";
 import EtapasDaObra from "@/components/EtapasDaObra";
 import Revelar from "@/components/Revelar";
 import ChamadaFinal from "@/components/ChamadaFinal";
+import Numero from "@/components/Numero";
 import ListaDeApoiadores from "@/components/ListaDeApoiadores";
 import { corDe, estiloDaCor } from "@/lib/paleta";
 import type { Bloco } from "@/lib/blocos";
@@ -371,14 +372,14 @@ export default function CampanhaView({
 
           <div className="hero-placar">
             <div className="placar-forte">
-              <span className="placar-valor">{formatarBRL(arrecadado)}</span>
+              <Numero className="placar-valor" valor={arrecadado} formato="brl" />
               <span className="placar-rotulo">
                 de {formatarBRL(resumo.metaCentavos)}, o custo da casa
               </span>
             </div>
 
             <div className="placar-item">
-              <span className="placar-numero">{resumo.apoiadores}</span>
+              <Numero className="placar-numero" valor={resumo.apoiadores} />
               <span className="placar-rotulo">
                 {resumo.apoiadores === 1 ? "pessoa entrou nessa" : "pessoas entraram nessa"}
               </span>
@@ -386,7 +387,7 @@ export default function CampanhaView({
 
             {campanha.prazo && (
               <div className="placar-item">
-                <span className="placar-numero">{dias !== null ? dias : 0}</span>
+                <Numero className="placar-numero" valor={dias !== null ? dias : 0} />
                 <span className="placar-rotulo">
                   {dias === 1 ? "dia até o prazo" : "dias até o prazo"}
                 </span>
@@ -394,7 +395,7 @@ export default function CampanhaView({
             )}
 
             <div className="placar-item">
-              <span className="placar-numero">{vitrine.length}</span>
+              <Numero className="placar-numero" valor={vitrine.length} />
               <span className="placar-rotulo">
                 {vitrine.length === 1 ? "ação da equipe" : "ações da equipe"}
               </span>
