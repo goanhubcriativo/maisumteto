@@ -2283,3 +2283,88 @@ a.acao:hover {
 .etapa {
   position: relative;
 }
+
+/* --- As duas colunas de texto ------------------------------------------- */
+
+/* Era o trecho mais seco da pagina: dois blocos de texto corrido, no mesmo
+   tamanho do resto, sem nada que segure o olho. A correcao e tipografica, e
+   nao decorativa: a primeira linha maior puxa a leitura, e a coluna lateral
+   vira cartao com peso proprio em vez de caixa clarinha. */
+.duas {
+  gap: 52px;
+}
+.texto {
+  font-size: 17px;
+  line-height: 1.72;
+  color: var(--tinta-70);
+  max-width: 62ch;
+}
+.texto p:first-child {
+  font-size: 19.5px;
+  line-height: 1.6;
+  color: var(--tinta);
+}
+
+.painel-lateral {
+  position: relative;
+  overflow: hidden;
+  padding: 28px;
+  border-color: transparent;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(0, 146, 221, 0.16), transparent 60%),
+    var(--teto-6);
+}
+/* A malha de planta baixa aparece de novo aqui, discreta. E o fio que liga esta
+   caixa a capa e ao desenho da obra, em vez de ser mais um quadro solto. */
+.painel-lateral::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 146, 221, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 146, 221, 0.1) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(120% 80% at 100% 0%, #000, transparent 65%);
+  pointer-events: none;
+}
+.painel-lateral > * {
+  position: relative;
+}
+.destaque-numero .numero {
+  font-size: 34px;
+}
+
+/* --- Rodape -------------------------------------------------------------- */
+
+.rodape {
+  margin-top: 0;
+  background: #05202f;
+  padding: 40px 0;
+  font-size: 13.5px;
+}
+
+@media (max-width: 860px) {
+  .duas {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+  .texto p:first-child {
+    font-size: 18px;
+  }
+}
+
+/* --- Piso de legibilidade no celular ------------------------------------- */
+
+/* Rotulo em caixa alta com 10px passa no monitor e falha no telefone, que e
+   onde quase toda doacao acontece. Nenhum texto da pagina fica abaixo de 12px
+   em tela pequena. */
+@media (max-width: 640px) {
+  .etiqueta,
+  .hero-equipe-rotulo,
+  .obra-proxima-rotulo,
+  .marca-texto em,
+  .fechamento-sobre,
+  .grafico-titulo {
+    font-size: 12px;
+  }
+}
