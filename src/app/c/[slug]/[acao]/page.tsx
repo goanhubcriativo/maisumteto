@@ -10,7 +10,13 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { buscarAcao, campanhaAtual, listarBlocos } from "@/lib/repositorio";
+import {
+  apoiadoresDaAcao,
+  buscarAcao,
+  campanhaAtual,
+  listarBlocos,
+  resultadoDaAcao,
+} from "@/lib/repositorio";
 import { resumoCampanha } from "@/lib/extrato";
 import { receitaDe } from "@/lib/catalogo";
 import { formatarBRL, formatarBRLCurto } from "@/lib/dinheiro";
@@ -34,6 +40,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+/**
+ * Como chamar uma participacao, por tipo de acao.
+ *
+ * "58 participacoes" nao diz nada; "58 palpites" conta a historia. O numero e o
+ * mesmo, mas a palavra certa e o que faz alguem entender o que aconteceu ali.
+ */
+function rotuloParticipacao(tipo: string, quantos: number): string {
+  const um = quantos === 1;
+  return (
+    {
+      BOLAO: um ? "palpite" : "palpites",
+      RIFA: um ? "número vendido" : "números vendidos",
+      BINGO: um ? "cartela vendida" : "cartelas vendidas",
+      PRODUTO: um ? "unidade vendida" : "unidades vendidas",
+      EVENTO: um ? "ingresso vendido" : "ingressos vendidos",
+      LEILAO: um ? "lance vencedor" : "lances vencedores",
+    }[tipo] ?? (um ? "participação" : "participações")
+  );
+}
+
 function dataCurta(d: Date) {
   return d.toLocaleDateString("pt-BR", { day: "numeric", month: "long" });
 }
@@ -48,9 +74,17 @@ export default async function PaginaDaAcao({ params }: Props) {
   // pra ver o que a equipe ainda esta preparando.
   if (acao.rascunho) notFound();
 
-  const [campanha, blocos] = await Promise.all([
+  // Acabou = encerrada ou esgotada. Nesses dois casos a pagina deixa de ser
+  // convite e vira prestacao de contas: quanto rendeu, quanta gente entrou,
+  // como foi. E o que as pessoas procuram depois, e o que ensina quem vai
+  // organizar a proxima.
+  const acabou = acao.motivo === "ENCERRADA" || acao.motivo === "ESGOTADO";
+
+  const [campanha, blocos, resultado, quemEntrou] = await Promise.all([
     campanhaAtual(),
     listarBlocos({ tipo: "acao", id: acao.id }),
+    acabou ? resultadoDaAcao(acao.id) : null,
+    acabou ? apoiadoresDaAcao(acao.id) : [],
   ]);
 
   if (campanha.slug !== slug) notFound();
@@ -157,6 +191,80 @@ export default async function PaginaDaAcao({ params }: Props) {
             )}
           </section>
 
+          {/* O fechamento da acao, so quando ela ja acabou. */}
+          {acabou && resultado && (
+            <section className="resultado">
+              <div className="resultado-cabeca">
+                <h2>Como foi</h2>
+                <p>
+                  Esta ação está encerrada. Fica no ar para quem quiser ver o
+                  resultado e para servir de ideia na próxima.
+                </p>
+              </div>
+
+              <div className="resultado-numeros">
+                <div>
+                  <span className="numero">{formatarBRL(resultado.brutoCentavos)}</span>
+                  <span className="resultado-rotulo">arrecadados</span>
+                </div>
+                <div>
+                  <span className="numero">{resultado.apoiadores}</span>
+                  <span className="resultado-rotulo">
+                    {resultado.apoiadores === 1 ? "pessoa entrou" : "pessoas entraram"}
+                  </span>
+                </div>
+                {resultado.participacoes > 0 && (
+                  <div>
+                    <span className="numero">{resultado.participacoes}</span>
+                    <span className="resultado-rotulo">
+                      {rotuloParticipacao(acao.tipo, resultado.participacoes)}
+                    </span>
+                  </div>
+                )}
+                <div>
+                  <span className="numero" style={{ color: cor.forte }}>
+                    {formatarBRL(resultado.liquidoCentavos)}
+                  </span>
+                  <span className="resultado-rotulo">foram para a casa</span>
+                </div>
+              </div>
+
+              {/* A conta aberta: bruto menos o que saiu. Sem isso, "arrecadou X
+                  e foram Y para a casa" pareceria pegadinha. */}
+              {(resultado.custoCentavos > 0 || resultado.taxaCentavos > 0) && (
+                <p className="resultado-conta">
+                  Dos {formatarBRL(resultado.brutoCentavos)} que entraram,{" "}
+                  {resultado.custoCentavos > 0 && (
+                    <>
+                      <strong>{formatarBRL(resultado.custoCentavos)}</strong> foram o custo da
+                      ação{resultado.taxaCentavos > 0 ? " e " : ". "}
+                    </>
+                  )}
+                  {resultado.taxaCentavos > 0 && (
+                    <>
+                      <strong>{formatarBRL(resultado.taxaCentavos)}</strong> ficaram na taxa do
+                      PIX.{" "}
+                    </>
+                  )}
+                  O resto foi inteiro para a casa.
+                </p>
+              )}
+
+              {quemEntrou.length > 0 && (
+                <div className="resultado-gente">
+                  <p className="cartao-titulo">Quem entrou nessa</p>
+                  <div className="nomes">
+                    {quemEntrou.map((a) => (
+                      <span key={a.id} className={`nome${a.anonimo ? " calmo" : ""}`}>
+                        {a.nome}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
           <div className="acao-conteudo">
             <div>
               {blocos.some((b) => b.visivel) ? (
@@ -174,16 +282,33 @@ export default async function PaginaDaAcao({ params }: Props) {
             </div>
 
             <aside className="acao-lado">
-              {/* Enquanto o PIX nao esta ligado, a pagina diz a verdade em vez
-                  de mostrar um botao que nao leva a lugar nenhum. */}
-              <div className="cartao">
-                <p className="cartao-titulo">Como participar</p>
-                <p className="acao-aviso">
-                  O pagamento pelo site ainda está sendo ligado. Por enquanto, fale com a equipe{" "}
-                  <strong>{campanha.equipeArrecadacao ?? campanha.equipe.nome}</strong> para
-                  participar desta ação.
-                </p>
-              </div>
+              {acabou ? (
+                <div className="cartao">
+                  <p className="cartao-titulo">Esta ação já terminou</p>
+                  <p className="acao-aviso">
+                    {resultado?.primeiroEm && resultado?.ultimoEm ? (
+                      <>
+                        Aconteceu entre {dataCurta(resultado.primeiroEm)} e{" "}
+                        {dataCurta(resultado.ultimoEm)}. Os números abaixo são o
+                        fechamento dela.
+                      </>
+                    ) : (
+                      <>Os números abaixo são o fechamento dela.</>
+                    )}
+                  </p>
+                </div>
+              ) : (
+                /* Enquanto o PIX nao esta ligado, a pagina diz a verdade em vez
+                   de mostrar um botao que nao leva a lugar nenhum. */
+                <div className="cartao">
+                  <p className="cartao-titulo">Como participar</p>
+                  <p className="acao-aviso">
+                    O pagamento pelo site ainda está sendo ligado. Por enquanto, fale com a equipe{" "}
+                    <strong>{campanha.equipeArrecadacao ?? campanha.equipe.nome}</strong> para
+                    participar desta ação.
+                  </p>
+                </div>
+              )}
 
               {receita && (
                 <div className="cartao cartao-azul">

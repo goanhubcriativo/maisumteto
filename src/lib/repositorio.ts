@@ -429,3 +429,93 @@ export async function lerSessao(tokenHash: string) {
 export async function fecharSessao(tokenHash: string) {
   await prisma.sessao.delete({ where: { tokenHash } }).catch(() => {});
 }
+
+// ---------------------------------------------------------------------------
+// Resultado de uma acao
+// ---------------------------------------------------------------------------
+
+export interface ResultadoDaAcao {
+  /** Quanto rendeu limpo. */
+  liquidoCentavos: number;
+  /** Quanto entrou, antes de custo e taxa. */
+  brutoCentavos: number;
+  /** Quanto foi embora em taxa de gateway (positivo). */
+  taxaCentavos: number;
+  /** Quanto custou pra acontecer (positivo). */
+  custoCentavos: number;
+  /** Quantas PESSOAS entraram. Conta pedido, nao item. */
+  apoiadores: number;
+  /**
+   * Quantas participacoes. Um palpite, um numero da rifa, uma camisa.
+   * Diferente de apoiadores: quem comprou 4 numeros e 1 apoiador e 4 participacoes.
+   */
+  participacoes: number;
+  primeiroEm: Date | null;
+  ultimoEm: Date | null;
+}
+
+/**
+ * Os numeros de fechamento de uma acao.
+ *
+ * Serve pra pagina de resultado, que continua no ar depois que a acao acaba:
+ * muita gente procura "quanto deu?" semanas depois, e quem vai organizar a
+ * proxima aprende olhando o que a anterior rendeu.
+ */
+export async function resultadoDaAcao(acaoId: string): Promise<ResultadoDaAcao> {
+  const [porTipo, itens, pedidos, datas] = await Promise.all([
+    prisma.lancamento.groupBy({
+      by: ["tipo"],
+      where: { acaoId },
+      _sum: { valorCentavos: true },
+    }),
+    prisma.item.aggregate({
+      where: { acaoId, pedido: { status: "PAGO" } },
+      _sum: { quantidade: true },
+    }),
+    // Pedidos distintos que tocaram esta acao: e a contagem de PESSOAS.
+    prisma.pedido.count({
+      where: { status: "PAGO", itens: { some: { acaoId } } },
+    }),
+    prisma.pedido.aggregate({
+      where: { status: "PAGO", itens: { some: { acaoId } } },
+      _min: { paidAt: true },
+      _max: { paidAt: true },
+    }),
+  ]);
+
+  const soma = (tipo: string) =>
+    porTipo.find((t) => t.tipo === tipo)?._sum.valorCentavos ?? 0;
+
+  return {
+    // Custo e taxa estao guardados negativos; aqui viram positivos pra leitura.
+    brutoCentavos: soma("RECEITA"),
+    taxaCentavos: -soma("TAXA"),
+    custoCentavos: -soma("CUSTO"),
+    liquidoCentavos: porTipo.reduce((t, x) => t + (x._sum.valorCentavos ?? 0), 0),
+    apoiadores: pedidos,
+    participacoes: itens._sum.quantidade ?? 0,
+    primeiroEm: datas._min.paidAt,
+    ultimoEm: datas._max.paidAt,
+  };
+}
+
+/** Quem entrou nesta acao. Sem valor: a regra de privacidade vale aqui tambem. */
+export async function apoiadoresDaAcao(
+  acaoId: string,
+  quantos = 60
+): Promise<ApoiadorRecente[]> {
+  const pedidos = await prisma.pedido.findMany({
+    where: { status: "PAGO", itens: { some: { acaoId } } },
+    orderBy: { paidAt: "desc" },
+    take: quantos,
+    select: { id: true, nome: true, anonimo: true, paidAt: true },
+  });
+
+  return pedidos.map((p) => ({
+    id: p.id,
+    nome: p.anonimo ? "Apoio anônimo" : p.nome,
+    anonimo: p.anonimo,
+    acao: "",
+    quando: p.paidAt,
+  }));
+}

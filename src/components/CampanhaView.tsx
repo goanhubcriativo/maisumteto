@@ -270,16 +270,15 @@ function CartaoAcao({
     );
   }
 
-  if (!acao.disponivel) {
-    return (
-      <div className="acao indisponivel" style={estilo}>
-        {conteudo}
-      </div>
-    );
-  }
-
+  // Encerrada e esgotada CONTINUAM clicáveis: a página delas vira o resultado
+  // (quanto rendeu, quanta gente entrou, como foi). Muita gente procura isso
+  // depois que acabou, e é o que dá ideia para quem vai organizar a próxima.
   return (
-    <Link href={`/c/${campanhaSlug}/${acao.slug}`} className="acao" style={estilo}>
+    <Link
+      href={`/c/${campanhaSlug}/${acao.slug}`}
+      className={`acao${acao.disponivel ? "" : " indisponivel"}`}
+      style={estilo}
+    >
       {conteudo}
     </Link>
   );
