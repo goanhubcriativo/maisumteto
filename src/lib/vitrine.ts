@@ -12,9 +12,16 @@ export interface ApoiadorRecente {
   /** Ja vem tratado: quem pediu anonimato chega aqui como "Apoio anônimo". */
   nome: string;
   anonimo: boolean;
-  valorCentavos: number;
   acao: string;
   quando: Date | null;
+  // NAO existe valor aqui, e isso e proposital.
+  //
+  // Esconder o numero so na tela nao bastaria: ele viajaria junto com o resto
+  // dos dados e ficaria legivel no codigo-fonte da pagina. Privacidade que
+  // depende de CSS nao e privacidade.
+  //
+  // Quem precisa do valor por pessoa e a equipe, no painel, e la os dados sao
+  // buscados direto do pedido.
 }
 
 export interface AcaoNaVitrine {

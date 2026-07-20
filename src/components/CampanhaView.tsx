@@ -536,7 +536,12 @@ export default function CampanhaView({
                         {a.acao} · {quandoRelativo(a.quando)}
                       </span>
                     </span>
-                    <span className="pessoa-valor">{formatarBRLCurto(a.valorCentavos)}</span>
+                    {/* O valor de cada pessoa NÃO aparece, de propósito.
+                        Quem deu R$ 10 e quem deu R$ 500 fizeram a mesma coisa:
+                        entraram. Mostrar o valor ao lado do nome cria comparação
+                        entre quem doou, e comparação afasta quem pode pouco.
+                        O total da campanha já está no alto da página; o detalhe
+                        por pessoa é assunto do painel, não da rua. */}
                   </div>
                 ))}
               </div>

@@ -360,11 +360,12 @@ export async function apoiadoresRecentes(
     where: { campanhaId, status: "PAGO" },
     orderBy: { paidAt: "desc" },
     take: quantos,
+    // valorBrutoCentavos NAO entra: a lista publica nao mostra quanto cada
+    // pessoa deu, e o jeito de garantir isso e nao carregar o dado.
     select: {
       id: true,
       nome: true,
       anonimo: true,
-      valorBrutoCentavos: true,
       paidAt: true,
       itens: { select: { acao: { select: { titulo: true } } }, take: 1 },
     },
@@ -376,7 +377,6 @@ export async function apoiadoresRecentes(
     id: p.id,
     nome: p.anonimo ? "Apoio anônimo" : p.nome,
     anonimo: p.anonimo,
-    valorCentavos: p.valorBrutoCentavos,
     acao: p.itens[0]?.acao.titulo ?? "Doação",
     quando: p.paidAt,
   }));

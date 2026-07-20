@@ -174,16 +174,23 @@ async function main() {
         });
       }
 
-      // O "chorinho" não pertence ao bolão: é doação pura para a campanha, e
-      // por isso vai sem acaoId, igual acontece hoje nos pedidos novos.
+      // O "chorinho" entra NO BOLÃO, e não como doação solta da campanha.
+      //
+      // Num pedido de hoje, que pode misturar camisa e rifa, o chorinho é
+      // doação de campanha porque não dá para dizer de qual ação ele veio.
+      // Aqui dá: o bolão foi a única porta que existia. Toda essa gente entrou
+      // por ele, inclusive quem só arredondou o valor para cima.
+      //
+      // Deixar de fora criaria uma ação fantasma ("Doações avulsas") que nunca
+      // existiu, e tiraria do bolão dois terços do que ele levantou.
       if (casinha.doacaoCentavos > 0) {
         await db.lancamento.create({
           data: {
             campanhaId: campanha.id,
-            acaoId: null,
+            acaoId: acao.id,
             pedidoId: pedido.id,
             tipo: "RECEITA",
-            descricao: `Doação extra - ${casinha.nome}`,
+            descricao: `Doação extra no bolão - ${casinha.nome}`,
             valorCentavos: casinha.doacaoCentavos,
             data: quando,
           },
