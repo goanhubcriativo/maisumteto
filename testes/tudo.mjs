@@ -42,6 +42,7 @@ try {
   compilar("src/lib/paleta.ts", ".tmp-p");
 
   rodar("datas.js");
+  rodar("recorrencia.js");
   rodar("paleta.js");
   rodar("catalogo.js");
 

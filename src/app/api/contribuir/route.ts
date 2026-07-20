@@ -133,9 +133,46 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // A assinatura nasce ANTES do pedido, pra que o primeiro pagamento ja saia
+  // amarrado nela. Sem o vinculo, o webhook nao saberia qual compromisso
+  // avancar quando o PIX fosse pago.
+  let assinaturaId: string | null = null;
+  if (ehRecorrente) {
+    const campanha = await prisma.campanha.findUnique({
+      where: { id: acao.campanhaId },
+      select: { prazo: true },
+    });
+
+    const dias = campanha?.prazo
+      ? Math.max(0, Math.ceil((campanha.prazo.getTime() - Date.now()) / 864e5))
+      : 0;
+    const passo = periodicidade === "SEMANAL" ? 7 : 30;
+    // Sem prazo na campanha nao da pra saber quantas serao; 12 e um teto
+    // razoavel que a equipe ajusta depois, e melhor do que zero.
+    const previstas = dias > 0 ? Math.max(1, Math.floor(dias / passo)) : 12;
+
+    const assinatura = await prisma.assinatura.create({
+      data: {
+        campanhaId: acao.campanhaId,
+        acaoId: acao.id,
+        nome,
+        whatsapp,
+        email,
+        anonimo,
+        valorCentavos: valorItens,
+        periodicidade: periodicidade as "SEMANAL" | "MENSAL",
+        parcelasPrevistas: previstas,
+        // So vira compromisso de verdade quando a primeira for paga.
+        proximaCobranca: null,
+      },
+    });
+    assinaturaId = assinatura.id;
+  }
+
   const pedido = await prisma.pedido.create({
     data: {
       campanhaId: acao.campanhaId,
+      assinaturaId,
       nome,
       whatsapp,
       cpf,
@@ -156,36 +193,6 @@ export async function POST(req: NextRequest) {
       },
     },
   });
-
-  if (ehRecorrente) {
-    const campanha = await prisma.campanha.findUnique({
-      where: { id: acao.campanhaId },
-      select: { prazo: true },
-    });
-
-    const dias = campanha?.prazo
-      ? Math.max(0, Math.ceil((campanha.prazo.getTime() - Date.now()) / 864e5))
-      : 0;
-    const passo = periodicidade === "SEMANAL" ? 7 : 30;
-    const previstas = Math.max(1, Math.floor(dias / passo));
-
-    await prisma.assinatura.create({
-      data: {
-        campanhaId: acao.campanhaId,
-        acaoId: acao.id,
-        nome,
-        whatsapp,
-        email,
-        anonimo,
-        valorCentavos: valorItens,
-        periodicidade: periodicidade as "SEMANAL" | "MENSAL",
-        parcelasPrevistas: previstas,
-        // A proxima so e marcada quando a primeira for paga: quem gerou o PIX e
-        // desistiu nao vira compromisso.
-        proximaCobranca: null,
-      },
-    });
-  }
 
   try {
     const pix = await criarPagamentoPix({

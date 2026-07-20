@@ -30,6 +30,7 @@ export default async function LayoutDoPainel({ children }: { children: React.Rea
           <nav className="painel-nav">
             <Link href="/painel">Campanha</Link>
             <Link href="/painel/ferramentas">Caixa de ferramentas</Link>
+            <Link href="/painel/recorrentes">Recorrentes</Link>
             <Link href="/" target="_blank">
               Ver a página
             </Link>
