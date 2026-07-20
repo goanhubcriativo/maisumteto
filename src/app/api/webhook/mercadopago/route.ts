@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/bolao/db";
-import { consultarPagamento, statusEhPago } from "@/lib/bolao/mercadopago";
+import { prisma } from "@/lib/db";
+import { consultarPagamento, statusEhPago } from "@/lib/mercadopago";
+import { registrarPedidoPago } from "@/lib/lancamentos";
+import { revalidatePath } from "next/cache";
 
 export const runtime = "nodejs";
 
@@ -10,6 +12,11 @@ export const runtime = "nodejs";
 // O MP manda { type: "payment", data: { id } } (ou ?type=payment&data.id=...).
 // Não confiamos no corpo: buscamos o pagamento de volta na API do MP (com o
 // nosso token) — assim um webhook forjado não consegue marcar nada como pago.
+//
+// ATENDE OS DOIS: é uma conta MP só, então toda notificação cai aqui, seja de um
+// Pedido da plataforma ou de uma Casinha do bolão (que já acabou, mas pode
+// receber estorno). O external_reference diz de quem é; se não for de nenhum dos
+// dois, responde 200 e ignora, senão o MP fica reenviando para sempre.
 export async function POST(req: NextRequest) {
   let body: any = {};
   try {
@@ -37,8 +44,56 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  // Localiza a casinha pelo external_reference (id) ou pelo id do pagamento
-  // guardado (reaproveitamos a coluna asaasPaymentId pro id do MP).
+  // ---- Plataforma: é um Pedido? ----
+  const pedido = await prisma.pedido.findFirst({
+    where: {
+      OR: [
+        { id: info.externalReference || "__nenhum__" },
+        { gatewayPagamentoId: paymentId },
+      ],
+    },
+  });
+
+  if (pedido) {
+    if (statusEhPago(info.status)) {
+      if (pedido.status !== "PAGO") {
+        await prisma.pedido.update({
+          where: { id: pedido.id },
+          data: {
+            status: "PAGO",
+            paidAt: new Date(),
+            liquidoCentavos: info.netValueCentavos,
+            taxaCentavos:
+              info.netValueCentavos != null
+                ? pedido.valorBrutoCentavos - info.netValueCentavos
+                : null,
+          },
+        });
+      }
+
+      // Vira dinheiro no livro-caixa. É idempotente por dentro: o MP reenvia o
+      // mesmo aviso quando não recebe 200 a tempo, e sem essa guarda a vaquinha
+      // subiria duas vezes com um pagamento só.
+      await registrarPedidoPago(pedido.id, { liquidoCentavos: info.netValueCentavos });
+
+      // A página é dinâmica, mas revalidar aqui faz o total aparecer na hora.
+      revalidatePath("/");
+    } else if (
+      ["cancelled", "refunded", "charged_back"].includes(info.status) &&
+      pedido.status !== "PAGO"
+    ) {
+      await prisma.pedido.update({
+        where: { id: pedido.id },
+        data: { status: info.status === "cancelled" ? "CANCELADO" : "ESTORNADO" },
+      });
+    }
+
+    return NextResponse.json({ ok: true });
+  }
+
+  // ---- Bolão (legado): é uma Casinha? ----
+  // Localiza pelo external_reference (id) ou pelo id do pagamento guardado
+  // (a coluna asaasPaymentId foi reaproveitada pro id do MP).
   const casinha = await prisma.casinha.findFirst({
     where: {
       OR: [

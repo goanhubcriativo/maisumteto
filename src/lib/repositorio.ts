@@ -20,6 +20,7 @@ import { COR_SUGERIDA } from "./paleta";
 import type { AcaoNaVitrine, ApoiadorRecente } from "./vitrine";
 
 export interface AcaoDoPainel extends AcaoNaVitrine {
+  campanhaId: string;
   config: Record<string, unknown>;
   custoUnitarioCentavos: number;
   criadaEm: Date;
@@ -137,6 +138,7 @@ export async function listarAcoes(campanhaId: string): Promise<AcaoDoPainel[]> {
 
   return acoes.map((a) => ({
     id: a.id,
+    campanhaId: a.campanhaId,
     slug: a.slug,
     tipo: a.tipo,
     titulo: a.titulo,

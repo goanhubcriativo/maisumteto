@@ -23,6 +23,7 @@ import { formatarBRL, formatarBRLCurto } from "@/lib/dinheiro";
 import { corDe, estiloDaCor } from "@/lib/paleta";
 import { IconeCasa, IconeDaAcao, rotuloDoTipo } from "@/components/icones";
 import Blocos from "@/components/Blocos";
+import FormularioDeApoio from "@/components/FormularioDeApoio";
 
 export const dynamic = "force-dynamic";
 
@@ -96,6 +97,13 @@ export default async function PaginaDaAcao({ params }: Props) {
 
   // Mesma regua do cartao: meta propria, senao o que falta no contrato.
   const meta = acao.metaCentavos && acao.metaCentavos > 0 ? acao.metaCentavos : falta;
+
+  // Os atalhos de valor saem da configuração da ação (a equipe define na criação).
+  // Sem eles, quem não sabe quanto dar trava na hora de escolher.
+  const sugeridosCrus = acao.config?.valoresSugeridos;
+  const valoresSugeridos = Array.isArray(sugeridosCrus)
+    ? sugeridosCrus.map((v) => Number(String(v).replace(/\D/g, ""))).filter((n) => n > 0)
+    : [20, 50, 100, 200];
   const pct = meta > 0 ? Math.max(0, Math.min(100, (acao.liquidoCentavos / meta) * 100)) : 0;
 
   return (
@@ -298,15 +306,17 @@ export default async function PaginaDaAcao({ params }: Props) {
                   </p>
                 </div>
               ) : (
-                /* Enquanto o PIX nao esta ligado, a pagina diz a verdade em vez
-                   de mostrar um botao que nao leva a lugar nenhum. */
-                <div className="cartao">
-                  <p className="cartao-titulo">Como participar</p>
-                  <p className="acao-aviso">
-                    O pagamento pelo site ainda está sendo ligado. Por enquanto, fale com a equipe{" "}
-                    <strong>{campanha.equipeArrecadacao ?? campanha.equipe.nome}</strong> para
-                    participar desta ação.
+                <div className="cartao cartao-apoio">
+                  <p className="cartao-titulo">
+                    {acao.tipo === "DOACAO" ? "Fazer uma doação" : "Participar"}
                   </p>
+                  <FormularioDeApoio
+                    acaoId={acao.id}
+                    precoCentavos={acao.precoCentavos}
+                    restante={acao.restante}
+                    valoresSugeridos={valoresSugeridos}
+                    corForte={cor.forte}
+                  />
                 </div>
               )}
 

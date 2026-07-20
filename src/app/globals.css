@@ -1119,3 +1119,201 @@ a.acao:hover {
     font-size: 22px;
   }
 }
+
+/* ---------- Formulario de apoio e tela de pagamento ---------- */
+
+.cartao-apoio {
+  border-color: var(--acao-borda, var(--linha));
+}
+.apoio-rotulo {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.apoio-valores {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.apoio-valor {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: var(--branco);
+  border: 1.5px solid var(--linha);
+  border-radius: 8px;
+  padding: 12px 8px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.apoio-valor:hover {
+  border-color: var(--linha-forte);
+}
+.apoio-valor.escolhido {
+  border-width: 2px;
+}
+.apoio-outro {
+  display: block;
+  margin-bottom: 20px;
+}
+.apoio-outro span {
+  display: block;
+  font-size: 12.5px;
+  color: var(--tinta-70);
+  margin-bottom: 6px;
+}
+.apoio-outro input {
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  border: 1.5px solid var(--linha);
+  border-radius: 8px;
+  padding: 11px 13px;
+}
+.apoio-outro input:focus {
+  outline: none;
+  border-color: var(--acao-forte, var(--teto));
+}
+
+.apoio-quantidade {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+.apoio-quantidade button {
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  width: 42px;
+  height: 42px;
+  border: 1.5px solid var(--linha);
+  background: var(--branco);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.apoio-quantidade button:hover {
+  border-color: var(--acao-forte, var(--teto));
+}
+.apoio-numero {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  min-width: 40px;
+  text-align: center;
+}
+.apoio-escassez {
+  display: block;
+  font-size: 12.5px;
+  color: var(--tinta-70);
+  margin-bottom: 18px;
+}
+
+.apoio .campo {
+  margin-bottom: 14px;
+}
+.apoio-anonimo {
+  margin: 4px 0 18px;
+  font-size: 13.5px;
+  color: var(--tinta-70);
+}
+.apoio-erro {
+  background: rgba(179, 64, 44, 0.08);
+  border: 1px solid rgba(179, 64, 44, 0.24);
+  color: var(--vermelho);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  margin: 0 0 14px;
+}
+
+.pagamento {
+  min-height: 100vh;
+  background: var(--cinza);
+}
+.pagamento-corpo {
+  display: grid;
+  place-items: center;
+  padding: 40px 24px 70px;
+}
+.pagamento-caixa {
+  width: 100%;
+  max-width: 420px;
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  box-shadow: var(--sombra);
+  padding: 30px;
+  text-align: center;
+}
+.pagamento-selo {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--azul);
+  background: var(--teto-6);
+  border: 1px solid var(--teto-12);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+.pagamento-caixa.confirmado .pagamento-selo {
+  color: #12704a;
+  background: rgba(18, 112, 74, 0.07);
+  border-color: rgba(18, 112, 74, 0.2);
+}
+.pagamento-caixa h1 {
+  font-size: 34px;
+  letter-spacing: -1.2px;
+  margin: 14px 0 4px;
+  font-variant-numeric: tabular-nums;
+}
+.pagamento-apoio {
+  font-size: 14.5px;
+  color: var(--tinta-70);
+  margin: 0 0 22px;
+  line-height: 1.5;
+}
+.pagamento-qr {
+  display: grid;
+  place-items: center;
+  margin-bottom: 18px;
+}
+.pagamento-qr img {
+  width: 230px;
+  height: 230px;
+  border-radius: 10px;
+  border: 1px solid var(--linha);
+}
+.pagamento-instrucao {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tinta-70);
+  margin: 0 0 16px;
+}
+/* O código do PIX é longo: quebra em qualquer ponto para não vazar da caixa. */
+.pagamento-codigo {
+  display: block;
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--tinta-50);
+  background: var(--cinza);
+  border-radius: 8px;
+  padding: 10px;
+  word-break: break-all;
+  text-align: left;
+  max-height: 90px;
+  overflow-y: auto;
+}
+.pagamento-espera {
+  font-size: 12.5px;
+  color: var(--tinta-50);
+  margin: 18px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--linha);
+}
