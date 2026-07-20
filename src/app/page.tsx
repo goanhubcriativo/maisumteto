@@ -3,9 +3,12 @@ import {
   valorApostaCentavos,
   doacaoPresetsCentavos,
   bolaoEncerrado,
+  metaCampanhaCentavos,
   PRAZO_LABEL,
 } from "@/lib/config";
+import { prisma } from "@/lib/db";
 import MontarCasinha from "@/components/MontarCasinha";
+import ResultadoFinal from "@/components/ResultadoFinal";
 import ProgressoPiloti from "@/components/ProgressoPiloti";
 import RegrasCampanha from "@/components/RegrasCampanha";
 import CompartilharCampanha from "@/components/CompartilharCampanha";
@@ -15,9 +18,48 @@ import { IconRelogio } from "@/components/icones";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
+// Resultado da final (preenchido depois do jogo).
+const PLACAR_FINAL = { casa: 1, visitante: 0 };
+// Quem ganhou o prêmio no sorteio entre os que cravaram o placar.
+const VENCEDOR_SORTEIO = "Thiago Gonsalves Segunda";
+// A organização não concorre ao prêmio (aparece na lista, fora do sorteio).
+const FORA_DO_SORTEIO = ["Higor Bernardino"];
+
+export default async function Home() {
   const valor = valorApostaCentavos();
   const encerrado = bolaoEncerrado();
+
+  // Dados do resultado (só quando o bolão já fechou)
+  let acertadores: string[] = [];
+  let arrecadadoCentavos = 0;
+  let totalApoiadores = 0;
+  if (encerrado) {
+    const [certeiros, soma, apoiadores] = await Promise.all([
+      prisma.casinha.findMany({
+        where: {
+          status: "PAGO",
+          palpites: {
+            some: {
+              placarCasa: PLACAR_FINAL.casa,
+              placarVisitante: PLACAR_FINAL.visitante,
+            },
+          },
+        },
+        select: { nome: true },
+        orderBy: { paidAt: "asc" },
+      }),
+      prisma.casinha.aggregate({
+        where: { status: "PAGO" },
+        _sum: { valorTotalCentavos: true },
+      }),
+      prisma.casinha.count({ where: { status: "PAGO" } }),
+    ]);
+    acertadores = certeiros.map((c) => c.nome);
+    arrecadadoCentavos = soma._sum.valorTotalCentavos || 0;
+    totalApoiadores = apoiadores;
+  }
+  const concorrentes = acertadores.filter((n) => !FORA_DO_SORTEIO.includes(n));
+
   return (
     <main className="canvas">
       <RastreioHome />
@@ -46,20 +88,44 @@ export default function Home() {
         )}
       </div>
 
-      {/* Aposta + ajudinha + dados */}
-      <MontarCasinha
-        timeCasa={config.timeCasa}
-        timeVisitante={config.timeVisitante}
-        valorCentavos={valor}
-        doacaoPresets={doacaoPresetsCentavos}
-        encerrado={encerrado}
-      />
+      {/* Encerrado: mostra o resultado. Aberto: o formulário de aposta. */}
+      {encerrado ? (
+        <ResultadoFinal
+          timeCasa={config.timeCasa}
+          timeVisitante={config.timeVisitante}
+          placarCasa={PLACAR_FINAL.casa}
+          placarVisitante={PLACAR_FINAL.visitante}
+          arrecadadoCentavos={arrecadadoCentavos}
+          metaCentavos={metaCampanhaCentavos()}
+          totalApoiadores={totalApoiadores}
+          acertadores={acertadores}
+          concorrentes={concorrentes}
+          vencedor={VENCEDOR_SORTEIO}
+        />
+      ) : (
+        <MontarCasinha
+          timeCasa={config.timeCasa}
+          timeVisitante={config.timeVisitante}
+          valorCentavos={valor}
+          doacaoPresets={doacaoPresetsCentavos}
+          encerrado={encerrado}
+        />
+      )}
 
-      {/* Divulgação — todo mundo pode compartilhar, mesmo sem apostar */}
+      {/* Divulgação: todo mundo pode compartilhar */}
       <section className="divulga">
         <p className="divulga-txt">
-          Não vai fazer sua fézinha agora? <strong>Ajuda divulgando</strong>:
-          quanto mais gente souber, mais rápido a casa sobe.
+          {encerrado ? (
+            <>
+              <strong>Espalhe a notícia</strong>: mostre pra todo mundo que a
+              meta foi batida.
+            </>
+          ) : (
+            <>
+              Não vai fazer sua fézinha agora? <strong>Ajuda divulgando</strong>:
+              quanto mais gente souber, mais rápido a casa sobe.
+            </>
+          )}
         </p>
         <CompartilharCampanha />
       </section>

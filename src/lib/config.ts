@@ -15,6 +15,12 @@ export const LINK_CAMPANHA = `https://${
   process.env.NEXT_PUBLIC_SITE_HOST || "maisumteto.com.br"
 }`;
 
+// Meta de arrecadação da campanha (centavos). Padrão: R$ 1.500,00.
+export function metaCampanhaCentavos(): number {
+  const n = parseInt(process.env.META_CENTAVOS || "150000", 10);
+  return Number.isFinite(n) && n > 0 ? n : 150000;
+}
+
 // Prazo final pra fazer palpites: 1 minuto antes do jogo (domingo, 15h59).
 // Formato ISO com fuso de Brasília. Pode ser sobrescrito por env.
 export const PRAZO_FINAL_ISO =

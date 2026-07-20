@@ -2147,3 +2147,227 @@ input:focus {
   line-height: 1.55;
   color: rgba(246, 244, 238, 0.85);
 }
+
+/* ---------- Resultado final do bolão ---------- */
+.resultado {
+  margin-top: 18px;
+}
+.res-olho {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: var(--azul);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.res-placar {
+  background: var(--grafite);
+  color: var(--papel);
+  border-radius: 16px;
+  padding: 20px 16px 22px;
+}
+.res-placar .res-olho {
+  color: #7fd0f5;
+}
+.res-jogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.res-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.res-numeros {
+  font-size: 46px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: #fff;
+}
+.res-numeros em {
+  font-style: normal;
+  font-size: 26px;
+  color: rgba(246, 244, 238, 0.5);
+  margin: 0 4px;
+}
+
+.res-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1.5px solid var(--azul);
+  border-radius: 14px;
+  background: rgba(2, 145, 218, 0.08);
+}
+.res-meta-pct {
+  font-size: 44px;
+  font-weight: 900;
+  color: var(--azul);
+  letter-spacing: -1.5px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.res-meta-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--grafite);
+}
+.res-meta-txt strong {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.res-bloco {
+  margin-top: 22px;
+}
+.res-titulo {
+  font-size: 17px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--grafite);
+  margin: 0 0 8px;
+}
+.res-sub {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--grafite-70);
+  margin: 0 0 14px;
+}
+.res-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.res-lista li {
+  padding: 10px 12px;
+  border-top: 1px solid var(--linha-forte);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--grafite);
+}
+.res-lista li:last-child {
+  border-bottom: 1px solid var(--linha-forte);
+}
+.res-lista li.venceu {
+  background: rgba(2, 145, 218, 0.1);
+  color: var(--azul);
+  font-weight: 900;
+}
+
+/* Roleta do sorteio */
+.sorteio-janela {
+  position: relative;
+  height: 72px;
+  overflow: hidden;
+  border: 2px solid var(--grafite);
+  border-radius: 14px;
+  background: var(--papel);
+}
+.sorteio-fita {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+.sorteio-nome {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: var(--grafite);
+}
+.sorteio-marca {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 14px 14px -12px rgba(39, 55, 64, 0.35),
+    inset 0 -14px 14px -12px rgba(39, 55, 64, 0.35);
+}
+.sorteio-janela.parou {
+  border-color: var(--azul);
+  background: rgba(2, 145, 218, 0.1);
+}
+.sorteio-janela.parou .sorteio-nome {
+  color: var(--azul);
+}
+.sorteio-btn {
+  width: 100%;
+  margin-top: 12px;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--azul);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: inset 0 -4px 0 #0683b5;
+}
+.sorteio-btn:disabled {
+  background: var(--grafite-70);
+  cursor: default;
+  box-shadow: none;
+}
+
+.res-vencedor {
+  margin-top: 14px;
+  text-align: center;
+  padding: 18px 16px;
+  border-radius: 14px;
+  background: var(--grafite);
+  color: var(--papel);
+}
+.res-vencedor-tit {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  line-height: 1.25;
+}
+.res-vencedor-sub {
+  margin-top: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgba(246, 244, 238, 0.8);
+}
+.res-agradece {
+  margin: 22px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  text-align: center;
+  color: var(--grafite-70);
+}
+
+.res-lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.res-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--grafite-70);
+  border: 1px solid var(--linha-forte);
+  border-radius: 999px;
+  padding: 3px 9px;
+}
