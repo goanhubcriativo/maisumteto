@@ -75,7 +75,13 @@ async function tentar(nome: string, corpo: Record<string, unknown>): Promise<Res
 }
 
 export async function sondarPixAutomatico(): Promise<Resultado[]> {
-  await exigirLogin();
+  // O e-mail do pagador precisa ser de uma pessoa REAL.
+  //
+  // A primeira versao usava "test_user_...@testuser.com" e o Mercado Pago
+  // rejeitou tudo com "Both payer and collector must be real or test users":
+  // conta de producao nao aceita pagador de teste, e a validacao acontece ANTES
+  // de ele olhar o meio de pagamento. Ou seja, aquele teste nao respondia nada.
+  const usuario = await exigirLogin();
 
   // Começa daqui a uma semana: mesmo que algo escape, não cobra hoje.
   const inicio = new Date(Date.now() + 7 * 864e5).toISOString();
@@ -84,7 +90,7 @@ export async function sondarPixAutomatico(): Promise<Resultado[]> {
   const base = {
     reason: "Teste técnico (cancelado automaticamente)",
     external_reference: "sonda-pix-automatico",
-    payer_email: "test_user_sonda@testuser.com",
+    payer_email: usuario.email,
     back_url: "https://www.maisumteto.com.br/painel/diagnostico",
     auto_recurring: {
       frequency: 1,
@@ -100,6 +106,11 @@ export async function sondarPixAutomatico(): Promise<Resultado[]> {
   // qual é o contrato de verdade.
   return [
     await tentar("payment_method_id: pix", { ...base, payment_method_id: "pix" }),
+    await tentar("status: pending + pix", {
+      ...base,
+      payment_method_id: "pix",
+      status: "pending",
+    }),
     await tentar("payment_methods_allowed: bank_transfer", {
       ...base,
       payment_methods_allowed: {
