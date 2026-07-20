@@ -11,8 +11,7 @@ interface Props {
   arrecadadoCentavos: number;
   metaCentavos: number;
   totalApoiadores: number;
-  acertadores: string[]; // todos que cravaram o placar
-  concorrentes: string[]; // quem entrou no sorteio do prêmio
+  acertadores: string[]; // quem cravou o placar e entrou no sorteio
   vencedor: string;
 }
 
@@ -38,7 +37,6 @@ export default function ResultadoFinal({
   metaCentavos,
   totalApoiadores,
   acertadores,
-  concorrentes,
   vencedor,
 }: Props) {
   const [rodando, setRodando] = useState(false);
@@ -46,10 +44,11 @@ export default function ResultadoFinal({
   const [deslocamento, setDeslocamento] = useState(0);
 
   const pct = Math.round((arrecadadoCentavos / metaCentavos) * 100);
-  const idxVencedor = Math.max(0, concorrentes.indexOf(vencedor));
-  // A fita repete a lista várias vezes; paramos no vencedor da última volta.
-  const fita = Array.from({ length: VOLTAS + 2 }, () => concorrentes).flat();
-  const parada = (VOLTAS * concorrentes.length + idxVencedor) * ALTURA;
+  const idxVencedor = Math.max(0, acertadores.indexOf(vencedor));
+  // A fita começa com uma célula neutra pra não entregar nenhum nome antes de
+  // rodar; depois repete a lista várias vezes e para no vencedor da última volta.
+  const fita = Array.from({ length: VOLTAS + 2 }, () => acertadores).flat();
+  const parada = (1 + VOLTAS * acertadores.length + idxVencedor) * ALTURA;
 
   function sortear() {
     if (rodando || revelado) return;
@@ -80,6 +79,23 @@ export default function ResultadoFinal({
 
   return (
     <section className="resultado">
+      {/* Meta batida, antes de tudo: é o que importa */}
+      <div className="res-meta">
+        <div className="res-meta-pct">{pct}%</div>
+        <div className="res-meta-txt">
+          <strong>Meta batida!</strong>
+          <span>
+            {brl(arrecadadoCentavos)} arrecadados com {totalApoiadores} apoiadores
+            para a Casa Amiga da TETO.
+          </span>
+        </div>
+      </div>
+
+      <p className="res-agradece">
+        Obrigado a todo mundo que fez sua fézinha. Vocês ajudaram a TETO a
+        construir mais uma casa para quem precisa.
+      </p>
+
       {/* Placar final */}
       <div className="res-placar">
         <div className="res-olho">RESULTADO FINAL</div>
@@ -98,35 +114,17 @@ export default function ResultadoFinal({
         </div>
       </div>
 
-      {/* Meta batida */}
-      <div className="res-meta">
-        <div className="res-meta-pct">{pct}%</div>
-        <div className="res-meta-txt">
-          <strong>Meta batida!</strong>
-          <span>
-            {brl(arrecadadoCentavos)} arrecadados com {totalApoiadores} apoiadores
-            para a Casa Amiga da TETO.
-          </span>
-        </div>
-      </div>
-
       {/* Quem cravou o placar */}
       <div className="res-bloco">
         <h2 className="res-titulo">
           {acertadores.length} pessoas cravaram o placar
         </h2>
         <ul className="res-lista">
-          {acertadores.map((n) => {
-            const foraDoSorteio = !concorrentes.includes(n);
-            return (
-              <li key={n} className={n === vencedor ? "venceu" : ""}>
-                {n}
-                {foraDoSorteio && (
-                  <span className="res-tag">organização, fora do sorteio</span>
-                )}
-              </li>
-            );
-          })}
+          {acertadores.map((n) => (
+            <li key={n} className={n === vencedor ? "venceu" : ""}>
+              {n}
+            </li>
+          ))}
         </ul>
       </div>
 
@@ -134,12 +132,15 @@ export default function ResultadoFinal({
       <div className="res-bloco">
         <h2 className="res-titulo">O sorteio do prêmio</h2>
         <p className="res-sub">
-          Como mais de uma pessoa acertou, o prêmio foi definido por sorteio
-          entre quem cravou o placar. Veja abaixo a animação com o resultado.
+          Como mais de uma pessoa acertou, o prêmio já foi sorteado entre quem
+          cravou o placar. O vídeo abaixo é a reprise desse sorteio.
         </p>
 
         <div className={`sorteio-janela ${revelado ? "parou" : ""}`}>
           <div className="sorteio-fita" style={estiloFita}>
+            <div className="sorteio-nome sorteio-vazio" key="capa">
+              ?
+            </div>
             {fita.map((n, i) => (
               <div className="sorteio-nome" key={i}>
                 {primeiroNome(n)}
@@ -151,7 +152,7 @@ export default function ResultadoFinal({
 
         {!revelado && (
           <button className="sorteio-btn" onClick={sortear} disabled={rodando}>
-            {rodando ? "Sorteando..." : "Ver o resultado do sorteio"}
+            {rodando ? "Reproduzindo..." : "▶  Ver o vídeo do sorteio"}
           </button>
         )}
 
@@ -166,11 +167,6 @@ export default function ResultadoFinal({
           </div>
         )}
       </div>
-
-      <p className="res-agradece">
-        Obrigado a todo mundo que fez sua fézinha. Vocês ajudaram a TETO a
-        construir mais uma casa para quem precisa.
-      </p>
     </section>
   );
 }

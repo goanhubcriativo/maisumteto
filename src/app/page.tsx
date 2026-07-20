@@ -22,8 +22,6 @@ export const dynamic = "force-dynamic";
 const PLACAR_FINAL = { casa: 1, visitante: 0 };
 // Quem ganhou o prêmio no sorteio entre os que cravaram o placar.
 const VENCEDOR_SORTEIO = "Thiago Gonsalves Segunda";
-// A organização não concorre ao prêmio (aparece na lista, fora do sorteio).
-const FORA_DO_SORTEIO = ["Higor Bernardino"];
 
 export default async function Home() {
   const valor = valorApostaCentavos();
@@ -58,7 +56,6 @@ export default async function Home() {
     arrecadadoCentavos = soma._sum.valorTotalCentavos || 0;
     totalApoiadores = apoiadores;
   }
-  const concorrentes = acertadores.filter((n) => !FORA_DO_SORTEIO.includes(n));
 
   return (
     <main className="canvas">
@@ -73,20 +70,23 @@ export default async function Home() {
         <LogoTeto className="masthead-logo" />
       </header>
 
-      {/* Piloti = barra de carregamento da meta */}
-      <ProgressoPiloti />
+      {encerrado ? (
+        /* Bolão fechado: o topo vira só o título da ação */
+        <h1 className="titulo-bolao">Bolão Final da Copa do Mundo</h1>
+      ) : (
+        <>
+          {/* Piloti = barra de carregamento da meta */}
+          <ProgressoPiloti />
 
-      {/* Prazo pra apostar */}
-      <div className={`prazo-banner ${encerrado ? "encerrado" : ""}`}>
-        <IconRelogio size={12} />
-        {encerrado ? (
-          <span>Os palpites do bolão se encerraram.</span>
-        ) : (
-          <span>
-            Palpites até <strong>{PRAZO_LABEL}</strong> (1 min antes do jogo).
-          </span>
-        )}
-      </div>
+          {/* Prazo pra apostar */}
+          <div className="prazo-banner">
+            <IconRelogio size={12} />
+            <span>
+              Palpites até <strong>{PRAZO_LABEL}</strong> (1 min antes do jogo).
+            </span>
+          </div>
+        </>
+      )}
 
       {/* Encerrado: mostra o resultado. Aberto: o formulário de aposta. */}
       {encerrado ? (
@@ -99,7 +99,6 @@ export default async function Home() {
           metaCentavos={metaCampanhaCentavos()}
           totalApoiadores={totalApoiadores}
           acertadores={acertadores}
-          concorrentes={concorrentes}
           vencedor={VENCEDOR_SORTEIO}
         />
       ) : (
@@ -112,23 +111,16 @@ export default async function Home() {
         />
       )}
 
-      {/* Divulgação: todo mundo pode compartilhar */}
-      <section className="divulga">
-        <p className="divulga-txt">
-          {encerrado ? (
-            <>
-              <strong>Espalhe a notícia</strong>: mostre pra todo mundo que a
-              meta foi batida.
-            </>
-          ) : (
-            <>
-              Não vai fazer sua fézinha agora? <strong>Ajuda divulgando</strong>:
-              quanto mais gente souber, mais rápido a casa sobe.
-            </>
-          )}
-        </p>
-        <CompartilharCampanha />
-      </section>
+      {/* Divulgação: só enquanto o bolão está aberto */}
+      {!encerrado && (
+        <section className="divulga">
+          <p className="divulga-txt">
+            Não vai fazer sua fézinha agora? <strong>Ajuda divulgando</strong>:
+            quanto mais gente souber, mais rápido a casa sobe.
+          </p>
+          <CompartilharCampanha />
+        </section>
+      )}
 
       {/* Rodapé da campanha */}
       <footer className="rodape">

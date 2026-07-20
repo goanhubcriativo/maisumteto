@@ -2198,6 +2198,17 @@ input:focus {
   margin: 0 4px;
 }
 
+/* Título da ação quando o bolão já fechou (substitui a barra do piloti) */
+.titulo-bolao {
+  margin: 20px 0 4px;
+  font-size: 26px;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: var(--grafite);
+  text-wrap: balance;
+}
+
 .res-meta {
   display: flex;
   align-items: center;
@@ -2346,28 +2357,18 @@ input:focus {
   font-weight: 600;
   color: rgba(246, 244, 238, 0.8);
 }
+/* Agradecimento, logo abaixo da meta */
 .res-agradece {
-  margin: 22px 0 0;
-  font-size: 13px;
+  margin: 12px 0 0;
+  font-size: 14px;
   line-height: 1.55;
+  font-weight: 700;
   text-align: center;
-  color: var(--grafite-70);
+  color: var(--grafite);
 }
 
-.res-lista li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.res-tag {
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+/* Célula neutra: a roleta não entrega nenhum nome antes de rodar */
+.sorteio-vazio {
   color: var(--grafite-70);
-  border: 1px solid var(--linha-forte);
-  border-radius: 999px;
-  padding: 3px 9px;
+  opacity: 0.45;
 }
