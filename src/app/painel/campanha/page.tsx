@@ -61,6 +61,7 @@ export default async function EditarCampanha() {
       periodo: String(dados.get("periodo") ?? "").trim() || null,
       equipeArrecadacao: String(dados.get("equipe") ?? "").trim() || null,
       sede: String(dados.get("sede") ?? "").trim() || null,
+      capaUrl: String(dados.get("capa") ?? "").trim() || null,
       resumo: String(dados.get("resumo") ?? "").trim() || null,
       sobreTeto: String(dados.get("sobreTeto") ?? "").trim() || null,
       sobreContrato: String(dados.get("sobreContrato") ?? "").trim() || null,
@@ -140,6 +141,20 @@ export default async function EditarCampanha() {
               <input className="campo-entrada" name="sede" defaultValue={campanha.sede ?? ""} />
             </label>
           </div>
+
+          <label className="campo">
+            <span className="campo-rotulo">Imagem de capa</span>
+            <input
+              className="campo-entrada"
+              name="capa"
+              defaultValue={campanha.capaUrl ?? ""}
+              placeholder="https://..."
+            />
+            <span className="campo-ajuda">
+              Endereço de uma foto para o topo da página. Deitada e larga funciona melhor,
+              a partir de 1600 pixels. Em branco, o topo usa a planta baixa da casa.
+            </span>
+          </label>
 
           <label className="campo">
             <span className="campo-rotulo">Equipe de arrecadação</span>

@@ -206,9 +206,40 @@ img {
   position: relative;
   background: linear-gradient(140deg, var(--teto), var(--azul));
   color: var(--branco);
-  padding: 34px 0 38px;
+  /* Alto o bastante pra ser uma capa, e nao uma tarja. */
+  padding: 76px 0 84px;
   overflow: hidden;
   text-align: center;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Sem foto, a capa e a planta baixa da casa: malha de projeto mais o corte da
+   cobertura. E desenho da propria Teto, entao um topo sem foto nao parece um
+   topo inacabado. */
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.09) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.85), transparent 78%);
+  pointer-events: none;
+}
+
+/* Com foto, a malha sai e entra o veu escuro: sem ele o titulo branco some em
+   qualquer foto clara, que e a maioria das fotos de mutirao ao ar livre. */
+.hero-com-foto::before {
+  background-image: none;
+  background: linear-gradient(
+    170deg,
+    rgba(7, 40, 58, 0.82) 0%,
+    rgba(7, 40, 58, 0.62) 45%,
+    rgba(7, 40, 58, 0.88) 100%
+  );
+  mask-image: none;
 }
 
 .hero::after {
@@ -225,7 +256,8 @@ img {
 }
 
 .hero-titulo {
-  font-size: 44px;
+  position: relative;
+  font-size: 56px;
   line-height: 1.05;
   font-weight: 800;
   letter-spacing: -1.4px;
@@ -372,7 +404,9 @@ img {
    perguntas ("quanto falta" e "de onde veio") numa figura so. */
 .grafico {
   margin-top: 22px;
-  height: 22px;
+  /* Grossa de proposito: e o unico lugar da pagina que responde "de onde veio
+     cada real", e fina demais isso passa despercebido. */
+  height: 38px;
   border-radius: 999px;
   background: var(--cinza);
   overflow: hidden;
@@ -398,8 +432,8 @@ img {
 .grafico-regua {
   display: flex;
   justify-content: space-between;
-  margin-top: 8px;
-  font-size: 12.5px;
+  margin-top: 10px;
+  font-size: 13.5px;
   color: var(--tinta-70);
 }
 .grafico-regua strong {
@@ -1531,5 +1565,227 @@ a.acao:hover {
   .secao-passos,
   .secao-conteudo {
     margin-top: 36px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   A obra: a arrecadacao desenhada como a casa sendo levantada.
+
+   O truque que faz isso funcionar e a PECA FANTASMA. Tudo que ainda nao foi
+   pago ja esta desenhado, pontilhado e apagado: quem chega ve a casa inteira
+   que falta, e nao um espaco vazio. Barra de progresso mostra o quanto andou;
+   isto mostra o quanto falta, que e o que move alguem a doar.
+--------------------------------------------------------------------------- */
+
+.obra {
+  position: relative;
+  background: linear-gradient(160deg, #0a2f42 0%, #07283a 60%, #06202f 100%);
+  border-radius: 18px;
+  overflow: hidden;
+  padding: 8px 8px 0;
+}
+
+.obra-desenho {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* O terreno e as cotas existem desde o primeiro real: o lote ja e da familia. */
+.obra-terreno line {
+  stroke: rgba(255, 255, 255, 0.34);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.obra-cota line {
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1;
+}
+.obra-cota text {
+  fill: rgba(255, 255, 255, 0.42);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Fantasma: o que ainda nao foi pago. */
+.obra-peca line,
+.obra-peca rect,
+.obra-peca path,
+.obra-peca circle {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.13);
+  stroke-width: 2;
+  stroke-dasharray: 5 8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    stroke 0.75s ease,
+    stroke-dasharray 0.75s ease,
+    stroke-width 0.75s ease;
+}
+
+/* Construido: linha cheia e acesa. */
+.obra-pronta .obra-peca.fincado line,
+.obra-pronta .obra-peca.fincado rect,
+.obra-pronta .obra-peca.fincado path,
+.obra-pronta .obra-peca.fincado circle {
+  stroke: rgba(255, 255, 255, 0.92);
+  stroke-dasharray: none;
+  stroke-width: 2.6;
+}
+
+/* Os pilotis sao a marca da Teto: casa emergencial nasce sobre eles. Por isso
+   vem no azul da marca, e nao no branco do resto da estrutura. */
+.obra-pronta .obra-piloti.fincado line {
+  stroke: var(--teto);
+  stroke-width: 3.2;
+}
+.obra-piloti .obra-mao-francesa,
+.obra-montante {
+  stroke-width: 1.4 !important;
+  opacity: 0.55;
+}
+
+/* A peca recem-construida chega de baixo, como quem assenta. */
+.obra-peca {
+  opacity: 0.9;
+  transform: translateY(10px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.2, 0.75, 0.3, 1);
+}
+.obra-pronta .obra-peca {
+  opacity: 1;
+  transform: none;
+}
+
+/* A luz da janela so acende com a casa entregue. E o unico preenchimento do
+   desenho inteiro, entao vale como recompensa visual. */
+.obra-luz rect {
+  fill: transparent;
+  stroke: none !important;
+  transition: fill 1.2s ease;
+}
+.obra-pronta .obra-luz.fincado rect {
+  fill: #ffd28a;
+}
+
+/* A leitura embaixo do desenho: a porcentagem e, mais importante, o pedido. */
+.obra-leitura {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 22px 24px;
+}
+
+.obra-marcador {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.obra-pct {
+  font-size: 46px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.obra-pct-rotulo {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.obra-proxima {
+  display: grid;
+  gap: 3px;
+  max-width: 420px;
+  font-size: 15.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.82);
+}
+.obra-proxima strong {
+  color: #fff;
+  font-weight: 650;
+}
+.obra-proxima-rotulo {
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--teto);
+  font-weight: 600;
+}
+.obra-proxima-fim .obra-proxima-rotulo {
+  color: #7fd1a0;
+}
+
+@media (max-width: 640px) {
+  .obra-leitura {
+    padding: 16px 16px 20px;
+  }
+  .obra-pct {
+    font-size: 36px;
+  }
+  .obra-proxima {
+    font-size: 14.5px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .obra-peca,
+  .obra-peca line,
+  .obra-peca rect,
+  .obra-peca path,
+  .obra-peca circle,
+  .obra-luz rect {
+    transition: none;
+  }
+}
+
+/* Rotulo da barra de origem. A barra sozinha nao se explica. */
+.grafico-titulo {
+  margin: 26px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--tinta-50);
+}
+
+/* O hero passa a ter camadas; o conteudo precisa ficar por cima delas. */
+.hero .container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Abrir a lista inteira de quem contribuiu. */
+.pessoas-mais {
+  display: block;
+  margin: 18px auto 0;
+  padding: 12px 26px;
+  font: inherit;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--teto);
+  background: var(--branco);
+  border: 1px solid var(--linha-forte);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+.pessoas-mais:hover {
+  background: var(--teto-6);
+  border-color: var(--teto);
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 52px 0 58px;
+  }
+  .hero-titulo {
+    font-size: 36px;
   }
 }

@@ -12,6 +12,8 @@ import Link from "next/link";
 import { formatarBRL, formatarBRLCurto } from "@/lib/dinheiro";
 import { IconeDaAcao, IconeCasa, rotuloDoTipo } from "@/components/icones";
 import Blocos from "@/components/Blocos";
+import ObraDaCasa from "@/components/ObraDaCasa";
+import ListaDeApoiadores from "@/components/ListaDeApoiadores";
 import { corDe, estiloDaCor } from "@/lib/paleta";
 import type { Bloco } from "@/lib/blocos";
 import type { AcaoNaVitrine, ApoiadorRecente } from "@/lib/vitrine";
@@ -324,7 +326,17 @@ export default function CampanhaView({
         </div>
       </header>
 
-      <section className="hero">
+      {/* A capa. Sem foto, NAO fica um retangulo vazio: entra a planta baixa da
+          casa, que e desenho da propria marca. Uma equipe que ainda nao tirou
+          foto boa da comunidade continua com um topo que parece intencional. */}
+      <section
+        className={`hero${campanha.capaUrl ? " hero-com-foto" : ""}`}
+        style={
+          campanha.capaUrl
+            ? { backgroundImage: `url(${JSON.stringify(campanha.capaUrl)})` }
+            : undefined
+        }
+      >
         <div className="container">
           <h1 className="hero-titulo">{campanha.titulo}</h1>
 
@@ -390,6 +402,15 @@ export default function CampanhaView({
                 )}
               </div>
             </div>
+
+            {/* A casa levantando. Vem antes da barra de proposito: primeiro a
+                pessoa ve o que o dinheiro VIRA, depois de onde ele veio. */}
+            <ObraDaCasa
+              arrecadadoCentavos={arrecadado}
+              metaCentavos={resumo.metaCentavos}
+            />
+
+            <p className="grafico-titulo">De onde veio cada real</p>
 
             {/* Uma figura, duas respostas: o comprimento diz quanto ja foi
                 arrecadado da meta, as fatias dizem de onde veio cada parte. */}
@@ -525,27 +546,7 @@ export default function CampanhaView({
             {apoiadoresRecentes.length === 0 ? (
               <div className="vazio">Seja a primeira pessoa a entrar nessa.</div>
             ) : (
-              <div className="pessoas">
-                {apoiadoresRecentes.map((a) => (
-                  <div key={a.id} className="pessoa">
-                    <span className={`pessoa-inicial${a.anonimo ? " calma" : ""}`}>
-                      {a.anonimo ? "?" : primeiraLetra(a.nome)}
-                    </span>
-                    <span className="pessoa-corpo">
-                      <span className="pessoa-nome">{a.nome}</span>
-                      <span className="pessoa-papel">
-                        {a.acao} · {quandoRelativo(a.quando)}
-                      </span>
-                    </span>
-                    {/* O valor de cada pessoa NÃO aparece, de propósito.
-                        Quem deu R$ 10 e quem deu R$ 500 fizeram a mesma coisa:
-                        entraram. Mostrar o valor ao lado do nome cria comparação
-                        entre quem doou, e comparação afasta quem pode pouco.
-                        O total da campanha já está no alto da página; o detalhe
-                        por pessoa é assunto do painel, não da rua. */}
-                  </div>
-                ))}
-              </div>
+              <ListaDeApoiadores apoiadores={apoiadoresRecentes} />
             )}
           </section>
         </div>
