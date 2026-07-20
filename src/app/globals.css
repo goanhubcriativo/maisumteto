@@ -1789,3 +1789,497 @@ a.acao:hover {
     font-size: 36px;
   }
 }
+
+/* ===========================================================================
+   A virada visual.
+
+   O diagnostico era "seco e palido". A causa nao era falta de enfeite: era
+   falta de RITMO. A pagina inteira era faixa clara atras de faixa clara, tipo
+   pequeno atras de tipo pequeno, tudo com o mesmo peso. Nada puxava o olho.
+
+   As tres correcoes, em ordem de impacto:
+   1. um bloco escuro alto no topo, que segura capa, placar e obra juntos
+   2. escala: numero gigante ao lado de rotulo miudo, e nao tudo em 14px
+   3. movimento na entrada, discreto, so pra pagina respirar ao rolar
+=========================================================================== */
+
+/* --- Revelacao ao rolar ------------------------------------------------- */
+
+/* Sem JS o conteudo nunca recebe .revelar sem .revelado, entao nasce visivel.
+   A regra e escrita ao contrario de proposito: esconder e o caso raro. */
+.revelar {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.65s ease,
+    transform 0.65s cubic-bezier(0.2, 0.75, 0.3, 1);
+}
+.revelar.revelado {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .revelar {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* --- A capa ------------------------------------------------------------- */
+
+.hero-corpo {
+  position: relative;
+  z-index: 1;
+  text-align: left;
+  padding-bottom: 8px;
+}
+
+.hero-etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 18px;
+  padding: 7px 15px 7px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.08);
+}
+.hero-ponto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #7fe0a6;
+  box-shadow: 0 0 0 4px rgba(127, 224, 166, 0.22);
+}
+
+.hero-titulo {
+  max-width: 15ch;
+}
+
+.hero-resumo {
+  max-width: 52ch;
+  margin: 0 0 6px;
+  font-size: 19px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* --- O placar ----------------------------------------------------------- */
+
+/* Escala e o que faz numero parecer conquista. O valor arrecadado e enorme e o
+   resto orbita ele; se todos tivessem o mesmo tamanho, nenhum seria noticia. */
+.hero-placar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 40px;
+  margin: 30px 0 26px;
+  padding-top: 26px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+.placar-forte {
+  display: grid;
+  gap: 4px;
+  margin-right: 8px;
+}
+.placar-valor {
+  display: block;
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.placar-item {
+  display: grid;
+  gap: 3px;
+}
+.placar-numero {
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+.placar-rotulo {
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+/* --- Chamada e rodape da capa ------------------------------------------- */
+
+.hero-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin: 26px 0 0;
+}
+.botao-grande {
+  padding: 16px 30px;
+  font-size: 16.5px;
+  border-radius: 999px;
+}
+.hero-nota {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.hero-equipe {
+  margin: 26px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+/* --- A trilha das etapas ------------------------------------------------ */
+
+/* Rola na horizontal em vez de quebrar em varias linhas: trilha de obra que
+   dobra a cada tres itens perde a leitura de sequencia, que e o unico motivo
+   dela existir. */
+.trilha {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 4px 4px 16px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+.etapa {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 158px;
+  padding: 14px 16px;
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  background: var(--branco);
+}
+.etapa-marca {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 50%;
+  border: 1px solid var(--linha-forte);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tinta-50);
+}
+.etapa-visto {
+  width: 17px;
+  height: 17px;
+}
+.etapa-corpo {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.etapa-nome {
+  font-size: 14.5px;
+  font-weight: 650;
+  color: var(--tinta);
+  white-space: nowrap;
+}
+.etapa-valor {
+  font-size: 12.5px;
+  color: var(--tinta-50);
+  white-space: nowrap;
+}
+
+/* Paga: some pro fundo. Ela ja e historia, nao e pedido. */
+.etapa-paga {
+  background: var(--teto-6);
+  border-color: transparent;
+}
+.etapa-paga .etapa-marca {
+  background: var(--teto);
+  border-color: var(--teto);
+  color: #fff;
+}
+.etapa-paga .etapa-valor {
+  color: var(--teto);
+  font-weight: 600;
+}
+
+/* A da vez: e o pedido, entao e a unica que grita. */
+.etapa-agora {
+  background: var(--tinta);
+  border-color: var(--tinta);
+  box-shadow: var(--sombra-forte);
+  min-width: 208px;
+}
+.etapa-agora .etapa-nome {
+  color: #fff;
+}
+.etapa-agora .etapa-valor {
+  color: #7fe0a6;
+  font-weight: 650;
+}
+.etapa-agora .etapa-marca {
+  background: #7fe0a6;
+  border-color: #7fe0a6;
+  color: var(--tinta);
+}
+
+.trilha-nota {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--tinta-50);
+  max-width: 70ch;
+}
+
+/* --- Cartoes de acao ---------------------------------------------------- */
+
+.acao-berco {
+  display: flex;
+}
+.acao-berco > .acao {
+  width: 100%;
+}
+
+/* Foto da acao. Altura fixa pra que cartao com foto e cartao sem foto fiquem
+   na mesma linha de base numa grade. */
+.acao-capa {
+  position: relative;
+  display: block;
+  height: 132px;
+  margin: -18px -18px 14px;
+  border-radius: var(--raio) var(--raio) 0 0;
+  background-size: cover;
+  background-position: center;
+}
+.acao-capa::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(7, 40, 58, 0) 40%, rgba(7, 40, 58, 0.55));
+}
+.acao-icone-sobre {
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 12px;
+  padding: 7px;
+}
+
+/* O cartao inteiro reage ao mouse. Sem isso a grade parece impressa. */
+.acao {
+  transition:
+    transform 0.22s cubic-bezier(0.2, 0.75, 0.3, 1),
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+.acao:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--sombra-forte);
+}
+@media (prefers-reduced-motion: reduce) {
+  .acao,
+  .acao:hover {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* --- Respiro geral ------------------------------------------------------ */
+
+/* A pagina estava apertada verticalmente, o que tambem le como "seco". */
+.secao {
+  margin-top: 68px;
+}
+.secao-titulo {
+  font-size: 34px;
+  letter-spacing: -0.9px;
+}
+.secao-intro {
+  max-width: 68ch;
+  font-size: 16px;
+  line-height: 1.62;
+}
+
+@media (max-width: 760px) {
+  .hero-titulo {
+    max-width: none;
+  }
+  .placar-valor {
+    font-size: 38px;
+  }
+  .placar-numero {
+    font-size: 24px;
+  }
+  .hero-placar {
+    gap: 16px 28px;
+  }
+  .secao {
+    margin-top: 48px;
+  }
+  .secao-titulo {
+    font-size: 27px;
+  }
+  .hero-resumo {
+    font-size: 17px;
+  }
+}
+
+/* --- Capa e obra viram UM bloco ----------------------------------------- */
+
+/* A capa era azul claro e a obra, azul quase preto. Empilhadas davam duas
+   caixas discordantes. Agora a capa e escura e a obra perde fundo, borda e
+   raio dentro dela: as duas passam a ser a mesma superficie. */
+.hero {
+  background:
+    radial-gradient(120% 90% at 78% 0%, rgba(0, 146, 221, 0.42), transparent 62%),
+    linear-gradient(165deg, #0b3a52 0%, #072a3d 45%, #05202f 100%);
+}
+
+.hero .obra {
+  background: none;
+  border-radius: 0;
+  padding: 0;
+  margin-top: 6px;
+}
+/* O desenho tomava quase 600px de altura e engolia o placar. Limitado, ele
+   volta a ser a figura da secao e nao a secao inteira. */
+.hero .obra-cena {
+  max-width: 880px;
+}
+.hero .obra-leitura {
+  padding: 14px 0 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  margin-top: 10px;
+}
+
+/* --- A obra no celular --------------------------------------------------- */
+
+/* O desenho tem proporcao 1.9:1, entao num telefone de 343px de largura ele
+   cai pra 180px de altura. Nessa escala traco de 2px vira fio de cabelo e a
+   casa some. A correcao nao e encolher menos (a proporcao nao permite): e
+   engrossar o traco e cortar o detalhe fino, que a essa altura ja nao se le. */
+@media (max-width: 640px) {
+  .obra-peca line,
+  .obra-peca rect,
+  .obra-peca path,
+  .obra-peca circle {
+    stroke-width: 4;
+    stroke-dasharray: 9 12;
+  }
+  .obra-pronta .obra-peca.fincado line,
+  .obra-pronta .obra-peca.fincado rect,
+  .obra-pronta .obra-peca.fincado path,
+  .obra-pronta .obra-peca.fincado circle {
+    stroke-width: 5;
+  }
+  .obra-pronta .obra-piloti.fincado line {
+    stroke-width: 6;
+  }
+  .obra-terreno line {
+    stroke-width: 2.5;
+  }
+
+  /* Detalhe que so faz ruido nessa escala. */
+  .obra-cota,
+  .obra-piloti .obra-mao-francesa,
+  .obra-montante {
+    display: none;
+  }
+}
+
+/* --- O pedido final ------------------------------------------------------ */
+
+.fechamento {
+  margin-top: 78px;
+  background:
+    radial-gradient(100% 120% at 15% 0%, rgba(0, 146, 221, 0.38), transparent 60%),
+    linear-gradient(165deg, #0b3a52 0%, #072a3d 55%, #05202f 100%);
+  color: #fff;
+  padding: 66px 0 70px;
+}
+.fechamento-corpo {
+  max-width: 760px;
+}
+.fechamento-sobre {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #7fe0a6;
+}
+.fechamento-titulo {
+  margin: 0 0 14px;
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -1.1px;
+}
+.fechamento-texto {
+  margin: 0;
+  max-width: 56ch;
+  font-size: 17px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.78);
+}
+.fechamento-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+  margin-top: 30px;
+}
+.fechamento-nota {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+@media (max-width: 760px) {
+  .fechamento {
+    padding: 46px 0 50px;
+    margin-top: 54px;
+  }
+  .fechamento-titulo {
+    font-size: 29px;
+  }
+  .fechamento-texto {
+    font-size: 16px;
+  }
+}
+
+/* --- A pagina da acao mantem a COR DELA --------------------------------- */
+
+/* Precisa vir depois do fundo escuro de .hero, senao a campanha sobrescreve a
+   acao e a rifa, o bolao e a camisa ficam todos com o mesmo azul. A cor por
+   acao e o que amarra "esse dinheiro veio dali" entre o grafico, o cartao e
+   esta pagina. */
+.acao-hero {
+  background:
+    radial-gradient(115% 100% at 82% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
+    linear-gradient(150deg, var(--acao-forte), var(--azul-fundo));
+}
+
+/* A malha de planta so faz sentido na capa da campanha, que e a obra. Na
+   pagina da acao ela brigaria com a cor propria da acao. */
+.acao-hero::before {
+  display: none;
+}
+
+.etapa {
+  position: relative;
+}

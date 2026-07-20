@@ -12,37 +12,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import { formatarBRL } from "@/lib/dinheiro";
+import { ETAPAS, faltaParaEtapa, percentual, proximaEtapa } from "@/lib/obra";
 
 interface Props {
   arrecadadoCentavos: number;
   metaCentavos: number;
 }
 
-/**
- * As etapas da obra, na ordem em que acontecem.
- *
- * `em` e a porcentagem da meta em que a etapa fica pronta. Os numeros nao sao
- * arbitrarios: seguem o peso real de cada fase de uma casa emergencial, com os
- * pilotis ocupando o primeiro terco porque e onde a obra realmente comeca.
- */
-const ETAPAS = [
-  { em: 6, chave: "piloti1", nome: "fincar o primeiro piloti" },
-  { em: 12, chave: "piloti2", nome: "fincar o segundo piloti" },
-  { em: 18, chave: "piloti3", nome: "fincar o terceiro piloti" },
-  { em: 24, chave: "piloti4", nome: "fincar o quarto piloti" },
-  { em: 30, chave: "piloti5", nome: "fincar o quinto piloti" },
-  { em: 36, chave: "piloti6", nome: "fincar o último piloti" },
-  { em: 46, chave: "plataforma", nome: "montar a plataforma" },
-  { em: 60, chave: "paredes", nome: "levantar as paredes" },
-  { em: 74, chave: "telhado", nome: "fechar o telhado" },
-  { em: 84, chave: "porta", nome: "instalar a porta" },
-  { em: 90, chave: "janela", nome: "abrir a janela" },
-  { em: 96, chave: "escada", nome: "montar a escada" },
-  { em: 100, chave: "entregue", nome: "entregar a casa" },
-] as const;
-
 export default function ObraDaCasa({ arrecadadoCentavos, metaCentavos }: Props) {
-  const pct = metaCentavos > 0 ? (arrecadadoCentavos / metaCentavos) * 100 : 0;
+  const pct = percentual(arrecadadoCentavos, metaCentavos);
 
   const alvo = useRef<HTMLDivElement>(null);
   // Só anima depois que a seção entra na tela: animar fora do campo de visão
@@ -148,9 +126,9 @@ export default function ObraDaCasa({ arrecadadoCentavos, metaCentavos }: Props) 
   };
 
   // O próximo marco: o que este dinheiro ainda não comprou.
-  const proxima = ETAPAS.find((e) => pct < e.em);
+  const proxima = proximaEtapa(pct);
   const faltaParaProxima = proxima
-    ? Math.max(0, Math.ceil((proxima.em / 100) * metaCentavos) - arrecadadoCentavos)
+    ? faltaParaEtapa(proxima, arrecadadoCentavos, metaCentavos)
     : 0;
 
   const construidas = ETAPAS.filter((e) => pct >= e.em).length;

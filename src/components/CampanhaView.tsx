@@ -13,6 +13,9 @@ import { formatarBRL, formatarBRLCurto } from "@/lib/dinheiro";
 import { IconeDaAcao, IconeCasa, rotuloDoTipo } from "@/components/icones";
 import Blocos from "@/components/Blocos";
 import ObraDaCasa from "@/components/ObraDaCasa";
+import EtapasDaObra from "@/components/EtapasDaObra";
+import Revelar from "@/components/Revelar";
+import ChamadaFinal from "@/components/ChamadaFinal";
 import ListaDeApoiadores from "@/components/ListaDeApoiadores";
 import { corDe, estiloDaCor } from "@/lib/paleta";
 import type { Bloco } from "@/lib/blocos";
@@ -210,9 +213,23 @@ function CartaoAcao({
 
   const conteudo = (
     <>
-      <span className="acao-icone">
-        <IconeDaAcao tipo={acao.tipo} />
-      </span>
+      {/* A foto da acao, quando existe. Sem foto o cartao NAO fica menor nem
+          esquisito: o icone assume o topo, que e o desenho que ja existia. */}
+      {acao.capaUrl ? (
+        <span
+          className="acao-capa"
+          style={{ backgroundImage: `url(${JSON.stringify(acao.capaUrl)})` }}
+          aria-hidden="true"
+        >
+          <span className="acao-icone acao-icone-sobre">
+            <IconeDaAcao tipo={acao.tipo} />
+          </span>
+        </span>
+      ) : (
+        <span className="acao-icone">
+          <IconeDaAcao tipo={acao.tipo} />
+        </span>
+      )}
 
       <span className="acao-titulo">{acao.titulo}</span>
       <span className="acao-preco">{precoDaAcao(acao)}</span>
@@ -328,7 +345,11 @@ export default function CampanhaView({
 
       {/* A capa. Sem foto, NAO fica um retangulo vazio: entra a planta baixa da
           casa, que e desenho da propria marca. Uma equipe que ainda nao tirou
-          foto boa da comunidade continua com um topo que parece intencional. */}
+          foto boa da comunidade continua com um topo que parece intencional.
+
+          Capa, placar e obra vivem no MESMO bloco escuro de proposito. Antes
+          eram tres faixas claras empilhadas, e faixa clara atras de faixa clara
+          e o que deixava a pagina lavada. */}
       <section
         className={`hero${campanha.capaUrl ? " hero-com-foto" : ""}`}
         style={
@@ -337,26 +358,63 @@ export default function CampanhaView({
             : undefined
         }
       >
-        <div className="container">
+        <div className="container hero-corpo">
+          <p className="hero-etiqueta">
+            <span className="hero-ponto" aria-hidden="true" />
+            Contrato de Casa Amiga
+            {campanha.periodo ? ` · ${campanha.periodo}` : ""}
+          </p>
+
           <h1 className="hero-titulo">{campanha.titulo}</h1>
 
-          <p className="hero-linha">
-            <span className="parte">
-              Arrecadação para: <strong>{campanha.periodo ?? "Dezembro de 2026"}</strong>
-            </span>
-            {campanha.sede && (
-              <>
-                <span className="divisor" />
-                <span className="parte">
-                  Sede: <strong>{campanha.sede}</strong>
+          {campanha.resumo && <p className="hero-resumo">{campanha.resumo}</p>}
+
+          <div className="hero-placar">
+            <div className="placar-forte">
+              <span className="placar-valor">{formatarBRL(arrecadado)}</span>
+              <span className="placar-rotulo">
+                de {formatarBRL(resumo.metaCentavos)}, o custo da casa
+              </span>
+            </div>
+
+            <div className="placar-item">
+              <span className="placar-numero">{resumo.apoiadores}</span>
+              <span className="placar-rotulo">
+                {resumo.apoiadores === 1 ? "pessoa entrou nessa" : "pessoas entraram nessa"}
+              </span>
+            </div>
+
+            {campanha.prazo && (
+              <div className="placar-item">
+                <span className="placar-numero">{dias !== null ? dias : 0}</span>
+                <span className="placar-rotulo">
+                  {dias === 1 ? "dia até o prazo" : "dias até o prazo"}
                 </span>
-              </>
+              </div>
             )}
-          </p>
+
+            <div className="placar-item">
+              <span className="placar-numero">{vitrine.length}</span>
+              <span className="placar-rotulo">
+                {vitrine.length === 1 ? "ação da equipe" : "ações da equipe"}
+              </span>
+            </div>
+          </div>
+
+          <ObraDaCasa arrecadadoCentavos={arrecadado} metaCentavos={resumo.metaCentavos} />
+
+          <div className="hero-acoes">
+            <a href="#ajudar" className="botao botao-claro botao-grande">
+              Quero ajudar a levantar
+            </a>
+            <span className="hero-nota">
+              Pagamento por PIX, direto pelo celular. Leva menos de um minuto.
+            </span>
+          </div>
 
           {campanha.equipeArrecadacao && (
             <p className="hero-equipe">
-              <span className="hero-equipe-rotulo">Equipe de Arrecadação</span>
+              <span className="hero-equipe-rotulo">Equipe de arrecadação</span>
               <span className="hero-equipe-nomes">{campanha.equipeArrecadacao}</span>
             </p>
           )}
@@ -365,55 +423,33 @@ export default function CampanhaView({
 
       <nav className="menu">
         <div className="container menu-linha">
-          <a href="#sobre-teto">Sobre a Teto</a>
-          <a href="#arrecadacao">Sobre a arrecadação</a>
+          <a href="#etapas">A obra</a>
           <a href="#ajudar">Formas de ajudar</a>
+          <a href="#arrecadacao">De onde veio</a>
+          <a href="#sobre-teto">Sobre a Teto</a>
           <a href="#contribuiu">Quem contribuiu</a>
         </div>
       </nav>
 
       <main className="corpo">
         <div className="container">
-          {/* A caixa grande: o estado da arrecadacao em largura total. */}
-          <section className="grande" id="arrecadacao">
-            <div className="grande-topo">
-              <div>
-                <div className="grande-valor">{formatarBRL(arrecadado)}</div>
-                <div className="grande-rotulo">
-                  arrecadados de <strong>{formatarBRL(resumo.metaCentavos)}</strong>, o custo da casa
-                </div>
-              </div>
+          <EtapasDaObra
+            arrecadadoCentavos={arrecadado}
+            metaCentavos={resumo.metaCentavos}
+          />
 
-              <div className="grande-lado">
-                <div>
-                  <div className="grande-apoio">{resumo.apoiadores}</div>
-                  <div className="grande-apoio-rotulo">
-                    {resumo.apoiadores === 1 ? "pessoa contribuiu" : "pessoas contribuíram"}
-                  </div>
-                </div>
-                {campanha.prazo && (
-                  <div>
-                    <div className="grande-apoio">{dataPorExtenso(campanha.prazo)}</div>
-                    <div className="grande-apoio-rotulo">
-                      prazo final
-                      {dias !== null ? ` · faltam ${dias} dias` : ""}
-                    </div>
-                  </div>
-                )}
-              </div>
+          {/* Uma figura, duas respostas: o comprimento diz quanto ja foi
+              arrecadado da meta, as fatias dizem de onde veio cada parte. */}
+          <section className="secao" id="arrecadacao">
+            <div className="secao-cabeca">
+              <h2 className="secao-titulo">De onde veio cada real</h2>
+              <p className="secao-intro">
+                Nenhum dinheiro aqui caiu do céu. Cada faixa é uma ação que alguém da
+                equipe organizou, e o tamanho dela é o que sobrou limpo para a casa,
+                depois do material e da taxa do PIX.
+              </p>
             </div>
 
-            {/* A casa levantando. Vem antes da barra de proposito: primeiro a
-                pessoa ve o que o dinheiro VIRA, depois de onde ele veio. */}
-            <ObraDaCasa
-              arrecadadoCentavos={arrecadado}
-              metaCentavos={resumo.metaCentavos}
-            />
-
-            <p className="grafico-titulo">De onde veio cada real</p>
-
-            {/* Uma figura, duas respostas: o comprimento diz quanto ja foi
-                arrecadado da meta, as fatias dizem de onde veio cada parte. */}
             <div
               className="grafico"
               role="img"
@@ -475,13 +511,14 @@ export default function CampanhaView({
               <div className="vazio">A equipe ainda está montando as ações desta campanha.</div>
             ) : (
               <div className="acoes">
-                {vitrine.map((acao) => (
-                  <CartaoAcao
-                    key={acao.id}
-                    acao={acao}
-                    campanhaSlug={campanha.slug}
-                    faltaNoContrato={falta}
-                  />
+                {vitrine.map((acao, i) => (
+                  <Revelar key={acao.id} atraso={Math.min(i * 70, 420)} className="acao-berco">
+                    <CartaoAcao
+                      acao={acao}
+                      campanhaSlug={campanha.slug}
+                      faltaNoContrato={falta}
+                    />
+                  </Revelar>
                 ))}
               </div>
             )}
@@ -551,6 +588,12 @@ export default function CampanhaView({
           </section>
         </div>
       </main>
+
+      <ChamadaFinal
+        arrecadadoCentavos={arrecadado}
+        metaCentavos={resumo.metaCentavos}
+        apoiadores={resumo.apoiadores}
+      />
 
       <footer className="rodape">
         <div className="container rodape-linha">
