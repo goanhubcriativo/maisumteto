@@ -82,6 +82,25 @@ function diasRestantes(prazo: Date | null): number | null {
   return Math.max(0, Math.ceil((prazo.getTime() - Date.now()) / 864e5));
 }
 
+/**
+ * O titulo em caixa alta com a ULTIMA palavra destacada.
+ *
+ * E o tratamento do titulo da referencia ("NEXT GEN TOP NOTCH *BUSINESS*
+ * SOLUTION"). Destacar a ultima palavra e uma regra generica que cai bem na
+ * maioria dos titulos de campanha, que costumam terminar no que importa:
+ * "Um TETO, um RECOMECO" vira "UM TETO, UM **RECOMECO**".
+ */
+function tituloComDestaque(titulo: string) {
+  const partes = titulo.trim().split(/\s+/);
+  if (partes.length < 2) return titulo;
+  const ultima = partes.pop() as string;
+  return (
+    <>
+      {partes.join(" ")} <em>{ultima}</em>
+    </>
+  );
+}
+
 function primeiraLetra(nome: string): string {
   return nome.trim().charAt(0).toUpperCase() || "?";
 }
@@ -337,6 +356,24 @@ export default function CampanhaView({
 
   return (
     <>
+      {/* Barra utilitaria, como a faixa verde do topo da referencia. */}
+      <div className="utilitaria">
+        <div className="container utilitaria-linha">
+          <span className="utilitaria-item">
+            <IconeCasa />
+            {campanha.sede ?? "TETO Paraná"}
+          </span>
+          {campanha.periodo && (
+            <span className="utilitaria-item utilitaria-some">
+              Construção em {campanha.periodo}
+            </span>
+          )}
+          <span className="utilitaria-fim">
+            {campanha.equipeArrecadacao ?? campanha.equipe.nome}
+          </span>
+        </div>
+      </div>
+
       <header className="topo">
         <div className="container topo-linha">
           <Link href={`/c/${campanha.slug}`} className="marca">
@@ -349,10 +386,22 @@ export default function CampanhaView({
             </span>
           </Link>
 
-          <span className="topo-logo">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo-teto.png" alt="TETO" />
-          </span>
+          <nav className="topo-nav">
+            <a href="#ajudar">Formas de ajudar</a>
+            <a href="#obra">A obra</a>
+            <a href="#sobre-teto">Sobre a Teto</a>
+            <a href="#contribuiu">Quem contribuiu</a>
+          </nav>
+
+          <div className="topo-lado">
+            <span className="topo-logo">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo-teto.png" alt="TETO" />
+            </span>
+            <a href="#ajudar" className="botao botao-acento botao-selo">
+              Quero doar
+            </a>
+          </div>
         </div>
       </header>
 
@@ -360,98 +409,70 @@ export default function CampanhaView({
           Fotografica e arredondada, como a referencia. O titulo e da equipe; a
           linha embaixo dele e o PEDIDO, e o pedido fala de familia e nao de
           etapa de obra: quem chega de fora nao sabe o que e um piloti. */}
+      {/* O heroi da referencia NAO e um painel encaixotado: e faixa inteira, e
+          a foto DISSOLVE no fundo escuro, sem borda. O recorte suave e feito
+          com mask-image, que e o que faz a pessoa da foto parecer estar dentro
+          da pagina em vez de colada num quadrinho. */}
       <section className="capa">
-        <div className="container">
-          <div className="capa-painel">
-            <div className="capa-texto">
-              <p className="rotulo-secao rotulo-claro">
-                Contrato de Casa Amiga
-                {campanha.periodo ? ` · ${campanha.periodo}` : ""}
-              </p>
-
-              <h1 className="capa-titulo">{campanha.titulo}</h1>
-
-              <p className="capa-linha">
-                {campanha.resumo ??
-                  "Uma família vive hoje sobre chão de terra. Quando esta casa ficar de pé, ela dorme no seco, tranca a porta e recomeça."}
-              </p>
-
-              {resumo.apoiadores > 0 && (
-                <p className="capa-prova">
-                  <span className="prova-bolhas" aria-hidden="true">
-                    {apoiadoresRecentes.slice(0, 4).map((a) => (
-                      <span key={a.id} style={{ background: corDoNome(a.nome) }}>
-                        {a.anonimo ? "?" : a.nome.trim().charAt(0).toUpperCase()}
-                      </span>
-                    ))}
-                  </span>
-                  <span>
-                    <strong>{resumo.apoiadores}</strong>{" "}
-                    {resumo.apoiadores === 1 ? "pessoa já entrou" : "pessoas já entraram"}
-                  </span>
-                </p>
-              )}
-
-              <div className="capa-botoes">
-                <a href="#ajudar" className="botao botao-primario botao-seta">
-                  Quero ajudar
-                </a>
-                <a href="#obra" className="botao botao-contorno botao-claro-contorno">
-                  Ver como funciona
-                </a>
-              </div>
-            </div>
-
-            {campanha.capaUrl ? (
-              <div
-                className="capa-foto"
-                style={{ backgroundImage: `url(${JSON.stringify(campanha.capaUrl)})` }}
-                role="img"
-                aria-label="Foto da equipe de arrecadação"
-              />
-            ) : (
-              /* Sem foto o painel NAO some, senao a composicao de duas colunas
-                 vira uma coluna torta. Entra a casa desenhada. */
-              <div className="capa-foto capa-foto-vazia" aria-hidden="true">
-                <svg viewBox="0 0 240 180" fill="none" stroke="#fff" strokeWidth="3">
-                  <path d="M30 92 L120 30 L210 92" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M52 84 V150 H188 V84" strokeLinecap="round" strokeLinejoin="round" />
-                  <rect x="104" y="106" width="32" height="44" rx="2" />
-                  <rect x="146" y="102" width="28" height="24" rx="2" />
-                  <path d="M20 150 H220" strokeLinecap="round" opacity=".55" />
-                  <path d="M70 150 V172 M170 150 V172" strokeLinecap="round" opacity=".4" />
-                </svg>
-              </div>
-            )}
+        {campanha.capaUrl ? (
+          <div
+            className="capa-foto"
+            style={{ backgroundImage: `url(${JSON.stringify(campanha.capaUrl)})` }}
+            role="img"
+            aria-label="Foto da equipe de arrecadação"
+          />
+        ) : (
+          <div className="capa-foto capa-foto-vazia" aria-hidden="true">
+            <svg viewBox="0 0 240 180" fill="none" stroke="#fff" strokeWidth="2.5">
+              <path d="M30 92 L120 30 L210 92" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M52 84 V150 H188 V84" strokeLinecap="round" strokeLinejoin="round" />
+              <rect x="104" y="106" width="32" height="44" rx="2" />
+              <rect x="146" y="102" width="28" height="24" rx="2" />
+              <path d="M20 150 H220" strokeLinecap="round" opacity=".5" />
+            </svg>
           </div>
+        )}
 
-          {/* Os numeros saem de dentro da capa e viram cartoes proprios, como a
-              faixa de estatisticas da referencia. */}
-          <div className="faixa-numeros">
-            <div className="numero-caixa">
-              <Numero className="numero-grande" valor={arrecadado} formato="brl" />
-              <span className="numero-rotulo">
-                de {formatarBRL(resumo.metaCentavos)}, o custo da casa
+        <div className="container capa-corpo">
+          {resumo.apoiadores > 0 && (
+            <p className="capa-prova">
+              <span className="prova-bolhas" aria-hidden="true">
+                {apoiadoresRecentes.slice(0, 4).map((a) => (
+                  <span key={a.id} style={{ background: corDoNome(a.nome) }}>
+                    {a.anonimo ? "?" : a.nome.trim().charAt(0).toUpperCase()}
+                  </span>
+                ))}
               </span>
-            </div>
-            <div className="numero-caixa">
-              <Numero className="numero-grande" valor={resumo.apoiadores} />
-              <span className="numero-rotulo">
-                {resumo.apoiadores === 1 ? "pessoa contribuiu" : "pessoas contribuíram"}
+              <span>
+                <strong>{resumo.apoiadores}</strong>{" "}
+                {resumo.apoiadores === 1 ? "pessoa já doou" : "pessoas já doaram"}
               </span>
-            </div>
-            <div className="numero-caixa">
-              <Numero className="numero-grande" valor={dias !== null ? dias : 0} />
-              <span className="numero-rotulo">
-                {dias === 1 ? "dia até o prazo" : "dias até o prazo"}
+            </p>
+          )}
+
+          <h1 className="capa-titulo">{tituloComDestaque(campanha.titulo)}</h1>
+
+          <p className="capa-linha">
+            {campanha.resumo ??
+              "Uma família vive hoje sobre chão de terra. Quando esta casa ficar de pé, ela dorme no seco, tranca a porta e recomeça."}
+          </p>
+
+          <div className="capa-botoes">
+            <a href="#ajudar" className="botao botao-acento botao-selo">
+              Quero doar
+            </a>
+
+            {/* O par "icone redondo + rotulo em duas linhas" e o telefone da
+                referencia. Aqui vira o quanto falta, que e o dado equivalente. */}
+            <span className="capa-aparte">
+              <span className="capa-aparte-marca" aria-hidden="true">
+                <IconeCasa />
               </span>
-            </div>
-            <div className="numero-caixa">
-              <Numero className="numero-grande" valor={vitrine.length} />
-              <span className="numero-rotulo">
-                {vitrine.length === 1 ? "ação da equipe" : "ações da equipe"}
+              <span className="capa-aparte-texto">
+                <em>Ainda faltam</em>
+                <strong>{formatarBRL(falta)}</strong>
               </span>
-            </div>
+            </span>
           </div>
         </div>
       </section>
