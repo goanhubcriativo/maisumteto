@@ -121,3 +121,63 @@ export async function sondarPixAutomatico(): Promise<Resultado[]> {
     await tentar("sem meio de pagamento (padrão da conta)", base),
   ];
 }
+
+/**
+ * Cria UMA assinatura de teste e devolve o link de adesão, sem cancelar.
+ *
+ * É o único jeito de responder a pergunta que sobrou: o `payment_method_id` que
+ * eu mando na criação volta sempre null, então o meio de pagamento é escolhido
+ * pela pessoa no checkout do Mercado Pago. Só abrindo esse checkout dá pra ver
+ * se PIX está entre as opções, ou se é só cartão.
+ *
+ * R$ 1, começando daqui a uma semana. Nada é cobrado por abrir o link: a
+ * cobrança só existiria se alguém concluísse a autorização.
+ */
+export async function gerarLinkDeAdesao(): Promise<Resultado> {
+  const usuario = await exigirLogin();
+
+  const inicio = new Date(Date.now() + 7 * 864e5).toISOString();
+  const fim = new Date(Date.now() + 60 * 864e5).toISOString();
+
+  const token = process.env.MP_ACCESS_TOKEN;
+  if (!token) return { tentativa: "link", status: "sem token", resposta: null };
+
+  const r = await fetch(`${BASE}/preapproval`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      reason: "Teste de adesão (pode cancelar depois)",
+      external_reference: "sonda-link-adesao",
+      payer_email: usuario.email,
+      back_url: "https://www.maisumteto.com.br/painel/diagnostico",
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months",
+        start_date: inicio,
+        end_date: fim,
+        transaction_amount: 1,
+        currency_id: "BRL",
+      },
+    }),
+    cache: "no-store",
+  });
+
+  const resposta = await r.json().catch(() => null);
+  return { tentativa: "link de adesão", status: r.status, resposta };
+}
+
+/** Cancela uma assinatura de teste pelo id. */
+export async function cancelarAssinatura(id: string): Promise<Resultado> {
+  await exigirLogin();
+  const token = process.env.MP_ACCESS_TOKEN;
+  if (!token) return { tentativa: "cancelar", status: "sem token", resposta: null };
+
+  const r = await fetch(`${BASE}/preapproval/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ status: "cancelled" }),
+    cache: "no-store",
+  });
+  const resposta = await r.json().catch(() => null);
+  return { tentativa: "cancelar", status: r.status, resposta, cancelada: r.ok };
+}
