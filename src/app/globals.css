@@ -2206,18 +2206,55 @@ input:focus {
   font-weight: 900;
   letter-spacing: -0.5px;
   color: var(--grafite);
+  text-align: center;
   text-wrap: balance;
 }
 
 .res-meta {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
+  gap: 16px;
   margin-top: 14px;
-  padding: 16px 18px;
+  padding: 18px;
   border: 1.5px solid var(--azul);
   border-radius: 14px;
   background: rgba(2, 145, 218, 0.08);
+}
+.res-meta-topo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Destaque: o que de fato chega na ponta, depois da taxa */
+.res-liquido {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 15px;
+  border-top: 1.5px solid rgba(2, 145, 218, 0.3);
+  text-align: center;
+}
+.res-liquido-val {
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -1.2px;
+  color: var(--azul);
+  font-variant-numeric: tabular-nums;
+}
+.res-liquido-lab {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--grafite);
+}
+.res-liquido-conta {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--grafite-70);
 }
 .res-meta-pct {
   font-size: 44px;
@@ -2359,7 +2396,7 @@ input:focus {
 }
 /* Agradecimento, logo abaixo da meta */
 .res-agradece {
-  margin: 12px 0 0;
+  margin: 26px 0 26px;
   font-size: 14px;
   line-height: 1.55;
   font-weight: 700;

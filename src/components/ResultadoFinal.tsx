@@ -9,6 +9,7 @@ interface Props {
   placarCasa: number;
   placarVisitante: number;
   arrecadadoCentavos: number;
+  liquidoCentavos: number; // o que sobrou depois da taxa da plataforma
   metaCentavos: number;
   totalApoiadores: number;
   acertadores: string[]; // quem cravou o placar e entrou no sorteio
@@ -34,6 +35,7 @@ export default function ResultadoFinal({
   placarCasa,
   placarVisitante,
   arrecadadoCentavos,
+  liquidoCentavos,
   metaCentavos,
   totalApoiadores,
   acertadores,
@@ -44,6 +46,7 @@ export default function ResultadoFinal({
   const [deslocamento, setDeslocamento] = useState(0);
 
   const pct = Math.round((arrecadadoCentavos / metaCentavos) * 100);
+  const taxaCentavos = Math.max(0, arrecadadoCentavos - liquidoCentavos);
   const idxVencedor = Math.max(0, acertadores.indexOf(vencedor));
   // A fita começa com uma célula neutra pra não entregar nenhum nome antes de
   // rodar; depois repete a lista várias vezes e para no vencedor da última volta.
@@ -81,13 +84,24 @@ export default function ResultadoFinal({
     <section className="resultado">
       {/* Meta batida, antes de tudo: é o que importa */}
       <div className="res-meta">
-        <div className="res-meta-pct">{pct}%</div>
-        <div className="res-meta-txt">
-          <strong>Meta batida!</strong>
-          <span>
-            {brl(arrecadadoCentavos)} arrecadados com {totalApoiadores} apoiadores
-            para a Casa Amiga da TETO.
-          </span>
+        <div className="res-meta-topo">
+          <div className="res-meta-pct">{pct}%</div>
+          <div className="res-meta-txt">
+            <strong>Meta batida!</strong>
+            <span>
+              {brl(arrecadadoCentavos)} arrecadados com {totalApoiadores}{" "}
+              apoiadores.
+            </span>
+          </div>
+        </div>
+
+        <div className="res-liquido">
+          <div className="res-liquido-val">{brl(liquidoCentavos)}</div>
+          <div className="res-liquido-lab">vão para a Casa Amiga da TETO</div>
+          <div className="res-liquido-conta">
+            {brl(arrecadadoCentavos)} arrecadados menos {brl(taxaCentavos)} de
+            taxa da plataforma de pagamento.
+          </div>
         </div>
       </div>
 

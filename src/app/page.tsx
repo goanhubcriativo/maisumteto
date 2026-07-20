@@ -30,6 +30,7 @@ export default async function Home() {
   // Dados do resultado (só quando o bolão já fechou)
   let acertadores: string[] = [];
   let arrecadadoCentavos = 0;
+  let liquidoCentavos = 0;
   let totalApoiadores = 0;
   if (encerrado) {
     const [certeiros, soma, apoiadores] = await Promise.all([
@@ -48,12 +49,13 @@ export default async function Home() {
       }),
       prisma.casinha.aggregate({
         where: { status: "PAGO" },
-        _sum: { valorTotalCentavos: true },
+        _sum: { valorTotalCentavos: true, liquidoCentavos: true },
       }),
       prisma.casinha.count({ where: { status: "PAGO" } }),
     ]);
     acertadores = certeiros.map((c) => c.nome);
     arrecadadoCentavos = soma._sum.valorTotalCentavos || 0;
+    liquidoCentavos = soma._sum.liquidoCentavos || 0;
     totalApoiadores = apoiadores;
   }
 
@@ -72,7 +74,7 @@ export default async function Home() {
 
       {encerrado ? (
         /* Bolão fechado: o topo vira só o título da ação */
-        <h1 className="titulo-bolao">Bolão Final da Copa do Mundo</h1>
+        <h1 className="titulo-bolao">Bolão da Final da Copa do Mundo</h1>
       ) : (
         <>
           {/* Piloti = barra de carregamento da meta */}
@@ -96,6 +98,7 @@ export default async function Home() {
           placarCasa={PLACAR_FINAL.casa}
           placarVisitante={PLACAR_FINAL.visitante}
           arrecadadoCentavos={arrecadadoCentavos}
+          liquidoCentavos={liquidoCentavos}
           metaCentavos={metaCampanhaCentavos()}
           totalApoiadores={totalApoiadores}
           acertadores={acertadores}
