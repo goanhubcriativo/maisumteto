@@ -273,14 +273,12 @@ export default async function PaginaDaAcao({ params }: Props) {
             </section>
           )}
 
-          {/* Distribuido ao longo da pagina, e nao em duas colunas fixas.
-              A coluna dupla so funciona quando a esquerda tem conteudo; numa
-              acao simples (doacao, por exemplo) ela ficava vazia e o formulario
-              virava um filete espremido na direita. Aqui cada peca ocupa a
-              largura que merece. */}
-
+          {/* Formulário e passos LADO A LADO. Os passos são curtos e cabem
+              folgado na coluna que sobrava, e ficam onde a dúvida aparece: na
+              hora de preencher. Empilhados, o "como funciona" ia parar longe
+              demais do momento em que ele resolve alguma coisa. */}
           {!acabou && (
-            <section className="secao-participar">
+            <section className="participar-grade">
               <div className="participar-caixa">
                 <h2 className="participar-titulo">
                   {acao.tipo === "DOACAO" ? "Fazer uma doação" : "Participar"}
@@ -293,16 +291,31 @@ export default async function PaginaDaAcao({ params }: Props) {
                   corForte={cor.forte}
                 />
               </div>
+
+              {receita && receita.comoParticipar.length > 0 && (
+                <aside className="participar-passos">
+                  <h2 className="participar-titulo">Como funciona</h2>
+                  <ol>
+                    {receita.comoParticipar.map((passo, i) => (
+                      <li key={i}>
+                        <span className="passo-n" style={{ background: cor.forte }}>
+                          {i + 1}
+                        </span>
+                        <span>{passo}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </aside>
+              )}
             </section>
           )}
 
-          {/* Os passos em faixa horizontal: eles sao curtos e cabem lado a lado,
-              e assim a largura da pagina trabalha em vez de sobrar. */}
-          {receita && receita.comoFunciona.length > 0 && (
+          {/* Encerrada não tem formulário, mas ainda vale contar como era. */}
+          {acabou && receita && receita.comoParticipar.length > 0 && (
             <section className="secao-passos">
-              <h2 className="secao-titulo">Como funciona</h2>
+              <h2 className="secao-titulo">Como funcionava</h2>
               <ol className="passos-faixa">
-                {receita.comoFunciona.map((passo, i) => (
+                {receita.comoParticipar.map((passo, i) => (
                   <li key={i}>
                     <span className="passo-n" style={{ background: cor.forte }}>
                       {i + 1}

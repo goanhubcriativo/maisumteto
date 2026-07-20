@@ -1405,20 +1405,20 @@ a.acao:hover {
   border-top: 1px solid var(--linha);
 }
 
-/* ---------- Pagina de acao: secoes empilhadas -------------------------------
-   Sem coluna dupla fixa. A antiga assumia conteudo dos dois lados, e numa acao
-   simples a esquerda ficava vazia enquanto o formulario espremia num filete de
-   340px. Agora cada peca ocupa a largura que faz sentido pra ela. */
+/* ---------- Participar: formulario + passos lado a lado ---------------------
+   Os passos ficam ao LADO do formulario, e nao embaixo. Sao frases curtas que
+   cabiam folgado na coluna que sobrava, e o lugar certo delas e junto do momento
+   em que a duvida aparece: na hora de preencher. */
 
-.secao-participar {
+.participar-grade {
+  display: grid;
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  gap: 34px;
+  align-items: start;
   margin-top: 26px;
 }
 
-/* O formulario fica centrado e largo o bastante pra respirar, mas nao tao largo
-   que o olho perca a linha entre um campo e outro. */
 .participar-caixa {
-  max-width: 560px;
-  margin: 0 auto;
   background: var(--branco);
   border: 1px solid var(--acao-borda, var(--linha));
   border-radius: 14px;
@@ -1426,12 +1426,61 @@ a.acao:hover {
   padding: 30px;
 }
 .participar-titulo {
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.4px;
   margin: 0 0 22px;
-  text-align: center;
 }
+
+.participar-passos {
+  padding-top: 4px;
+}
+.participar-passos ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+.participar-passos li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 13px;
+  align-items: start;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--tinta-70);
+}
+
+.passo-n {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  color: var(--branco);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  /* Numa coluna, o formulario vem primeiro: e o motivo da pagina existir. */
+  .participar-grade {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 30px;
+  }
+  .participar-passos {
+    order: 2;
+  }
+}
+
+@media (max-width: 720px) {
+  .participar-caixa {
+    padding: 22px 18px;
+  }
+}
+
+/* ---------- Passos em faixa (acao encerrada) ---------- */
 
 .secao-passos {
   margin-top: 48px;
@@ -1440,10 +1489,6 @@ a.acao:hover {
   text-align: center;
   margin-bottom: 22px;
 }
-
-/* Os passos lado a lado: sao frases curtas, e em coluna sobrava metade da tela.
-   auto-fit deixa o navegador decidir quantos cabem, sem media query por numero
-   de passos (que varia de uma receita pra outra). */
 .passos-faixa {
   list-style: none;
   margin: 0;
@@ -1463,16 +1508,6 @@ a.acao:hover {
   font-size: 14.5px;
   line-height: 1.55;
   color: var(--tinta-70);
-}
-.passo-n {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  color: var(--branco);
-  font-size: 14px;
-  font-weight: 800;
 }
 
 .secao-conteudo {

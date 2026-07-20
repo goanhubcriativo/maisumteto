@@ -62,8 +62,24 @@ export interface Receita {
   chamada: string;
   /** O que e, em duas linhas, pra quem nunca fez. */
   descricao: string;
-  /** Como funciona na pratica, passo a passo. Vira ajuda na tela de criacao. */
+  /**
+   * Como funciona, para QUEM ORGANIZA. Aparece no painel, na hora de criar.
+   * Fala do trabalho: o que definir, o que combinar, o que o sistema faz.
+   */
   comoFunciona: string[];
+
+  /**
+   * Como funciona, para QUEM PARTICIPA. Aparece na pagina publica.
+   *
+   * Escrito em segunda pessoa, falando COM quem vai doar, e nao SOBRE ela.
+   * "Voce escolhe quanto quer doar", nunca "a pessoa escolhe quanto quer doar":
+   * a segunda soa como manual de sistema, e quem esta com o celular na mao
+   * decidindo se doa nao quer ler documentacao.
+   *
+   * Sao dois publicos com duas duvidas diferentes. Quem organiza pergunta "o que
+   * eu preciso fazer?"; quem doa pergunta "o que vai acontecer comigo?".
+   */
+  comoParticipar: string[];
   precificacao: Precificacao;
   modeloDeCusto: ModeloDeCusto;
   /** Se a acao tem quantidade limitada (numeros, ingressos, unidades). */
@@ -97,6 +113,11 @@ export const RECEITAS: Receita[] = [
       "A pessoa abre a campanha e escolhe quanto quer doar.",
       "Paga por PIX na hora, sem cadastro.",
       "O valor entra limpo na vaquinha, sem custo nenhum pelo caminho.",
+    ],
+    comoParticipar: [
+      "Você escolhe quanto quer doar. Qualquer valor ajuda.",
+      "Paga por PIX na hora, direto pelo celular. Sem cadastro, sem senha.",
+      "Pronto. Seu nome entra na lista de quem ajudou, e o valor aparece no total da campanha.",
     ],
     precificacao: "LIVRE",
     modeloDeCusto: "NENHUM",
@@ -139,6 +160,11 @@ export const RECEITAS: Receita[] = [
       "O sistema calcula quantas parcelas cabem até o fim da campanha e mostra o total do compromisso.",
       "A cada período, ela recebe um PIX novo no WhatsApp com um toque pra pagar.",
       "Se ela parar de pagar, o compromisso é encerrado sem cobrança nenhuma.",
+    ],
+    comoParticipar: [
+      "Você escolhe um valor e se ele vem toda semana ou todo mês.",
+      "A cada período, chega um PIX no seu WhatsApp. É só pagar com um toque.",
+      "Quando quiser parar, é só não pagar o próximo. Sem multa, sem ligação, sem burocracia.",
     ],
     precificacao: "LIVRE",
     modeloDeCusto: "NENHUM",
@@ -202,6 +228,11 @@ export const RECEITAS: Receita[] = [
       "Quem compra escolhe os números livres, e eles ficam reservados na hora do pagamento.",
       "Na data do sorteio, o resultado sai pela Loteria Federal (ou pelo método que você escolher).",
       "O sistema mostra quem ficou com cada número, então ninguém precisa confiar na sua palavra.",
+    ],
+    comoParticipar: [
+      "Escolha quantos números quiser. Quanto mais números, mais chances.",
+      "Pague por PIX e seus números ficam reservados no seu nome na hora.",
+      "No dia do sorteio, o resultado sai em público. Se for você, a equipe te avisa.",
     ],
     precificacao: "FIXO",
     modeloDeCusto: "FIXO",
@@ -275,6 +306,11 @@ export const RECEITAS: Receita[] = [
       "Quem compra recebe a cartela numerada.",
       "No dia, você canta o bingo pelo aplicativo, pelo salão ou pela live.",
     ],
+    comoParticipar: [
+      "Compre suas cartelas por PIX. Pode levar mais de uma para aumentar as chances.",
+      "Apareça no dia e hora marcados, com a cartela em mãos ou no celular.",
+      "Cada rodada tem um prêmio. Quem completar primeiro, leva.",
+    ],
     precificacao: "FIXO",
     modeloDeCusto: "MISTO",
     temEstoque: true,
@@ -333,6 +369,11 @@ export const RECEITAS: Receita[] = [
       "Quem compra escolhe a variação (tamanho, sabor, cor) e paga por PIX.",
       "O sistema desconta o custo só das unidades vendidas: o que está parado no estoque não vira prejuízo.",
       "Você acompanha a lista de quem comprou o quê, pra entregar sem se perder.",
+    ],
+    comoParticipar: [
+      "Escolha o que quer e quantos, e pague por PIX.",
+      "A equipe entra em contato pelo WhatsApp para combinar a entrega.",
+      "Você fica com o produto, e o que sobra do valor vira material de construção.",
     ],
     precificacao: "FIXO",
     modeloDeCusto: "POR_UNIDADE",
@@ -396,6 +437,11 @@ export const RECEITAS: Receita[] = [
       "Você define quando, onde, quantas vagas e o preço (com lotes, se quiser).",
       "Quem compra recebe um ingresso com código pra apresentar na entrada.",
       "No dia, você confere a entrada pela lista ou pelo código.",
+    ],
+    comoParticipar: [
+      "Garanta seu lugar pagando por PIX. As vagas são limitadas.",
+      "Você recebe a confirmação no WhatsApp, com dia, hora e endereço.",
+      "É só aparecer. Seu nome está na lista da entrada.",
     ],
     precificacao: "FAIXAS",
     modeloDeCusto: "MISTO",
@@ -464,6 +510,11 @@ export const RECEITAS: Receita[] = [
       "Quem quiser ajudar aponta a câmera e paga por PIX na hora, sem instalar nada.",
       "No fim do dia, cada um registra também quanto arrecadou em dinheiro vivo, e o sistema soma tudo.",
     ],
+    comoParticipar: [
+      "Encontre a equipe no ponto de coleta, ou aponte a câmera para o QR Code.",
+      "Doe o valor que quiser, por PIX na hora ou em dinheiro.",
+      "Tudo que entrar naquele dia aparece somado aqui no site.",
+    ],
     precificacao: "LIVRE",
     modeloDeCusto: "NENHUM",
     temEstoque: false,
@@ -518,6 +569,11 @@ export const RECEITAS: Receita[] = [
       "As pessoas dão lances pela página, e quem for ultrapassado recebe aviso no WhatsApp.",
       "Na hora do fechamento, o maior lance leva e recebe o PIX pra pagar.",
       "Se não pagar no prazo, o sistema oferece pro segundo colocado automaticamente.",
+    ],
+    comoParticipar: [
+      "Dê seu lance pela página. Se alguém cobrir, você recebe aviso no WhatsApp.",
+      "Quando o leilão fechar, o maior lance leva.",
+      "Se for você, recebe o PIX para pagar e combina a retirada com a equipe.",
     ],
     precificacao: "LANCE",
     modeloDeCusto: "NENHUM",
@@ -575,6 +631,11 @@ export const RECEITAS: Receita[] = [
       "Depois do jogo, o sistema aponta os acertadores e divide o prêmio.",
       "Se ninguém acertar, o valor inteiro fica na campanha.",
     ],
+    comoParticipar: [
+      "Escolha seu palpite de placar e pague por PIX. Pode dar quantos palpites quiser.",
+      "Espere o jogo. Seus palpites ficam guardados aqui.",
+      "Se você cravar o placar, divide o prêmio com os outros acertadores.",
+    ],
     precificacao: "FIXO",
     modeloDeCusto: "NENHUM",
     temEstoque: false,
@@ -621,6 +682,11 @@ export const RECEITAS: Receita[] = [
       "Você escreve o que é e como funciona.",
       "Define se tem preço fixo ou valor livre, e se tem quantidade limitada.",
       "O resto funciona igual às outras: PIX, extrato e página própria.",
+    ],
+    comoParticipar: [
+      "Escolha como quer participar e pague por PIX.",
+      "A equipe entra em contato pelo WhatsApp se precisar combinar algo.",
+      "O valor entra na campanha e aparece no total da página.",
     ],
     precificacao: "FIXO",
     modeloDeCusto: "NENHUM",
