@@ -964,46 +964,8 @@ a.acao:hover {
   max-width: 62ch;
 }
 
-.acao-conteudo {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
-  gap: 40px;
-  align-items: start;
-  margin-top: 44px;
-}
-.acao-lado {
-  display: grid;
-  gap: 16px;
-}
-.acao-aviso {
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--tinta-70);
-  margin: 0;
-}
-.acao-passos {
-  margin: 0;
-  padding-left: 20px;
-  font-size: 13.5px;
-  line-height: 1.55;
-  color: var(--tinta-70);
-}
-.acao-passos li {
-  margin-bottom: 7px;
-}
 
-@media (max-width: 1000px) {
-  .acao-conteudo {
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-  }
-  /* O formulario vem ANTES do texto: e o motivo da pagina existir, e ficava no
-     fim, obrigando a rolar tudo pra achar como participar. */
-  .acao-lado {
-    order: -1;
-  }
-}
+
 
 /* Entrada discreta do painel, no rodapé. */
 .rodape-links {
@@ -1441,4 +1403,91 @@ a.acao:hover {
   margin: 18px 0 0;
   padding-top: 16px;
   border-top: 1px solid var(--linha);
+}
+
+/* ---------- Pagina de acao: secoes empilhadas -------------------------------
+   Sem coluna dupla fixa. A antiga assumia conteudo dos dois lados, e numa acao
+   simples a esquerda ficava vazia enquanto o formulario espremia num filete de
+   340px. Agora cada peca ocupa a largura que faz sentido pra ela. */
+
+.secao-participar {
+  margin-top: 26px;
+}
+
+/* O formulario fica centrado e largo o bastante pra respirar, mas nao tao largo
+   que o olho perca a linha entre um campo e outro. */
+.participar-caixa {
+  max-width: 560px;
+  margin: 0 auto;
+  background: var(--branco);
+  border: 1px solid var(--acao-borda, var(--linha));
+  border-radius: 14px;
+  box-shadow: var(--sombra);
+  padding: 30px;
+}
+.participar-titulo {
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  margin: 0 0 22px;
+  text-align: center;
+}
+
+.secao-passos {
+  margin-top: 48px;
+}
+.secao-passos .secao-titulo {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+/* Os passos lado a lado: sao frases curtas, e em coluna sobrava metade da tela.
+   auto-fit deixa o navegador decidir quantos cabem, sem media query por numero
+   de passos (que varia de uma receita pra outra). */
+.passos-faixa {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 18px;
+}
+.passos-faixa li {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  padding: 20px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--tinta-70);
+}
+.passo-n {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  color: var(--branco);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.secao-conteudo {
+  margin-top: 48px;
+  max-width: 68ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 720px) {
+  .participar-caixa {
+    padding: 22px 18px;
+  }
+  .secao-passos,
+  .secao-conteudo {
+    margin-top: 36px;
+  }
 }

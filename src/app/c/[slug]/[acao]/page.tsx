@@ -273,65 +273,60 @@ export default async function PaginaDaAcao({ params }: Props) {
             </section>
           )}
 
-          <div className="acao-conteudo">
-            <div>
-              {blocos.some((b) => b.visivel) ? (
-                <Blocos
-                  blocos={blocos}
-                  ctx={{
-                    arrecadadoCentavos: acao.liquidoCentavos,
-                    metaCentavos: meta,
-                    prazo: acao.fechaEm,
-                  }}
+          {/* Distribuido ao longo da pagina, e nao em duas colunas fixas.
+              A coluna dupla so funciona quando a esquerda tem conteudo; numa
+              acao simples (doacao, por exemplo) ela ficava vazia e o formulario
+              virava um filete espremido na direita. Aqui cada peca ocupa a
+              largura que merece. */}
+
+          {!acabou && (
+            <section className="secao-participar">
+              <div className="participar-caixa">
+                <h2 className="participar-titulo">
+                  {acao.tipo === "DOACAO" ? "Fazer uma doação" : "Participar"}
+                </h2>
+                <FormularioDeApoio
+                  acaoId={acao.id}
+                  precoCentavos={acao.precoCentavos}
+                  restante={acao.restante}
+                  valoresSugeridos={valoresSugeridos}
+                  corForte={cor.forte}
                 />
-              ) : (
-                <p className="vazio">A equipe ainda está montando esta página.</p>
-              )}
-            </div>
+              </div>
+            </section>
+          )}
 
-            <aside className="acao-lado">
-              {acabou ? (
-                <div className="cartao">
-                  <p className="cartao-titulo">Esta ação já terminou</p>
-                  <p className="acao-aviso">
-                    {resultado?.primeiroEm && resultado?.ultimoEm ? (
-                      <>
-                        Aconteceu entre {dataCurta(resultado.primeiroEm)} e{" "}
-                        {dataCurta(resultado.ultimoEm)}. Os números abaixo são o
-                        fechamento dela.
-                      </>
-                    ) : (
-                      <>Os números abaixo são o fechamento dela.</>
-                    )}
-                  </p>
-                </div>
-              ) : (
-                <div className="cartao cartao-apoio">
-                  <p className="cartao-titulo">
-                    {acao.tipo === "DOACAO" ? "Fazer uma doação" : "Participar"}
-                  </p>
-                  <FormularioDeApoio
-                    acaoId={acao.id}
-                    precoCentavos={acao.precoCentavos}
-                    restante={acao.restante}
-                    valoresSugeridos={valoresSugeridos}
-                    corForte={cor.forte}
-                  />
-                </div>
-              )}
+          {/* Os passos em faixa horizontal: eles sao curtos e cabem lado a lado,
+              e assim a largura da pagina trabalha em vez de sobrar. */}
+          {receita && receita.comoFunciona.length > 0 && (
+            <section className="secao-passos">
+              <h2 className="secao-titulo">Como funciona</h2>
+              <ol className="passos-faixa">
+                {receita.comoFunciona.map((passo, i) => (
+                  <li key={i}>
+                    <span className="passo-n" style={{ background: cor.forte }}>
+                      {i + 1}
+                    </span>
+                    <span>{passo}</span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
 
-              {receita && (
-                <div className="cartao cartao-azul">
-                  <p className="cartao-titulo">Como funciona</p>
-                  <ol className="acao-passos">
-                    {receita.comoFunciona.map((p, i) => (
-                      <li key={i}>{p}</li>
-                    ))}
-                  </ol>
-                </div>
-              )}
-            </aside>
-          </div>
+          {blocos.some((b) => b.visivel) && (
+            <section className="secao-conteudo">
+              <Blocos
+                blocos={blocos}
+                ctx={{
+                  arrecadadoCentavos: acao.liquidoCentavos,
+                  metaCentavos: meta,
+                  prazo: acao.fechaEm,
+                }}
+              />
+            </section>
+          )}
+
         </div>
       </main>
 

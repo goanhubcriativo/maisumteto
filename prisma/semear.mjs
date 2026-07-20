@@ -115,11 +115,12 @@ A nossa equipe decidiu que não ia só pedir doação: cada um entrou com o que 
       precoCentavos: null, // quem doa escolhe
       cor: "teto",
       config: { valoresSugeridos: ["20", "50", "100", "200"], permiteAnonimo: true },
+      // Só um bloco de texto vazio, pra equipe escrever.
+      //
+      // Sem o bloco de NÚMEROS: a página da ação já mostra arrecadado e meta
+      // numa caixa grande no alto, e repetir logo abaixo vira ruído.
       blocos: {
-        create: [
-          { tipo: "TEXTO", ordem: 0, visivel: true, conteudo: { texto: "" } },
-          { tipo: "NUMEROS", ordem: 1, visivel: true, conteudo: { titulo: "" } },
-        ],
+        create: [{ tipo: "TEXTO", ordem: 0, visivel: true, conteudo: { texto: "" } }],
       },
     },
   });
