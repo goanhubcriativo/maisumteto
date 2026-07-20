@@ -550,7 +550,14 @@ export default function CampanhaView({
           <span>
             <strong>{campanha.equipe.nome}</strong> · {campanha.sede ?? "TETO Paraná"}
           </span>
-          <span>Pagamentos por PIX · o extrato de cada ação é público</span>
+          <span className="rodape-links">
+            <span>Pagamentos por PIX · o extrato de cada ação é público</span>
+            {/* Entrada do painel. Fica no rodapé de propósito: quem organiza
+                precisa achar sem decorar endereço, e quem doa não se distrai. */}
+            <Link href="/entrar" className="rodape-entrar">
+              Área da equipe
+            </Link>
+          </span>
         </div>
       </footer>
     </>

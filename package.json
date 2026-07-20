@@ -12,7 +12,8 @@
     "db:studio": "prisma studio",
     "db:semear": "node prisma/semear.mjs",
     "postinstall": "prisma generate",
-    "teste": "node testes/tudo.mjs"
+    "teste": "node testes/tudo.mjs",
+    "db:importar-bolao": "node prisma/importar-bolao.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",
