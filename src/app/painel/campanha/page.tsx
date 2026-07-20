@@ -20,6 +20,24 @@ export const dynamic = "force-dynamic";
  * Fica FORA do componente: o Next serializa o escopo que cada "use server"
  * enxerga, e funcao comum declarada dentro do componente quebra a serializacao.
  */
+/** Date -> "AAAA-MM-DD" pelos getters LOCAIS: com toISOString a data escorrega
+    um dia no Brasil (UTC-3). Mesmo cuidado da tela de acao. */
+function paraCampoData(d: Date): string {
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mes}-${dia}`;
+}
+
+/** "AAAA-MM-DD" -> fim daquele dia, no horario local.
+    Fim do dia, e nao meia-noite: quem marca 20 de dezembro espera doar ate o
+    fim do dia 20, e nao ver a campanha fechar na virada da noite anterior. */
+function daCaixaDeData(texto: string): Date | null {
+  const t = texto.trim();
+  if (!t) return null;
+  const d = new Date(`${t}T23:59:59`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 function recarregar() {
   revalidatePath("/painel/campanha");
   revalidatePath("/painel");
@@ -39,6 +57,7 @@ export default async function EditarCampanha() {
 
     await salvarCampanha(campanhaId, {
       titulo: String(dados.get("titulo") ?? "").trim(),
+      prazo: daCaixaDeData(String(dados.get("prazo") ?? "")),
       periodo: String(dados.get("periodo") ?? "").trim() || null,
       equipeArrecadacao: String(dados.get("equipe") ?? "").trim() || null,
       sede: String(dados.get("sede") ?? "").trim() || null,
@@ -130,6 +149,21 @@ export default async function EditarCampanha() {
               defaultValue={campanha.equipeArrecadacao ?? ""}
               placeholder="Nomes separados por hífen"
             />
+          </label>
+
+          <label className="campo">
+            <span className="campo-rotulo">Prazo da campanha</span>
+            <input
+              className="campo-entrada"
+              name="prazo"
+              type="date"
+              defaultValue={campanha.prazo ? paraCampoData(campanha.prazo) : ""}
+            />
+            <span className="campo-ajuda">
+              Quando a arrecadação termina. É o que define os &quot;dias restantes&quot; na
+              página e até quando vão as doações recorrentes. Em branco, a campanha fica
+              aberta sem data.
+            </span>
           </label>
 
           <label className="campo">

@@ -354,9 +354,17 @@ export async function moverBloco(alvo: AlvoDeBloco, id: string, direcao: "cima" 
 // Apoiadores
 // ---------------------------------------------------------------------------
 
+/**
+ * Quem contribuiu, do mais recente pro mais antigo.
+ *
+ * O padrao e ALTO de proposito: a pagina mostra todo mundo, porque a lista e
+ * agradecimento, e cortar agradecimento em oito primeiros seria escolher quem
+ * merece aparecer. O teto de 500 existe so pra uma campanha gigante nao gerar
+ * uma pagina impossivel de carregar no celular.
+ */
 export async function apoiadoresRecentes(
   campanhaId: string,
-  quantos = 8
+  quantos = 500
 ): Promise<ApoiadorRecente[]> {
   const pedidos = await prisma.pedido.findMany({
     where: { campanhaId, status: "PAGO" },

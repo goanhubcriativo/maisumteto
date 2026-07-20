@@ -516,7 +516,9 @@ export default function CampanhaView({
             <div className="secao-cabeca">
               <h2 className="secao-titulo">Quem contribuiu</h2>
               <p className="secao-intro">
-                {resumo.apoiadores} pessoas já entraram nessa. Estas são as mais recentes.
+                {resumo.apoiadores === 1
+                  ? "Uma pessoa já entrou nessa."
+                  : `${resumo.apoiadores} pessoas já entraram nessa, e todas elas estão aqui.`}
               </p>
             </div>
 
