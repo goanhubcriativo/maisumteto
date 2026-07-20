@@ -4,13 +4,15 @@
 // e documentação genérica já me fez errar uma vez (afirmei uma taxa que não era
 // a sua); aqui quem responde é a API do Mercado Pago com o seu token.
 //
-// É só leitura: nenhuma chamada aqui cria cobrança, assinatura ou qualquer
-// coisa que mexa em dinheiro.
+// As leituras do topo não mexem em nada. A sonda do Pix Automático é a única
+// que escreve, e só por clique: ela cria uma assinatura de R$ 1 com início daqui
+// a uma semana e CANCELA na mesma execução, então ninguém é cobrado.
 //
 // Protegida por login, como todo o painel: a resposta traz detalhes da conta que
 // não devem ficar abertos.
 
 import { exigirLogin } from "@/lib/sessao";
+import Sonda from "./Sonda";
 
 export const dynamic = "force-dynamic";
 
@@ -108,6 +110,11 @@ export default async function Diagnostico() {
             </dd>
           </div>
         </dl>
+      </section>
+
+      <section className="painel-cartao">
+        <h2 className="formulario-secao">Pix Automático: dá para usar?</h2>
+        <Sonda />
       </section>
 
       <section className="painel-cartao">
