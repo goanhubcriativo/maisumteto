@@ -994,8 +994,14 @@ a.acao:hover {
 
 @media (max-width: 1000px) {
   .acao-conteudo {
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 28px;
+  }
+  /* O formulario vem ANTES do texto: e o motivo da pagina existir, e ficava no
+     fim, obrigando a rolar tudo pra achar como participar. */
+  .acao-lado {
+    order: -1;
   }
 }
 
@@ -1120,115 +1126,234 @@ a.acao:hover {
   }
 }
 
-/* ---------- Formulario de apoio e tela de pagamento ---------- */
+/* ---------- Formulario de apoio ----------------------------------------------
+   Classes proprias (.ap-*), e nao as do painel: aquelas moram em painel.css, que
+   so carrega na area logada. Usa-las aqui deixava o formulario sem estilo nenhum
+   justamente pra quem vai doar.
 
-.cartao-apoio {
-  border-color: var(--acao-borda, var(--linha));
+   Alvos grandes de proposito: isso e preenchido no celular, muitas vezes na rua,
+   as vezes por gente com pouca intimidade com formulario. Campo pequeno aqui
+   custa doacao. */
+
+.ap {
+  display: grid;
+  gap: 22px;
 }
-.apoio-rotulo {
-  display: block;
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 10px;
+
+.ap-bloco {
+  display: grid;
+  gap: 12px;
 }
-.apoio-valores {
+
+.ap-pergunta {
+  font-size: 15.5px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+.ap-preco {
+  font-size: 13.5px;
+  color: var(--tinta-70);
+  margin-top: -8px;
+}
+
+/* Atalhos de valor: dois por linha, grandes, faceis de acertar com o polegar. */
+.ap-valores {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 10px;
 }
-.apoio-valor {
+.ap-valor {
   font: inherit;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
+  color: var(--tinta);
   background: var(--branco);
-  border: 1.5px solid var(--linha);
-  border-radius: 8px;
-  padding: 12px 8px;
+  border: 2px solid var(--linha);
+  border-radius: 10px;
+  padding: 15px 8px;
   cursor: pointer;
-  transition: border-color 0.12s ease, color 0.12s ease;
+  transition: border-color 0.12s ease, color 0.12s ease, transform 0.1s ease;
 }
-.apoio-valor:hover {
+.ap-valor:hover {
   border-color: var(--linha-forte);
 }
-.apoio-valor.escolhido {
+.ap-valor:active {
+  transform: scale(0.98);
+}
+.ap-valor.escolhido {
   border-width: 2px;
 }
-.apoio-outro {
-  display: block;
-  margin-bottom: 20px;
+
+.ap-campo {
+  display: grid;
+  gap: 6px;
 }
-.apoio-outro span {
-  display: block;
-  font-size: 12.5px;
-  color: var(--tinta-70);
-  margin-bottom: 6px;
+.ap-nome {
+  font-size: 13.5px;
+  font-weight: 700;
 }
-.apoio-outro input {
+.ap-campo input {
   width: 100%;
   font: inherit;
-  font-size: 15px;
-  border: 1.5px solid var(--linha);
-  border-radius: 8px;
-  padding: 11px 13px;
+  font-size: 16px; /* 16px evita o zoom automatico do iPhone ao focar */
+  color: var(--tinta);
+  background: var(--branco);
+  border: 2px solid var(--linha);
+  border-radius: 10px;
+  padding: 14px 14px;
+  transition: border-color 0.12s ease;
 }
-.apoio-outro input:focus {
+.ap-campo input::placeholder {
+  color: var(--tinta-50);
+}
+.ap-campo input:focus {
   outline: none;
   border-color: var(--acao-forte, var(--teto));
 }
+.ap-dica {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--tinta-70);
+}
 
-.apoio-quantidade {
+/* Campo de dinheiro com o "R$" fixo do lado: quem digita nao precisa pensar
+   em formato, so no numero. */
+.ap-moeda {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 6px;
-}
-.apoio-quantidade button {
-  font: inherit;
-  font-size: 20px;
-  line-height: 1;
-  width: 42px;
-  height: 42px;
-  border: 1.5px solid var(--linha);
+  border: 2px solid var(--linha);
+  border-radius: 10px;
   background: var(--branco);
-  border-radius: 8px;
-  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.12s ease;
 }
-.apoio-quantidade button:hover {
+.ap-moeda:focus-within {
   border-color: var(--acao-forte, var(--teto));
 }
-.apoio-numero {
-  font-size: 22px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  min-width: 40px;
-  text-align: center;
-}
-.apoio-escassez {
-  display: block;
-  font-size: 12.5px;
+.ap-moeda span {
+  padding: 0 4px 0 14px;
+  font-size: 16px;
+  font-weight: 700;
   color: var(--tinta-70);
-  margin-bottom: 18px;
+}
+.ap-moeda input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  border: 0;
+  padding: 14px 14px 14px 4px;
+  background: transparent;
+}
+.ap-moeda input:focus {
+  outline: none;
 }
 
-.apoio .campo {
-  margin-bottom: 14px;
+.ap-contador {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
-.apoio-anonimo {
-  margin: 4px 0 18px;
+.ap-contador button {
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+  width: 52px;
+  height: 52px;
+  color: var(--tinta);
+  background: var(--branco);
+  border: 2px solid var(--linha);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, opacity 0.12s ease;
+}
+.ap-contador button:hover:not(:disabled) {
+  border-color: var(--acao-forte, var(--teto));
+}
+.ap-contador button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.ap-numero {
+  font-size: 26px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+  text-align: center;
+}
+.ap-escassez {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--vermelho);
+}
+
+.ap-anonimo {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   font-size: 13.5px;
+  line-height: 1.45;
   color: var(--tinta-70);
+  cursor: pointer;
+  padding: 4px 0;
 }
-.apoio-erro {
+.ap-anonimo input {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  flex: 0 0 auto;
+  accent-color: var(--acao-forte, var(--teto));
+}
+
+.ap-erro {
   background: rgba(179, 64, 44, 0.08);
   border: 1px solid rgba(179, 64, 44, 0.24);
   color: var(--vermelho);
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: 10px;
+  padding: 12px 14px;
   font-size: 13.5px;
-  margin: 0 0 14px;
+  line-height: 1.5;
+  margin: 0;
 }
+
+/* O botao e a coisa mais visivel do cartao: e o unico passo que importa. */
+.ap-enviar {
+  font: inherit;
+  font-size: 16.5px;
+  font-weight: 800;
+  color: var(--branco);
+  border: 0;
+  border-radius: 10px;
+  padding: 17px 20px;
+  width: 100%;
+  cursor: pointer;
+  transition: opacity 0.12s ease, transform 0.1s ease;
+}
+.ap-enviar:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.ap-enviar:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.ap-rodape {
+  font-size: 12.5px;
+  color: var(--tinta-50);
+  text-align: center;
+  margin: -8px 0 0;
+}
+
+/* Duas colunas seguram ate uns 330px: em 375px cada botao fica com ~160px, e
+   "R$ 200,00" cabe folgado. So no celular bem estreito vale empilhar. */
+@media (max-width: 330px) {
+  .ap-valores {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Tela de pagamento ---------- */
 
 .pagamento {
   min-height: 100vh;

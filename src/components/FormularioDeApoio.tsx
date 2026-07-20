@@ -7,6 +7,11 @@
 //
 // O CPF é o único que não dá para evitar: o Mercado Pago exige o CPF do pagador
 // para gerar cobrança PIX. Por isso a tela explica o porquê, em vez de só pedir.
+//
+// Estilo PRÓPRIO (classes .ap-*), e não as do painel. As do painel vivem em
+// painel.css, que só é carregado na área logada: usá-las aqui deixava o
+// formulário sem estilo nenhum para quem doa, que é justamente quem não pode
+// tropeçar.
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -26,6 +31,24 @@ function formatar(centavos: number) {
   return (centavos / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+/** (41) 99999-9999 enquanto digita. Número formatado dá sensação de campo certo. */
+function mascararTelefone(valor: string) {
+  const n = valor.replace(/\D/g, "").slice(0, 11);
+  if (n.length <= 2) return n;
+  if (n.length <= 6) return `(${n.slice(0, 2)}) ${n.slice(2)}`;
+  if (n.length <= 10) return `(${n.slice(0, 2)}) ${n.slice(2, 6)}-${n.slice(6)}`;
+  return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}`;
+}
+
+/** 000.000.000-00 enquanto digita. */
+function mascararCpf(valor: string) {
+  const n = valor.replace(/\D/g, "").slice(0, 11);
+  return n
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+}
+
 export default function FormularioDeApoio({
   acaoId,
   precoCentavos,
@@ -39,13 +62,13 @@ export default function FormularioDeApoio({
   const [valor, setValor] = useState<number | null>(null);
   const [valorDigitado, setValorDigitado] = useState("");
   const [quantidade, setQuantidade] = useState(1);
+  const [telefone, setTelefone] = useState("");
+  const [cpf, setCpf] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
   const maximo = restante ?? 50;
-  const total = valorLivre
-    ? (valor ?? 0)
-    : (precoCentavos ?? 0) * quantidade;
+  const total = valorLivre ? (valor ?? 0) : (precoCentavos ?? 0) * quantidade;
 
   async function enviar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -61,9 +84,8 @@ export default function FormularioDeApoio({
         body: JSON.stringify({
           acaoId,
           nome: dados.get("nome"),
-          whatsapp: dados.get("whatsapp"),
-          cpf: dados.get("cpf"),
-          email: dados.get("email"),
+          whatsapp: telefone,
+          cpf,
           anonimo: dados.get("anonimo") === "on",
           quantidade,
           valorCentavos: valorLivre ? valor : undefined,
@@ -85,127 +107,145 @@ export default function FormularioDeApoio({
   }
 
   return (
-    <form className="apoio" onSubmit={enviar}>
+    <form className="ap" onSubmit={enviar}>
       {valorLivre ? (
-        <>
-          <span className="apoio-rotulo">Quanto você quer doar?</span>
-          <div className="apoio-valores">
-            {valoresSugeridos.map((v) => (
-              <button
-                key={v}
-                type="button"
-                className={`apoio-valor${valor === v * 100 ? " escolhido" : ""}`}
-                style={valor === v * 100 ? { borderColor: corForte, color: corForte } : undefined}
-                onClick={() => {
-                  setValor(v * 100);
-                  setValorDigitado("");
-                }}
-              >
-                {formatar(v * 100)}
-              </button>
-            ))}
+        <div className="ap-bloco">
+          <span className="ap-pergunta">Quanto você quer doar?</span>
+
+          <div className="ap-valores">
+            {valoresSugeridos.map((v) => {
+              const escolhido = valor === v * 100 && !valorDigitado;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  className={`ap-valor${escolhido ? " escolhido" : ""}`}
+                  style={escolhido ? { borderColor: corForte, color: corForte } : undefined}
+                  onClick={() => {
+                    setValor(v * 100);
+                    setValorDigitado("");
+                  }}
+                >
+                  {formatar(v * 100)}
+                </button>
+              );
+            })}
           </div>
 
-          <label className="apoio-outro">
-            <span>Ou outro valor</span>
-            <input
-              inputMode="decimal"
-              placeholder="R$ 0,00"
-              value={valorDigitado}
-              onChange={(e) => {
-                setValorDigitado(e.target.value);
-                const limpo = e.target.value.replace(/[^\d,]/g, "").replace(",", ".");
-                const n = Number(limpo);
-                setValor(Number.isFinite(n) && n > 0 ? Math.round(n * 100) : null);
-              }}
-            />
+          <label className="ap-campo">
+            <span className="ap-nome">Ou digite outro valor</span>
+            <div className="ap-moeda">
+              <span>R$</span>
+              <input
+                inputMode="decimal"
+                placeholder="0,00"
+                value={valorDigitado}
+                onChange={(e) => {
+                  setValorDigitado(e.target.value);
+                  const limpo = e.target.value.replace(/[^\d,]/g, "").replace(",", ".");
+                  const n = Number(limpo);
+                  setValor(Number.isFinite(n) && n > 0 ? Math.round(n * 100) : null);
+                }}
+              />
+            </div>
           </label>
-        </>
+        </div>
       ) : (
-        <>
-          <span className="apoio-rotulo">
-            Quantos? · {formatar(precoCentavos ?? 0)} cada
-          </span>
-          <div className="apoio-quantidade">
+        <div className="ap-bloco">
+          <span className="ap-pergunta">Quantos você quer?</span>
+          <span className="ap-preco">{formatar(precoCentavos ?? 0)} cada</span>
+
+          <div className="ap-contador">
             <button
               type="button"
               onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
-              aria-label="Diminuir"
+              disabled={quantidade <= 1}
+              aria-label="Diminuir quantidade"
             >
               −
             </button>
-            <span className="apoio-numero">{quantidade}</span>
+            <span className="ap-numero">{quantidade}</span>
             <button
               type="button"
               onClick={() => setQuantidade((q) => Math.min(maximo, q + 1))}
-              aria-label="Aumentar"
+              disabled={quantidade >= maximo}
+              aria-label="Aumentar quantidade"
             >
               +
             </button>
           </div>
+
           {restante !== null && restante <= 10 && (
-            <span className="apoio-escassez">
-              {restante === 1 ? "resta 1" : `restam ${restante}`}
+            <span className="ap-escassez">
+              {restante === 1 ? "resta só 1" : `restam só ${restante}`}
             </span>
           )}
-        </>
+        </div>
       )}
 
-      <label className="campo">
-        <span className="campo-rotulo">Seu nome</span>
-        <input className="campo-entrada" name="nome" required autoComplete="name" />
-      </label>
+      <div className="ap-bloco">
+        <span className="ap-pergunta">Seus dados</span>
 
-      <label className="campo">
-        <span className="campo-rotulo">WhatsApp</span>
-        <input
-          className="campo-entrada"
-          name="whatsapp"
-          required
-          inputMode="tel"
-          placeholder="(41) 99999-9999"
-          autoComplete="tel"
-        />
-        <span className="campo-ajuda">É por onde a equipe fala com você se precisar.</span>
-      </label>
+        <label className="ap-campo">
+          <span className="ap-nome">Nome completo</span>
+          <input name="nome" required autoComplete="name" placeholder="Como você se chama" />
+        </label>
 
-      <label className="campo">
-        <span className="campo-rotulo">CPF</span>
-        <input
-          className="campo-entrada"
-          name="cpf"
-          required
-          inputMode="numeric"
-          placeholder="000.000.000-00"
-        />
-        <span className="campo-ajuda">
-          O banco exige CPF para gerar o PIX. Não aparece em lugar nenhum do site.
-        </span>
-      </label>
+        <label className="ap-campo">
+          <span className="ap-nome">WhatsApp</span>
+          <input
+            name="whatsapp"
+            required
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="(41) 99999-9999"
+            value={telefone}
+            onChange={(e) => setTelefone(mascararTelefone(e.target.value))}
+          />
+          <span className="ap-dica">Só se a equipe precisar falar com você.</span>
+        </label>
 
-      <label className="campo-chave apoio-anonimo">
-        <input type="checkbox" name="anonimo" />
-        <span>Não quero meu nome na lista de quem contribuiu</span>
-      </label>
+        <label className="ap-campo">
+          <span className="ap-nome">CPF</span>
+          <input
+            name="cpf"
+            required
+            inputMode="numeric"
+            placeholder="000.000.000-00"
+            value={cpf}
+            onChange={(e) => setCpf(mascararCpf(e.target.value))}
+          />
+          <span className="ap-dica">
+            O banco exige para gerar o PIX. Não aparece em nenhum lugar do site.
+          </span>
+        </label>
+
+        <label className="ap-anonimo">
+          <input type="checkbox" name="anonimo" />
+          <span>Não quero meu nome na lista de quem contribuiu</span>
+        </label>
+      </div>
 
       {erro && (
-        <p className="apoio-erro" role="alert">
+        <p className="ap-erro" role="alert">
           {erro}
         </p>
       )}
 
       <button
-        className="botao botao-primario botao-largo"
+        className="ap-enviar"
         type="submit"
         style={{ background: corForte }}
         disabled={enviando || total <= 0}
       >
         {enviando
-          ? "Gerando PIX..."
+          ? "Gerando seu PIX..."
           : total > 0
             ? `Pagar ${formatar(total)} por PIX`
-            : "Escolha um valor"}
+            : "Escolha um valor acima"}
       </button>
+
+      <p className="ap-rodape">Pagamento por PIX. Leva menos de um minuto.</p>
     </form>
   );
 }
