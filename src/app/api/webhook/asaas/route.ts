@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { statusEhPago } from "@/lib/asaas";
+import { prisma } from "@/lib/bolao/db";
+import { statusEhPago } from "@/lib/bolao/asaas";
 
 export const runtime = "nodejs";
 

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 185" width="210" height="185" fill="none">
+  <!-- sombra no chão -->
+  <ellipse cx="95" cy="152" rx="82" ry="12" fill="#273740" opacity="0.1"/>
+
+  <!-- caracol (concêntrico, técnica de tubo) — contornos grafite -->
+  <ellipse cx="95" cy="82" rx="84" ry="46" fill="none" stroke="#273740" stroke-width="15"/>
+  <ellipse cx="95" cy="77" rx="57" ry="30" fill="none" stroke="#273740" stroke-width="15"/>
+  <ellipse cx="95" cy="72" rx="31" ry="15" fill="none" stroke="#273740" stroke-width="15"/>
+  <!-- corpo azul -->
+  <ellipse cx="95" cy="82" rx="84" ry="46" fill="none" stroke="#2c95cf" stroke-width="8"/>
+  <ellipse cx="95" cy="77" rx="57" ry="30" fill="none" stroke="#2c95cf" stroke-width="8"/>
+  <ellipse cx="95" cy="72" rx="31" ry="15" fill="none" stroke="#2c95cf" stroke-width="8"/>
+  <ellipse cx="95" cy="82" rx="84" ry="46" fill="none" stroke="#8fd3f0" stroke-width="2.5"/>
+
+  <!-- rabicho: sai da borda do caracol e desce pro bico -->
+  <path d="M171 100 C 196 122, 192 150, 156 158" fill="none" stroke="#273740" stroke-width="15" stroke-linecap="round"/>
+  <path d="M171 100 C 196 122, 192 150, 156 158" fill="none" stroke="#41aee4" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- bico / gatilho na ponta -->
+  <g transform="rotate(30 156 158)">
+    <rect x="128" y="151" width="44" height="15" rx="7" fill="#273740"/>
+    <rect x="131" y="153.5" width="38" height="10" rx="5" fill="#5a6b74"/>
+    <rect x="166" y="148" width="10" height="21" rx="4" fill="#273740"/>
+    <path d="M140 166 q-2 11 8 13" fill="none" stroke="#273740" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <!-- pinguinho d'água saindo do bico -->
+  <circle cx="132" cy="172" r="3.6" fill="#2c95cf"/>
+  <circle cx="140" cy="179" r="2.6" fill="#8fd3f0"/>
+</svg>

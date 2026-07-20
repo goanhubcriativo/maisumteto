@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/bolao/db";
+import { PLACAR_FINAL, VENCEDOR_SORTEIO } from "@/lib/bolao/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,9 +61,35 @@ export async function GET(req: Request) {
     parseInt(process.env.META_CENTAVOS || "150000", 10) || 150000;
   const somaPagas = await prisma.casinha.aggregate({
     where: { status: "PAGO" },
-    _sum: { valorTotalCentavos: true },
+    _sum: { valorTotalCentavos: true, liquidoCentavos: true },
   });
   const arrecadado = somaPagas._sum.valorTotalCentavos || 0;
+  // O que sobrou depois da taxa: valor real depositado pelo Mercado Pago.
+  const liquido = somaPagas._sum.liquidoCentavos || 0;
+
+  // Números do fechamento, só carregados na arte de resultado.
+  let quantosAcertaram = 0;
+  if (v === "7") {
+    quantosAcertaram = await prisma.casinha.count({
+      where: {
+        status: "PAGO",
+        palpites: {
+          some: {
+            placarCasa: PLACAR_FINAL.casa,
+            placarVisitante: PLACAR_FINAL.visitante,
+          },
+        },
+      },
+    });
+  }
+  const brl = (c: number) =>
+    (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  // Primeiro e segundo nome do vencedor: cabe na arte e ainda identifica.
+  const vencedorCurto = VENCEDOR_SORTEIO.trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .join(" ")
+    .toUpperCase();
   const pct = Math.min(100, Math.floor((arrecadado / metaCentavos) * 100));
   // Quantas fézinhas de R$10 ainda faltam pra bater a meta.
   const faltamFezinhas = Math.max(0, Math.ceil((metaCentavos - arrecadado) / 1000));
@@ -162,7 +189,253 @@ export async function GET(req: Request) {
 
   let conteudo: React.ReactElement;
 
-  if (v === "2") {
+  if (v === "8") {
+    // AGRADECIMENTO PERSONALIZADO: uma peça por doador (?nome=).
+    const bruto = (new URL(req.url).searchParams.get("nome") || "").trim();
+    const primeiro = bruto.split(/\s+/)[0] || "Você";
+    const nome = primeiro.toUpperCase();
+    // Nome comprido não pode estourar a linha: encolhe conforme cresce.
+    const tamNome =
+      nome.length <= 7 ? 118 : nome.length <= 10 ? 96 : nome.length <= 13 ? 78 : 62;
+
+    conteudo = (
+      <div style={{ ...raiz, backgroundColor: GRAFITE }}>
+        <Fundo opacidade={0.45} />
+        <div style={{ ...corpo, color: PAPEL, padding: "68px 76px 64px" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logo} width={270} height={158} alt="" style={{ flexShrink: 0 }} />
+
+          {/* Mais ar embaixo do logo que no miolo: o vazio do meio incomodava */}
+          <div style={{ display: "flex", flex: 1.7 }} />
+
+          <div style={olho(AZUL)}>BOLÃO DA FINAL DA COPA</div>
+          <div style={{ display: "flex", height: "16px" }} />
+          <div
+            style={{
+              display: "flex",
+              fontSize: `${tamNome}px`,
+              fontWeight: 900,
+              color: AZUL,
+              letterSpacing: "-3px",
+              lineHeight: 1,
+            }}
+          >
+            {nome},
+          </div>
+          <div style={{ display: "flex", height: "18px" }} />
+          <div
+            style={{
+              display: "flex",
+              fontSize: "46px",
+              fontWeight: 900,
+              letterSpacing: "-1px",
+              lineHeight: 1.2,
+            }}
+          >
+            graças à sua ajuda, batemos nossa meta de arrecadação do bolão.
+          </div>
+
+          <div style={{ display: "flex", height: "36px" }} />
+
+          {/* O valor arrecadado */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              border: `3px solid ${AZUL}`,
+              borderRadius: "22px",
+              padding: "28px 34px 32px",
+              backgroundColor: "rgba(2,145,218,0.12)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "16px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: "84px",
+                  fontWeight: 900,
+                  color: AZUL,
+                  letterSpacing: "-3px",
+                  lineHeight: 1,
+                }}
+              >
+                {brl(liquido)}
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: "24px",
+                  fontWeight: 700,
+                  color: "rgba(246,244,238,0.7)",
+                  paddingBottom: "8px",
+                }}
+              >
+                (taxas já descontadas)
+              </div>
+            </div>
+            <div style={{ display: "flex", height: "10px" }} />
+            <div style={{ display: "flex", fontSize: "30px", fontWeight: 600, lineHeight: 1.35 }}>
+              arrecadados, que vão se somar à meta total da campanha.
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flex: 1 }} />
+
+          <div style={{ display: "flex", fontSize: "32px", fontWeight: 700, lineHeight: 1.42 }}>
+            Quando essa casa for levantada (e ela será) lembraremos com carinho
+            de você e de todas as pessoas que nos ajudaram a tornar isso
+            possível.
+          </div>
+          <div style={{ display: "flex", height: "28px" }} />
+          <div style={{ ...cta(AZUL), fontSize: "38px", letterSpacing: "1px" }}>
+            EM BREVE NOVAS AÇÕES
+          </div>
+        </div>
+      </div>
+    );
+  } else if (v === "7") {
+    // RESULTADO: meta batida, placar final e o nome de quem levou o prêmio.
+    conteudo = (
+      <div style={{ ...raiz, backgroundColor: GRAFITE }}>
+        <Fundo opacidade={0.45} />
+        <div style={{ ...corpo, color: PAPEL, padding: "68px 76px 64px" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={logo} width={270} height={158} alt="" style={{ flexShrink: 0 }} />
+
+          <div style={{ display: "flex", flex: 1 }} />
+
+          <div style={olho(AZUL)}>ACABOU O BOLÃO</div>
+          <div style={{ display: "flex", height: "14px" }} />
+          <div
+            style={{
+              display: "flex",
+              fontSize: "86px",
+              fontWeight: 900,
+              letterSpacing: "-2px",
+              lineHeight: 1,
+            }}
+          >
+            META BATIDA!
+          </div>
+          <div style={{ display: "flex", height: "18px" }} />
+          <div
+            style={{
+              display: "flex",
+              fontSize: "132px",
+              fontWeight: 900,
+              color: AZUL,
+              letterSpacing: "-5px",
+              lineHeight: 1,
+            }}
+          >
+            {brl(liquido)}
+          </div>
+          <div style={{ display: "flex", height: "6px" }} />
+          <div
+            style={{
+              display: "flex",
+              fontSize: "28px",
+              fontWeight: 700,
+              letterSpacing: "1px",
+              color: "rgba(246,244,238,0.7)",
+            }}
+          >
+            (taxas já descontadas)
+          </div>
+          <div style={{ display: "flex", height: "16px" }} />
+          <div
+            style={{
+              display: "flex",
+              fontSize: "34px",
+              fontWeight: 600,
+              lineHeight: 1.35,
+              color: "rgba(246,244,238,0.9)",
+            }}
+          >
+            arrecadados graças à ajuda de cada pessoa que apoiou o projeto.
+          </div>
+
+          <div style={{ display: "flex", flex: 1 }} />
+
+          {/* Placar e vencedor do sorteio */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              border: `3px solid ${AZUL}`,
+              borderRadius: "22px",
+              padding: "30px 34px 34px",
+              backgroundColor: "rgba(2,145,218,0.12)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={flagES} width={84} height={56} alt="" style={{ borderRadius: "6px", flexShrink: 0 }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ display: "flex", fontSize: "52px", fontWeight: 900 }}>
+                  {PLACAR_FINAL.casa}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    fontSize: "30px",
+                    fontWeight: 600,
+                    color: "rgba(246,244,238,0.55)",
+                  }}
+                >
+                  x
+                </div>
+                <div style={{ display: "flex", fontSize: "52px", fontWeight: 900 }}>
+                  {PLACAR_FINAL.visitante}
+                </div>
+              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={flagAR} width={84} height={56} alt="" style={{ borderRadius: "6px", flexShrink: 0 }} />
+              <div
+                style={{
+                  display: "flex",
+                  fontSize: "27px",
+                  fontWeight: 700,
+                  color: "rgba(246,244,238,0.8)",
+                  paddingLeft: "8px",
+                }}
+              >
+                {quantosAcertaram} cravaram o placar
+              </div>
+            </div>
+
+            <div style={{ display: "flex", height: "26px" }} />
+            <div style={{ display: "flex", fontSize: "28px", fontWeight: 700, letterSpacing: "3px", color: AZUL }}>
+              O SORTEIO DEU
+            </div>
+            <div style={{ display: "flex", height: "8px" }} />
+            <div
+              style={{
+                display: "flex",
+                fontSize: "72px",
+                fontWeight: 900,
+                letterSpacing: "-2px",
+                lineHeight: 1.05,
+              }}
+            >
+              {vencedorCurto}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", height: "32px" }} />
+          <div style={{ display: "flex", fontSize: "31px", fontWeight: 700, lineHeight: 1.4 }}>
+            Obrigado a todo mundo que fez sua fézinha. Vocês nos ajudaram a
+            arrecadar a primeira parte do valor que vai tirar o sonho de um novo
+            Teto de alguém do papel.
+          </div>
+          <div style={{ display: "flex", height: "26px" }} />
+          <div style={{ ...cta(AZUL), fontSize: "38px", letterSpacing: "1px" }}>
+            EM BREVE NOVAS AÇÕES
+          </div>
+        </div>
+      </div>
+    );
+  } else if (v === "2") {
     // O SISTEMA: mock da telinha de aposta
     conteudo = (
       <div style={{ ...raiz, backgroundColor: BEGE }}>

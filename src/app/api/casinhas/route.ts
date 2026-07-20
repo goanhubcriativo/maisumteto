@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { valorApostaCentavos, config, bolaoEncerrado } from "@/lib/config";
+import { prisma } from "@/lib/bolao/db";
+import { valorApostaCentavos, config, bolaoEncerrado } from "@/lib/bolao/config";
 import {
   cpfValido,
   whatsappValido,
   emailValido,
   placarValido,
   somenteDigitos,
-} from "@/lib/validacao";
-import { criarPagamentoPix, expiracaoISO } from "@/lib/mercadopago";
+} from "@/lib/bolao/validacao";
+import { criarPagamentoPix, expiracaoISO } from "@/lib/bolao/mercadopago";
 
 export const runtime = "nodejs";
 

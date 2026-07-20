@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { metaCampanhaCentavos } from "@/lib/config";
+import { prisma } from "@/lib/bolao/db";
+import { metaCampanhaCentavos } from "@/lib/bolao/config";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

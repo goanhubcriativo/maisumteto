@@ -1,0 +1,2428 @@
+/* Fonte da marca usada no logo (o "Um" do TETO) */
+@font-face {
+  font-family: "Agilera";
+  src: url("/fonts/Agilera.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "AgileraRegular";
+  src: url("/fonts/Agilera.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ===========================================================================
+   ATENCAO: tudo aqui e ESCOPADO em .bolao-raiz.
+
+   O bolao virou uma parte do site (/bolaodacopa) e divide o CSS com a
+   plataforma. Sem escopo, duas coisas quebrariam a plataforma inteira:
+
+   1. As variaveis: os dois definem --azul com valores diferentes (aqui #0291da,
+      la #0d5fa6). No :root, a ultima folha carregada venceria, e a cor do site
+      dependeria da ordem de carregamento.
+   2. O fundo: `html, body { background: bege }` pintaria o site todo de bege,
+      sendo que a plataforma e branca.
+
+   Preso em .bolao-raiz (a div do layout do bolao), nada disso escapa.
+   =========================================================================== */
+
+.bolao-raiz {
+  /* Paleta da campanha do bolao */
+  --azul: #0291da;
+  --azul-escuro: #0277b5;
+  --azul-claro: #cfe7f7;
+  --grafite: #273740;
+  --grafite-70: rgba(39, 55, 64, 0.7);
+  --bege: #b2ab97;
+  --bege-fundo: #b2ab97;
+  --papel: #f6f4ee;
+  --papel-2: #efece2;
+  --linha: rgba(39, 55, 64, 0.16);
+  --linha-forte: rgba(39, 55, 64, 0.4);
+  --verde: #1a9e5f;
+  --branco: #fff;
+}
+
+.bolao-raiz * {
+  box-sizing: border-box;
+}
+
+/* O fundo bege precisa cobrir a tela inteira, e nao so a altura do conteudo:
+   por isso min-height, e nao apenas a cor na div. */
+.bolao-raiz {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: var(--fonte-base), system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  background: var(--bege-fundo);
+  color: var(--grafite);
+  -webkit-font-smoothing: antialiased;
+}
+
+.bolao-raiz a {
+  color: var(--grafite);
+}
+
+.canvas {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 12px 18px 70px;
+}
+
+/* ---------- Selo da campanha ---------- */
+.selo-campanha {
+  display: block;
+  width: fit-content;
+  margin: 6px auto 0;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--grafite);
+  border: 1.5px solid var(--grafite);
+  border-radius: 999px;
+  padding: 7px 16px;
+  background: rgba(246, 244, 238, 0.35);
+}
+
+/* ---------- Masthead (cabeçalho) ---------- */
+.masthead {
+  text-align: center;
+  padding: 10px 0 0;
+}
+
+.masthead-logo {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  display: block;
+}
+.masthead-logo svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ---------- Progresso: piloti = barra de carregamento ---------- */
+.progresso {
+  margin-top: 14px;
+}
+.progresso-piloti {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.piloti-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  line-height: 0;
+}
+.piloti-base {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.piloti-fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  will-change: clip-path;
+  clip-path: inset(0 var(--de, 100%) 0 0);
+  animation: carregar 2.8s ease-in-out infinite;
+}
+@keyframes carregar {
+  from {
+    clip-path: inset(0 var(--de) 0 0);
+  }
+  to {
+    clip-path: inset(0 var(--ate) 0 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .piloti-fill {
+    animation: none;
+    clip-path: inset(0 var(--de, 100%) 0 0);
+  }
+}
+.progresso-pct {
+  font-size: 46px;
+  font-weight: 800;
+  color: var(--azul);
+  letter-spacing: -1.5px;
+  flex-shrink: 0;
+}
+
+.participe {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 18px;
+  align-items: center;
+  margin-top: 26px;
+}
+.participe-chamada {
+  font-size: 24px;
+  line-height: 1.25;
+  font-weight: 800;
+  margin: 0;
+  color: var(--grafite);
+}
+.script-azul {
+  font-style: italic;
+  font-weight: 900;
+  color: var(--azul);
+  /* "fi" estava colando (ligadura da fonte) — desliga e dá uma folguinha */
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "dlig" 0;
+  letter-spacing: 0.3px;
+}
+.participe-meta {
+  color: var(--grafite);
+  font-size: 12.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  padding: 11px 2px;
+  margin: 0;
+  text-align: center;
+  border-top: 1.5px solid var(--linha-forte);
+  border-bottom: 1.5px solid var(--linha-forte);
+}
+@media (max-width: 480px) {
+  .participe {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    text-align: center;
+  }
+}
+
+/* ---------- Caixa escura da aposta ---------- */
+.aposta {
+  background: var(--grafite);
+  color: var(--papel);
+  border-radius: 16px;
+  padding: 24px 20px 24px;
+  margin-top: 26px;
+}
+.aposta-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.aposta-topo h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.aposta-jogo {
+  font-size: 11.5px;
+  color: rgba(246, 244, 238, 0.65);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.aposta-adder {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.aposta-adder .lado {
+  flex: 1;
+  text-align: center;
+}
+.aposta-adder .time {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(246, 244, 238, 0.7);
+  margin-bottom: 5px;
+}
+.bandeira {
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+}
+.aposta-adder input {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 800;
+  padding: 4px;
+  color: var(--papel);
+  border-bottom: 2px solid rgba(246, 244, 238, 0.4);
+}
+.aposta-adder input::placeholder {
+  color: rgba(246, 244, 238, 0.3);
+}
+.aposta-adder input:focus {
+  border-bottom-color: var(--azul);
+}
+.aposta-adder .x {
+  font-size: 17px;
+  font-weight: 800;
+  color: rgba(246, 244, 238, 0.55);
+  padding-bottom: 8px;
+}
+/* O botão É o piloti: usa a arte do Botão.svg, grande, com "Fincar" na face */
+.aposta-add {
+  display: inline-flex;
+  align-items: flex-end; /* "Fincar" no corpo do piloti, não centralizado */
+  justify-content: center;
+  white-space: nowrap;
+  background: url(/botao-piloti.svg) center/contain no-repeat;
+  color: #fff;
+  border: none;
+  width: 88px;
+  height: 46px;
+  padding: 0 0 9px; /* desce o texto pro corpo do piloti */
+  font-weight: 900;
+  font-size: 11.5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  flex-shrink: 0;
+  text-shadow: 0 1px 2px rgba(6, 66, 92, 0.45);
+}
+.aposta-add:hover {
+  filter: brightness(1.06);
+}
+.aposta-add:active {
+  filter: brightness(0.95);
+}
+.add-wrap {
+  position: relative;
+  display: inline-flex;
+}
+/* A MARRETA que crava o piloti — grande, com uma marretada forte */
+.marretada {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  width: 118px;
+  height: auto;
+  pointer-events: none;
+  transform-origin: bottom center;
+  z-index: 6;
+  opacity: 0;
+  animation: marretada 1.5s cubic-bezier(0.3, 1, 0.4, 1) 0.12s forwards;
+}
+@keyframes marretada {
+  0% {
+    transform: translate(-50%, -92%) rotate(-38deg) scale(1);
+    opacity: 0;
+  }
+  16% {
+    transform: translate(-50%, -92%) rotate(-38deg) scale(1);
+    opacity: 1;
+  }
+  /* MARRETADA forte */
+  42% {
+    transform: translate(-50%, 6%) rotate(10deg) scale(1.06);
+    opacity: 1;
+  }
+  /* recuo do impacto */
+  56% {
+    transform: translate(-50%, -26%) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+  /* assenta */
+  70% {
+    transform: translate(-50%, -2%) rotate(6deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -82%) rotate(-26deg) scale(0.92);
+    opacity: 0;
+  }
+}
+@keyframes recuo {
+  0%,
+  30% {
+    transform: translateY(0);
+  }
+  /* leva a marretada (junto com o impacto ~42%) */
+  44% {
+    transform: translateY(5px) scale(0.98);
+  }
+  68% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+.aposta-add.recuo {
+  animation: recuo 1.5s ease 0.12s;
+}
+.aposta-lista {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.aposta-lista li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 2px;
+  border-top: 1px solid rgba(246, 244, 238, 0.14);
+}
+.aposta-lista .pl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.aposta-lista .pl .bandeira {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.aposta-lista .pl em {
+  font-style: normal;
+  color: rgba(246, 244, 238, 0.5);
+  font-size: 12px;
+  margin: 0 2px;
+}
+.aposta-lista .ord {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(246, 244, 238, 0.55);
+}
+.aposta-lista .vl {
+  margin-left: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  color: rgba(246, 244, 238, 0.6);
+}
+.aposta-lista .rm {
+  background: none;
+  border: none;
+  color: rgba(246, 244, 238, 0.55);
+  cursor: pointer;
+  /* área de toque maior (~40px) sem crescer o ícone */
+  padding: 10px;
+  margin: -4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+.aposta-lista .rm:hover {
+  color: #ff8896;
+}
+/* "Não quero apostar, mas quero ajudar" — detalhezinho discreto no rodapé */
+.so-ajuda {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 26px;
+  margin-bottom: -15px;
+  cursor: pointer;
+  user-select: none;
+}
+.so-ajuda input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.so-ajuda-box {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  border: 1px solid rgba(246, 244, 238, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: background 0.15s, border-color 0.15s;
+}
+.so-ajuda input:checked + .so-ajuda-box {
+  background: var(--azul);
+  border-color: var(--azul);
+}
+.so-ajuda input:focus-visible + .so-ajuda-box {
+  outline: 2px solid var(--azul);
+  outline-offset: 1px;
+}
+.so-ajuda-txt {
+  font-size: 6.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: rgba(246, 244, 238, 0.4);
+}
+.so-ajuda-txt strong {
+  color: rgba(246, 244, 238, 0.6);
+  font-weight: 700;
+}
+.so-ajuda-nota {
+  margin: 4px 0 2px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(246, 244, 238, 0.85);
+}
+.so-ajuda-nota strong {
+  color: #fff;
+}
+.so-ajuda-nota em {
+  font-style: normal;
+  color: var(--azul-claro, #7fd0f5);
+  font-weight: 700;
+}
+
+/* ---------- Dados (sem caixa, direto no bege) ---------- */
+.dados {
+  padding: 24px 4px 4px;
+}
+.dados-titulo {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--grafite);
+  margin: 0 0 10px;
+}
+
+/* ---------- Ajudinha extra (caixa azul, mesma do botão de apostar) ---------- */
+.ajudinha {
+  background: var(--azul);
+  color: #fff;
+  border-radius: 14px;
+  padding: 16px 18px 17px;
+  margin-top: 22px;
+}
+.ajudinha h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #fff;
+}
+.ajudinha-sub {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 3px 0 10px;
+}
+.ajudinha-opcoes {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.ajudinha .chip {
+  flex: 0 0 64px;
+  min-width: 0;
+  padding: 8px 4px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 800;
+  border-color: rgba(255, 255, 255, 0.75);
+  color: #fff;
+  background: transparent;
+  border-radius: 6px;
+}
+.ajudinha .chip:hover {
+  border-color: #fff;
+}
+.ajudinha .chip.ativo {
+  background: #fff;
+  border-color: #fff;
+  color: var(--azul);
+}
+.chip-outro {
+  flex: 1;
+  border: 1.5px solid rgba(255, 255, 255, 0.75) !important;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 8px 10px;
+  font-size: 16px; /* evita zoom automático no iOS ao focar */
+  text-align: center;
+  color: #fff;
+}
+.chip-outro::placeholder {
+  color: rgba(255, 255, 255, 0.65);
+}
+.chip-outro:focus {
+  border-color: #fff !important;
+  border-bottom-width: 1.5px;
+}
+
+/* ---------- Fechar (resumo enxuto) ---------- */
+.fechar {
+  margin-top: 22px;
+}
+.fechar-resumo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13.5px;
+  color: var(--grafite);
+  font-weight: 600;
+  padding: 0 2px 8px;
+}
+.fechar-resumo .tot {
+  font-size: 24px;
+  font-weight: 800;
+  font-family: ui-monospace, monospace;
+}
+
+/* ---------- Popup "a maioria fez 3 apostas" ---------- */
+.pop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(39, 55, 64, 0.4);
+  animation: fadeOverlay 0.2s ease both;
+}
+.pop-box.escondeu {
+  overflow: hidden;
+}
+.pop-box {
+  width: 100%;
+  max-width: 370px;
+  background: rgba(178, 171, 151, 0.9);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1.5px solid var(--grafite);
+  border-radius: 18px;
+  box-shadow: 6px 6px 0 rgba(39, 55, 64, 0.25);
+  padding: 30px 28px 30px;
+  text-align: center;
+  animation: popIn 0.28s cubic-bezier(0.3, 1.3, 0.5, 1) both;
+}
+.pop-titulo {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.25;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--grafite);
+}
+.pop-sub {
+  margin: 0 0 18px;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--grafite);
+}
+.pop-botoes {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  min-height: 92px;
+}
+.pop-nao,
+.pop-sim {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 26px;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+}
+.pop-nao {
+  background: #fff;
+  color: var(--grafite);
+  border: 1.5px solid var(--grafite);
+  transition: transform 0.2s linear;
+}
+.pop-sim {
+  background: var(--azul);
+  color: #fff;
+}
+.pop-sim:hover {
+  background: var(--azul-escuro);
+}
+
+/* Popup de erro — "pisou na mangueira de nível" */
+.pop-erro {
+  width: 100%;
+  max-width: 380px;
+  background: var(--papel);
+  border: 1.5px solid var(--grafite);
+  border-radius: 18px;
+  box-shadow: 6px 6px 0 rgba(39, 55, 64, 0.25);
+  padding: 26px 26px 24px;
+  text-align: center;
+  animation: popIn 0.24s ease both;
+}
+.pop-erro-vetor {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+.pop-erro-tit {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--grafite);
+}
+.pop-erro-msg {
+  margin: 0 0 20px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: rgba(39, 55, 64, 0.82);
+}
+.pop-corrigir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 26px;
+  background: var(--azul);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+}
+.pop-corrigir:hover {
+  background: var(--azul-escuro);
+}
+@keyframes fadeOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ---------- Rodapé da campanha ---------- */
+.responsa {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0 auto 18px;
+  color: var(--grafite);
+}
+.responsa-bloco {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 11px;
+  line-height: 1.25;
+  letter-spacing: 0.5px;
+}
+.responsa-social {
+  font-style: italic;
+  font-weight: 900;
+  font-size: 28px;
+  color: var(--azul);
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.transparencia {
+  font-size: 11px;
+  line-height: 1.42;
+  color: var(--grafite-70);
+  margin: 0 0 20px;
+}
+.transparencia b {
+  color: var(--grafite);
+}
+
+/* ---------- Regras (dropdown) ---------- */
+.regras {
+  text-align: left;
+  border: 1.5px solid var(--grafite);
+  border-radius: 8px;
+  background: rgba(246, 244, 238, 0.35);
+  max-width: 520px;
+  margin: 0 auto;
+}
+.regras summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  padding: 12px 16px;
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--grafite);
+}
+.regras summary::-webkit-details-marker {
+  display: none;
+}
+.regras-seta {
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.regras[open] .regras-seta {
+  transform: rotate(180deg);
+}
+.regras ul {
+  margin: 0;
+  padding: 2px 18px 14px 32px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--grafite);
+}
+.regras li {
+  margin-bottom: 8px;
+}
+
+.masthead .sobre {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--grafite-70);
+  border-top: 1.5px solid var(--linha-forte);
+  border-bottom: 1.5px solid var(--linha-forte);
+  padding: 6px 0;
+  margin-top: 6px;
+}
+
+.lema {
+  font-size: 30px;
+  line-height: 1.12;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin: 20px 0 12px;
+}
+
+.lema .fe {
+  color: var(--azul);
+  font-style: italic;
+}
+
+.lema .casa {
+  position: relative;
+  white-space: nowrap;
+}
+.lema .casa::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 2px;
+  height: 8px;
+  background: var(--bege);
+  z-index: -1;
+}
+
+.intro {
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--grafite);
+  max-width: 46ch;
+  margin: 0 auto;
+}
+
+/* linha do jogo */
+.jogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 22px 0 6px;
+  font-weight: 800;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.jogo .data {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--grafite);
+  color: var(--bege);
+  padding: 4px 9px;
+  border-radius: 3px;
+  letter-spacing: 0;
+}
+
+/* ---------- Obra (ilustração) ---------- */
+.obra {
+  text-align: center;
+  margin: 8px 0 2px;
+}
+.obra-svg {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+}
+.obra-casa-real {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin: 0 auto 4px;
+}
+.obra-chao {
+  stroke: var(--grafite);
+  stroke-width: 2;
+}
+.obra-cota {
+  stroke: var(--linha-forte);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+}
+.obra-plataforma {
+  stroke: var(--grafite);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.obra-plataforma-vazia {
+  stroke: var(--linha-forte);
+  stroke-width: 2.5;
+  stroke-dasharray: 6 6;
+  stroke-linecap: round;
+}
+.obra-piloti line {
+  stroke: var(--grafite);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+.obra-piloti .obra-brace {
+  stroke-width: 2;
+  stroke: var(--grafite-70);
+}
+.obra-parede {
+  fill: var(--papel);
+  stroke: var(--grafite);
+  stroke-width: 2.5;
+}
+.obra-telhado {
+  fill: var(--azul);
+  stroke: var(--grafite);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+.obra-porta {
+  fill: var(--azul);
+  stroke: none;
+}
+.obra-janela {
+  fill: var(--bege);
+  stroke: var(--grafite);
+  stroke-width: 2;
+}
+.obra-escada {
+  stroke: var(--grafite-70);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.obra-extra {
+  fill: var(--grafite);
+  font-size: 15px;
+  font-weight: 800;
+  font-family: ui-monospace, monospace;
+}
+.obra-legenda {
+  font-size: 13px;
+  color: var(--grafite-70);
+  margin-top: 2px;
+}
+.obra-legenda b {
+  color: var(--grafite);
+}
+
+/* ---------- Folha (papel com passos) ---------- */
+.folha {
+  background: var(--papel);
+  border: 1.5px solid var(--grafite);
+  border-radius: 4px;
+  box-shadow: 6px 6px 0 rgba(39, 55, 64, 0.12);
+  margin-top: 22px;
+  overflow: hidden;
+}
+
+.passo {
+  padding: 22px 20px;
+  border-bottom: 1.5px dashed var(--linha);
+}
+.passo:last-child {
+  border-bottom: none;
+}
+
+.passo-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 4px;
+}
+.passo-num {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--branco);
+  background: var(--grafite);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.passo-titulo {
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+}
+.passo .icone {
+  color: var(--azul);
+  margin-left: auto;
+}
+.passo-sub {
+  font-size: 13.5px;
+  color: var(--grafite-70);
+  margin: 0 0 16px 37px;
+  line-height: 1.5;
+}
+
+/* ---------- Inputs (estilo sublinhado) ---------- */
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--grafite-70);
+  margin-bottom: 3px;
+}
+
+input {
+  width: 100%;
+  padding: 5px 2px;
+  border: none;
+  border-bottom: 1.5px solid var(--linha-forte);
+  border-radius: 0;
+  /* 16px: abaixo disso o Safari iOS dá zoom automático ao focar o campo. */
+  font-size: 16px;
+  background: transparent;
+  color: var(--grafite);
+  transition: border-color 0.15s;
+}
+input::placeholder {
+  color: rgba(39, 55, 64, 0.35);
+}
+input:focus {
+  outline: none;
+  border-bottom-color: var(--azul);
+  border-bottom-width: 2px;
+}
+
+.campo {
+  margin-bottom: 11px;
+}
+.linha {
+  display: flex;
+  gap: 16px;
+}
+.linha > .campo {
+  flex: 1;
+}
+
+/* ---------- Adicionar fézinha (placar) ---------- */
+.adder {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+.adder-time {
+  flex: 1;
+  text-align: center;
+}
+.adder-time .nome {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--grafite-70);
+  margin-bottom: 2px;
+}
+.adder input {
+  text-align: center;
+  font-size: 34px;
+  font-weight: 800;
+  padding: 4px;
+  border-bottom-width: 2px;
+}
+.adder .x {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--grafite-70);
+  padding-bottom: 12px;
+}
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  background: var(--grafite);
+  color: var(--bege);
+  border: none;
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  height: 48px;
+}
+.btn-add:hover {
+  background: #1a2830;
+}
+
+/* ---------- Fézinhas (razão / ledger) ---------- */
+.fezinhas {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  border-top: 1.5px solid var(--linha);
+}
+.fezinha-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1.5px solid var(--linha);
+}
+.fezinha-row .idx {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--grafite-70);
+  width: 34px;
+}
+.fezinha-row .placar {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.fezinha-row .placar .xs {
+  color: var(--grafite-70);
+  font-size: 13px;
+  margin: 0 3px;
+}
+.fezinha-row .val {
+  margin-left: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--grafite-70);
+}
+.btn-remover {
+  background: none;
+  border: none;
+  color: var(--grafite-70);
+  cursor: pointer;
+  padding: 4px;
+  display: inline-flex;
+  border-radius: 4px;
+}
+.btn-remover:hover {
+  color: #b02330;
+  background: rgba(176, 35, 48, 0.08);
+}
+.vazio {
+  font-size: 13.5px;
+  color: var(--grafite-70);
+  padding: 6px 0 2px;
+}
+
+/* ---------- Chorinho (chips) ---------- */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  flex: 1;
+  min-width: 66px;
+  border: 1.5px solid var(--linha-forte);
+  background: transparent;
+  border-radius: 4px;
+  padding: 11px 6px;
+  font-weight: 800;
+  font-size: 14px;
+  font-family: ui-monospace, monospace;
+  color: var(--grafite);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.chip:hover {
+  border-color: var(--azul);
+}
+.chip.ativo {
+  background: var(--azul);
+  border-color: var(--azul);
+  color: #fff;
+}
+
+/* ---------- Resumo ---------- */
+.resumo {
+  margin-top: 6px;
+}
+.resumo-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14.5px;
+  color: var(--grafite-70);
+  padding: 7px 0;
+  border-bottom: 1.5px dotted var(--linha);
+}
+.resumo-linha .v {
+  font-family: ui-monospace, monospace;
+  color: var(--grafite);
+}
+.resumo-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 12px;
+  margin-top: 4px;
+}
+.resumo-total .lbl {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.resumo-total .v {
+  font-size: 28px;
+  font-weight: 800;
+  font-family: ui-monospace, monospace;
+}
+
+/* ---------- Botão principal ---------- */
+.cta {
+  width: 100%;
+  border: none;
+  background: var(--azul);
+  color: #fff;
+  border-radius: 6px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.cta:hover:not(:disabled) {
+  background: var(--azul-escuro);
+}
+.cta:disabled {
+  background: var(--grafite);
+  cursor: not-allowed;
+}
+.cta.secacao {
+  background: var(--grafite);
+}
+/* Ainda falta algo pra fechar: clicável (mostra o popup), mas discreto. */
+.cta.cta-espera {
+  background: var(--grafite);
+  opacity: 0.72;
+}
+.cta.cta-espera:hover {
+  background: var(--grafite);
+  opacity: 0.85;
+}
+
+.seguranca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--grafite-70);
+  margin-top: 12px;
+}
+
+.erro {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: rgba(176, 35, 48, 0.08);
+  color: #92202c;
+  border-left: 3px solid #b02330;
+  padding: 11px 13px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.rodape {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--grafite-70);
+  margin-top: 22px;
+  line-height: 1.7;
+}
+.rodape .cred {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+/* ---------- Pagamento ---------- */
+.pix-box {
+  text-align: center;
+}
+.pix-box .qr {
+  width: 230px;
+  height: 230px;
+  border: 1.5px solid var(--grafite);
+  border-radius: 4px;
+  padding: 8px;
+  background: #fff;
+}
+.copia {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.copia input {
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+  border: 1.5px solid var(--linha-forte);
+  border-radius: 4px;
+  padding: 10px;
+}
+.btn-copiar {
+  white-space: nowrap;
+  background: var(--grafite);
+  color: var(--bege);
+  border: none;
+  border-radius: 4px;
+  padding: 0 16px;
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+.aguardando {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--grafite-70);
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 18px;
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 3px solid var(--linha);
+  border-top-color: var(--azul);
+  border-radius: 50%;
+  animation: girar 0.8s linear infinite;
+}
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sucesso {
+  text-align: center;
+}
+
+/* ---------- Compartilhar (cartão) ---------- */
+.card-preview {
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1080 / 1350;
+  object-fit: cover;
+  background: var(--papel);
+  display: block;
+  margin: 4px auto 0;
+  border-radius: 12px;
+  border: 1.5px solid var(--grafite);
+  box-shadow: 4px 4px 0 rgba(39, 55, 64, 0.12);
+}
+.share-botoes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 18px;
+}
+.cta.zap {
+  background: #25d366;
+}
+.cta.zap:hover {
+  background: #1db457;
+}
+.cta[download] {
+  text-decoration: none;
+}
+
+/* ---------- Tela de conclusão (sem caixa branca geral) ---------- */
+.sucesso-topo {
+  text-align: center;
+  margin-top: 8px;
+}
+.sucesso-topo .selo {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: var(--verde);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.st-titulo {
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  color: var(--grafite);
+}
+.st-sub {
+  font-size: 14px;
+  color: var(--grafite-70);
+  max-width: 40ch;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+.sucesso-share {
+  margin-top: 22px;
+  text-align: center;
+}
+.share-legenda {
+  font-size: 13px;
+  color: var(--grafite-70);
+  margin: 12px 0 14px;
+}
+.acoes-share {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  max-width: 380px;
+  margin: 0 auto;
+}
+.acao3 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--grafite);
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  padding: 13px 6px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.acao3 svg {
+  color: #fff;
+}
+.acao3:hover {
+  opacity: 0.9;
+}
+.acao3:active {
+  transform: translateY(1px);
+}
+.acao-recibo {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  margin: 9px auto 0;
+  background: var(--azul);
+  color: #fff;
+  border: none;
+  border-radius: 11px;
+  padding: 14px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.acao-recibo:hover {
+  background: var(--azul-escuro);
+}
+.acao-recibo.on {
+  background: var(--grafite);
+}
+.acao-recibo:active {
+  transform: translateY(1px);
+}
+
+/* ---------- Recibo estilo comprovante de caixa (única caixa branca) ---------- */
+.recibo-caixa {
+  position: relative;
+  background: #fff;
+  color: #222;
+  max-width: 330px;
+  margin: 24px auto 0;
+  padding: 28px 26px 22px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  box-shadow: 0 12px 26px rgba(39, 55, 64, 0.18);
+}
+.recibo-caixa::before,
+.recibo-caixa::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background-image: linear-gradient(45deg, var(--bege) 6px, transparent 0),
+    linear-gradient(-45deg, var(--bege) 6px, transparent 0);
+  background-size: 12px 10px;
+  background-repeat: repeat-x;
+}
+.recibo-caixa::before {
+  top: 0;
+}
+.recibo-caixa::after {
+  bottom: 0;
+  transform: scaleY(-1);
+}
+.rc-topo {
+  text-align: center;
+}
+.rc-tit {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 3px;
+}
+.rc-sub {
+  font-size: 10px;
+  color: #666;
+  margin-top: 3px;
+  letter-spacing: 1px;
+}
+.rc-jogo {
+  font-size: 13px;
+  font-weight: 800;
+  color: #222;
+  margin-top: 8px;
+  letter-spacing: 1px;
+}
+.rc-hr {
+  border-top: 2px dashed #c4c4c4;
+  margin: 13px 0;
+}
+.rc-linha {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #666;
+}
+.rc-linha span:last-child {
+  color: #222;
+}
+.rc-itens {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.rc-itens li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12.5px;
+  padding: 5px 0;
+}
+.rc-itens li.mut {
+  color: #666;
+}
+.rc-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 800;
+}
+.rc-rodape {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #666;
+  margin-top: 14px;
+}
+.rc-rodape .pago {
+  color: var(--verde);
+  font-weight: 800;
+}
+.rc-obrigado {
+  text-align: center;
+  font-size: 9px;
+  color: #999;
+  margin-top: 12px;
+  letter-spacing: 1px;
+}
+.rc-baixar {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  background: #222;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 11px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.voltar-txt {
+  display: block;
+  text-align: center;
+  margin: 24px auto 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--grafite-70);
+  text-decoration: underline;
+}
+
+/* ---------- Comprovante antigo (admin/legado) ---------- */
+.recibo-itens {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  border-top: 1.5px dashed var(--linha-forte);
+}
+.recibo-itens li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 2px;
+  border-bottom: 1.5px dashed var(--linha);
+}
+.recibo-itens .ri-idx {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--grafite-70);
+  width: 74px;
+}
+.recibo-itens .ri-placar {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.recibo-itens .ri-x {
+  color: var(--grafite-70);
+  font-size: 13px;
+}
+.recibo-itens .ri-val {
+  margin-left: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  color: var(--grafite-70);
+}
+.recibo-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 14px;
+  color: var(--grafite-70);
+  padding: 9px 2px 0;
+}
+.recibo-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 2px solid var(--grafite);
+  font-weight: 800;
+  font-size: 16px;
+}
+.recibo-total span:last-child {
+  font-family: ui-monospace, monospace;
+  font-size: 20px;
+}
+.recibo-rodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--grafite-70);
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.5px;
+}
+.recibo-rodape .pago {
+  font-weight: 800;
+  color: var(--verde);
+  text-transform: uppercase;
+}
+.sucesso .selo {
+  width: 66px;
+  height: 66px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--verde);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ---------- Admin ---------- */
+.admin-wide {
+  max-width: 1040px;
+}
+.scroll-x {
+  overflow-x: auto;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 18px 0;
+}
+.stat {
+  background: var(--papel);
+  border: 1.5px solid var(--grafite);
+  border-radius: 4px;
+  padding: 14px;
+}
+.stat .num {
+  font-size: 24px;
+  font-weight: 800;
+  font-family: ui-monospace, monospace;
+}
+.stat .lbl {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--grafite-70);
+  margin-top: 2px;
+}
+@media (max-width: 560px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.tabela th,
+.tabela td {
+  text-align: left;
+  padding: 9px 10px;
+  border-bottom: 1.5px solid var(--linha);
+}
+.tabela th {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--grafite-70);
+}
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.badge-pago {
+  background: #d8f5e6;
+  color: var(--verde);
+}
+.badge-pendente {
+  background: #f3e7c6;
+  color: #8a6d13;
+}
+.badge-cancelado {
+  background: #e6e2d8;
+  color: var(--grafite-70);
+}
+.mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--grafite);
+  color: var(--bege);
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+}
+
+/* ---------- Prestação de contas (admin) ---------- */
+.stat.destaque {
+  background: var(--azul);
+  border-color: var(--azul);
+}
+.stat.destaque .num {
+  color: #fff;
+}
+.stat.destaque .lbl {
+  color: rgba(255, 255, 255, 0.85);
+}
+.contas {
+  font-size: 14.5px;
+}
+.conta-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 9px 0;
+  color: var(--grafite-70);
+  border-bottom: 1px dotted var(--linha);
+}
+.conta-linha .v {
+  font-family: ui-monospace, monospace;
+  color: var(--grafite);
+}
+.conta-linha small {
+  font-size: 11px;
+  color: var(--grafite-70);
+}
+.conta-linha.forte {
+  color: var(--grafite);
+  font-weight: 700;
+}
+.conta-linha.neg .v {
+  color: #b02330;
+}
+.conta-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 2px solid var(--grafite);
+  font-weight: 800;
+}
+.conta-total .v {
+  font-family: ui-monospace, monospace;
+  font-size: 22px;
+  color: var(--azul);
+}
+.conta-nota {
+  font-size: 12px;
+  color: var(--grafite-70);
+  margin: 14px 0 0;
+  line-height: 1.5;
+}
+.tabela .est {
+  color: var(--grafite-70);
+  font-weight: 700;
+}
+
+/* ===================== Animações ===================== */
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes fincado {
+  0% {
+    transform: scale(0.9);
+  }
+  55% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes pctPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+/* Entrada em cascata dos blocos da home */
+.canvas > * {
+  animation: revealUp 0.55s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.canvas > *:nth-child(1) {
+  animation-delay: 0.02s;
+}
+.canvas > *:nth-child(2) {
+  animation-delay: 0.09s;
+}
+.canvas > *:nth-child(3) {
+  animation-delay: 0.16s;
+}
+.canvas > *:nth-child(4) {
+  animation-delay: 0.23s;
+}
+.canvas > *:nth-child(5) {
+  animation-delay: 0.3s;
+}
+.canvas > *:nth-child(6) {
+  animation-delay: 0.37s;
+}
+.canvas > *:nth-child(7) {
+  animation-delay: 0.44s;
+}
+.canvas > *:nth-child(8) {
+  animation-delay: 0.51s;
+}
+
+/* Cada fézinha fincada entra deslizando; o número dá um "toque" */
+.aposta-lista li {
+  animation: rowIn 0.28s ease both;
+}
+.aposta-lista .pl {
+  animation: fincado 0.3s ease both;
+}
+
+/* Feedback tátil nos botões */
+.cta:active:not(:disabled),
+.aposta-add:active,
+.chip:active,
+.btn-copiar:active {
+  transform: translateY(1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas > *,
+  .aposta-lista li,
+  .aposta-lista .pl,
+  .aposta-add.recuo {
+    animation: none !important;
+  }
+  .marretada {
+    display: none;
+  }
+}
+
+/* ---------- Página de Aviso de Privacidade ---------- */
+.politica {
+  max-width: 620px;
+  margin: 8px auto 40px;
+  color: var(--grafite);
+  line-height: 1.6;
+}
+.politica h1 {
+  font-size: 26px;
+  font-weight: 900;
+  margin: 0 0 4px;
+}
+.politica-sub {
+  color: var(--grafite-70);
+  margin: 0 0 20px;
+  font-size: 14px;
+}
+.politica h2 {
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--azul);
+  margin: 22px 0 6px;
+}
+.politica p,
+.politica li {
+  font-size: 14.5px;
+  margin: 0 0 8px;
+}
+.politica ul {
+  padding-left: 18px;
+  margin: 0 0 8px;
+}
+.politica a {
+  color: var(--azul);
+  font-weight: 700;
+}
+.politica-idade {
+  margin-top: 22px;
+  font-weight: 700;
+}
+.politica-voltar {
+  display: inline-block;
+  margin-top: 24px;
+  color: var(--azul);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+/* Linha de consentimento/idade perto do botão de finalizar */
+.consentimento {
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--grafite-70);
+  text-align: center;
+  margin: 10px 4px 0;
+}
+.consentimento a {
+  color: var(--azul);
+  font-weight: 700;
+}
+.rodape-links {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 16px;
+}
+.rodape-links a {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--grafite-70);
+  text-decoration: underline;
+}
+
+/* ---------- Divulgação (compartilhar campanha com todos) ---------- */
+.divulga {
+  margin: 30px 0 4px;
+  text-align: center;
+}
+.divulga-txt {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--grafite-70);
+  margin: 0 auto 14px;
+  max-width: 350px;
+}
+.divulga-txt strong {
+  color: var(--grafite);
+}
+.compartilhar-campanha {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 15px 16px;
+  background: var(--azul);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: inset 0 -4px 0 #0683b5, 0 3px 6px rgba(39, 55, 64, 0.22);
+}
+.compartilhar-campanha:hover {
+  background: var(--azul-escuro);
+}
+.compartilhar-campanha:active {
+  box-shadow: inset 0 -2px 0 #0683b5, 0 1px 2px rgba(39, 55, 64, 0.2);
+}
+.compartilhar-campanha:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* ---------- Prazo pra apostar ---------- */
+.prazo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 14px auto 0;
+  padding: 6px 12px;
+  border: 1.3px solid var(--azul);
+  border-radius: 8px;
+  background: rgba(2, 145, 218, 0.07);
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--grafite);
+  text-align: center;
+}
+.prazo-banner svg {
+  color: var(--azul);
+  flex-shrink: 0;
+}
+.prazo-banner strong {
+  color: var(--azul);
+  font-weight: 800;
+}
+.prazo-banner.encerrado {
+  border-color: var(--linha-forte);
+  background: rgba(39, 55, 64, 0.06);
+}
+.prazo-banner.encerrado svg {
+  color: var(--grafite);
+}
+
+/* Estado "bolão encerrado" (no lugar do formulário) */
+.encerrado-box {
+  text-align: center;
+  padding: 30px 22px;
+}
+.encerrado-selo {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: rgba(246, 244, 238, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--papel);
+}
+.encerrado-tit {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--papel);
+}
+.encerrado-txt {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: rgba(246, 244, 238, 0.85);
+}
+
+/* ---------- Resultado final do bolão ---------- */
+.resultado {
+  margin-top: 18px;
+}
+.res-olho {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: var(--azul);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.res-placar {
+  background: var(--grafite);
+  color: var(--papel);
+  border-radius: 16px;
+  padding: 20px 16px 22px;
+}
+.res-placar .res-olho {
+  color: #7fd0f5;
+}
+.res-jogo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.res-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.res-numeros {
+  font-size: 46px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: #fff;
+}
+.res-numeros em {
+  font-style: normal;
+  font-size: 26px;
+  color: rgba(246, 244, 238, 0.5);
+  margin: 0 4px;
+}
+
+/* Título da ação quando o bolão já fechou (substitui a barra do piloti) */
+.titulo-bolao {
+  margin: 20px 0 4px;
+  font-size: 26px;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: var(--grafite);
+  text-align: center;
+  text-wrap: balance;
+}
+
+.res-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 14px;
+  padding: 18px;
+  border: 1.5px solid var(--azul);
+  border-radius: 14px;
+  background: rgba(2, 145, 218, 0.08);
+}
+.res-meta-topo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Destaque: o que de fato chega na ponta, depois da taxa */
+.res-liquido {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 15px;
+  border-top: 1.5px solid rgba(2, 145, 218, 0.3);
+  text-align: center;
+}
+.res-liquido-val {
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -1.2px;
+  color: var(--azul);
+  font-variant-numeric: tabular-nums;
+}
+.res-liquido-lab {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--grafite);
+}
+.res-liquido-conta {
+  margin-top: 5px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--grafite-70);
+}
+.res-meta-pct {
+  font-size: 44px;
+  font-weight: 900;
+  color: var(--azul);
+  letter-spacing: -1.5px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.res-meta-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--grafite);
+}
+.res-meta-txt strong {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.res-bloco {
+  margin-top: 22px;
+}
+.res-titulo {
+  font-size: 17px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--grafite);
+  margin: 0 0 8px;
+}
+.res-sub {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--grafite-70);
+  margin: 0 0 14px;
+}
+.res-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.res-lista li {
+  padding: 10px 12px;
+  border-top: 1px solid var(--linha-forte);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--grafite);
+}
+.res-lista li:last-child {
+  border-bottom: 1px solid var(--linha-forte);
+}
+.res-lista li.venceu {
+  background: rgba(2, 145, 218, 0.1);
+  color: var(--azul);
+  font-weight: 900;
+}
+
+/* Roleta do sorteio */
+.sorteio-janela {
+  position: relative;
+  height: 72px;
+  overflow: hidden;
+  border: 2px solid var(--grafite);
+  border-radius: 14px;
+  background: var(--papel);
+}
+.sorteio-fita {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+.sorteio-nome {
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: var(--grafite);
+}
+.sorteio-marca {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 14px 14px -12px rgba(39, 55, 64, 0.35),
+    inset 0 -14px 14px -12px rgba(39, 55, 64, 0.35);
+}
+.sorteio-janela.parou {
+  border-color: var(--azul);
+  background: rgba(2, 145, 218, 0.1);
+}
+.sorteio-janela.parou .sorteio-nome {
+  color: var(--azul);
+}
+.sorteio-btn {
+  width: 100%;
+  margin-top: 12px;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--azul);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: inset 0 -4px 0 #0683b5;
+}
+.sorteio-btn:disabled {
+  background: var(--grafite-70);
+  cursor: default;
+  box-shadow: none;
+}
+
+.res-vencedor {
+  margin-top: 14px;
+  text-align: center;
+  padding: 18px 16px;
+  border-radius: 14px;
+  background: var(--grafite);
+  color: var(--papel);
+}
+.res-vencedor-tit {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  line-height: 1.25;
+}
+.res-vencedor-sub {
+  margin-top: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgba(246, 244, 238, 0.8);
+}
+/* Agradecimento, logo abaixo da meta */
+.res-agradece {
+  margin: 26px 0 26px;
+  font-size: 14px;
+  line-height: 1.55;
+  font-weight: 700;
+  text-align: center;
+  color: var(--grafite);
+}
+
+/* Célula neutra: a roleta não entrega nenhum nome antes de rodar */
+.sorteio-vazio {
+  color: var(--grafite-70);
+  opacity: 0.45;
+}

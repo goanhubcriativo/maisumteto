@@ -1,16 +1,18 @@
 {
-  "name": "bolao-teto",
+  "name": "maisumteto",
   "version": "1.0.0",
   "private": true,
-  "description": "Bolão da final da Copa do Mundo - Casa Amiga de Dezembro (Teto). Apostas via PIX (Asaas).",
+  "description": "Plataforma Casa Amiga (arrecadacao coletiva da equipe) + bolao da Copa em /bolaodacopa.",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && prisma db push && node prisma/semear.mjs && next build",
     "start": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "postinstall": "prisma generate"
+    "db:semear": "node prisma/semear.mjs",
+    "postinstall": "prisma generate",
+    "teste": "node testes/tudo.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",

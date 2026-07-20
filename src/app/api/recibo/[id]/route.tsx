@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
-import { prisma } from "@/lib/db";
-import { config } from "@/lib/config";
+import { prisma } from "@/lib/bolao/db";
+import { config } from "@/lib/bolao/config";
 
 export const runtime = "nodejs";
 

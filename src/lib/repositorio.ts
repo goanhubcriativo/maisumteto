@@ -1,0 +1,431 @@
+// O repositorio: tudo que a plataforma le e escreve, agora no Postgres.
+//
+// Substitui o deposito em arquivo, que servia enquanto era so localhost. Na
+// Vercel o servidor e recriado a cada acesso e o disco some junto, entao arquivo
+// nao guarda nada. Banco de verdade deixou de ser opcional no dia em que isso
+// virou site publico.
+//
+// A interface e quase a mesma do deposito, com uma diferenca que atravessa tudo:
+// aqui e ASSINCRONO. Toda leitura e escrita fala com o banco pela rede, e fingir
+// que isso e instantaneo so esconderia o custo.
+//
+// Uma campanha por equipe no piloto. Quando existir a segunda equipe, e so
+// passar o id da campanha por parametro em vez de buscar a unica.
+
+import { Prisma, StatusAcao } from "@prisma/client";
+import { prisma } from "./db";
+import { novoBloco, type Bloco, type TipoBloco } from "./blocos";
+import { receitaDe } from "./catalogo";
+import { COR_SUGERIDA } from "./paleta";
+import type { AcaoNaVitrine, ApoiadorRecente } from "./vitrine";
+
+export interface AcaoDoPainel extends AcaoNaVitrine {
+  config: Record<string, unknown>;
+  custoUnitarioCentavos: number;
+  criadaEm: Date;
+  rascunho: boolean;
+  fechaEm: Date | null;
+}
+
+// ---------------------------------------------------------------------------
+// Estado de uma acao
+// ---------------------------------------------------------------------------
+
+/**
+ * Traduz o estado guardado no banco para o que a tela precisa saber.
+ *
+ * A ordem importa: encerrada ganha de esgotada (um jantar que ja aconteceu e
+ * lotou e passado, nao "esgotado"), e as duas ganham de "ainda vai abrir".
+ */
+function avaliar(
+  acao: {
+    status: StatusAcao;
+    abreEm: Date | null;
+    fechaEm: Date | null;
+    estoqueTotal: number | null;
+  },
+  vendidos: number,
+  agora: Date
+): Pick<AcaoNaVitrine, "restante" | "disponivel" | "motivo"> {
+  const restante =
+    acao.estoqueTotal == null ? null : Math.max(0, acao.estoqueTotal - vendidos);
+
+  if (acao.status === StatusAcao.RASCUNHO) {
+    return { restante, disponivel: false, motivo: "ENCERRADA" };
+  }
+  if (acao.status !== StatusAcao.ATIVA) {
+    return { restante, disponivel: false, motivo: "ENCERRADA" };
+  }
+  if (acao.fechaEm && agora > acao.fechaEm) {
+    return { restante, disponivel: false, motivo: "ENCERRADA" };
+  }
+  if (acao.abreEm && agora < acao.abreEm) {
+    return { restante, disponivel: false, motivo: "AINDA_NAO_ABRIU" };
+  }
+  if (restante !== null && restante <= 0) {
+    return { restante, disponivel: false, motivo: "ESGOTADO" };
+  }
+  return { restante, disponivel: true, motivo: null };
+}
+
+// ---------------------------------------------------------------------------
+// Campanha
+// ---------------------------------------------------------------------------
+
+/** A campanha do piloto. Erro claro se o banco ainda nao foi semeado. */
+export async function campanhaAtual() {
+  const c = await prisma.campanha.findFirst({
+    orderBy: { createdAt: "asc" },
+    include: { equipe: { select: { nome: true, recebedorRotulo: true } } },
+  });
+  if (!c) {
+    throw new Error(
+      "Nenhuma campanha no banco. Rode a semeadura (npm run db:semear) antes de abrir o painel."
+    );
+  }
+  return c;
+}
+
+export async function salvarCampanha(
+  id: string,
+  campos: Prisma.CampanhaUpdateInput
+) {
+  return prisma.campanha.update({ where: { id }, data: campos });
+}
+
+// ---------------------------------------------------------------------------
+// Acoes
+// ---------------------------------------------------------------------------
+
+/**
+ * Quanto ja saiu de cada acao.
+ *
+ * So conta pedido PAGO: reservar estoque com pedido pendente deixaria a rifa
+ * "esgotada" por causa de quem gerou o PIX e nunca pagou.
+ */
+async function vendidosPorAcao(): Promise<Map<string, number>> {
+  const linhas = await prisma.item.groupBy({
+    by: ["acaoId"],
+    where: { pedido: { status: "PAGO" } },
+    _sum: { quantidade: true },
+  });
+  return new Map(linhas.map((l) => [l.acaoId, l._sum.quantidade ?? 0]));
+}
+
+/** Quanto cada acao rendeu limpo (receita menos custo menos taxa). */
+async function liquidoPorAcao(campanhaId: string): Promise<Map<string, number>> {
+  const linhas = await prisma.lancamento.groupBy({
+    by: ["acaoId"],
+    where: { campanhaId },
+    _sum: { valorCentavos: true },
+  });
+  const mapa = new Map<string, number>();
+  for (const l of linhas) {
+    if (l.acaoId) mapa.set(l.acaoId, l._sum.valorCentavos ?? 0);
+  }
+  return mapa;
+}
+
+export async function listarAcoes(campanhaId: string): Promise<AcaoDoPainel[]> {
+  const [acoes, vendidos, liquidos] = await Promise.all([
+    prisma.acao.findMany({ where: { campanhaId }, orderBy: { createdAt: "asc" } }),
+    vendidosPorAcao(),
+    liquidoPorAcao(campanhaId),
+  ]);
+
+  const agora = new Date();
+
+  return acoes.map((a) => ({
+    id: a.id,
+    slug: a.slug,
+    tipo: a.tipo,
+    titulo: a.titulo,
+    descricao: a.descricao,
+    precoCentavos: a.precoCentavos,
+    liquidoCentavos: liquidos.get(a.id) ?? 0,
+    metaCentavos: a.metaCentavos,
+    estoqueTotal: a.estoqueTotal,
+    abreEm: a.abreEm,
+    fechaEm: a.fechaEm,
+    cor: a.cor,
+    capaUrl: a.capaUrl,
+    config: (a.config as Record<string, unknown>) ?? {},
+    custoUnitarioCentavos: a.custoUnitarioCentavos,
+    criadaEm: a.createdAt,
+    rascunho: a.status === StatusAcao.RASCUNHO,
+    ...avaliar(a, vendidos.get(a.id) ?? 0, agora),
+  }));
+}
+
+/** O que a pagina publica mostra: tudo que nao e rascunho, disponivel primeiro. */
+export async function listarAcoesPublicadas(campanhaId: string) {
+  const todas = await listarAcoes(campanhaId);
+  return todas
+    .filter((a) => !a.rascunho)
+    .sort((a, b) => Number(b.disponivel) - Number(a.disponivel));
+}
+
+export async function buscarAcao(idOuSlug: string): Promise<AcaoDoPainel | null> {
+  const registro = await prisma.acao.findFirst({
+    where: { OR: [{ id: idOuSlug }, { slug: idOuSlug }] },
+  });
+  if (!registro) return null;
+
+  const todas = await listarAcoes(registro.campanhaId);
+  return todas.find((a) => a.id === registro.id) ?? null;
+}
+
+/** "Rifa do Churrasco!" -> "rifa-do-churrasco" */
+export function paraSlug(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "") // tira os acentos separados pelo NFD
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
+/** Slug unico dentro da campanha, somando -2, -3 quando repete. */
+async function slugLivre(campanhaId: string, base: string): Promise<string> {
+  const usados = new Set(
+    (await prisma.acao.findMany({ where: { campanhaId }, select: { slug: true } })).map(
+      (a) => a.slug
+    )
+  );
+  if (!usados.has(base)) return base;
+  let n = 2;
+  while (usados.has(`${base}-${n}`)) n += 1;
+  return `${base}-${n}`;
+}
+
+export interface NovaAcao {
+  campanhaId: string;
+  tipo: string;
+  titulo: string;
+  descricao: string;
+  precoCentavos: number | null;
+  custoUnitarioCentavos: number;
+  metaCentavos: number | null;
+  estoqueTotal: number | null;
+  config: Record<string, unknown>;
+}
+
+export async function criarAcao(nova: NovaAcao) {
+  const receita = receitaDe(nova.tipo);
+  const slug = await slugLivre(nova.campanhaId, paraSlug(nova.titulo) || "acao");
+
+  return prisma.acao.create({
+    data: {
+      campanhaId: nova.campanhaId,
+      tipo: nova.tipo as never,
+      slug,
+      titulo: nova.titulo,
+      descricao: nova.descricao || null,
+      precoCentavos: nova.precoCentavos,
+      custoUnitarioCentavos: nova.custoUnitarioCentavos,
+      metaCentavos: nova.metaCentavos,
+      estoqueTotal: nova.estoqueTotal,
+      config: nova.config as Prisma.InputJsonValue,
+      // Nasce com a cor pensada pro tipo dela: escolher entre oito e facil,
+      // escolher do zero, sem referencia, e o que trava.
+      cor: COR_SUGERIDA[nova.tipo] ?? "teto",
+      status: StatusAcao.RASCUNHO, // so aparece na pagina depois de publicar
+      // A pagina ja nasce montada com os blocos da receita: pagina em branco
+      // trava qualquer um, e mexer no que existe e mais facil que comecar do zero.
+      blocos: {
+        create: (receita?.blocosIniciais ?? ["TEXTO"]).map((tipo, i) => ({
+          tipo,
+          ordem: i,
+          visivel: true,
+          conteudo: (novoBloco(tipo as TipoBloco, i, "x").conteudo ??
+            {}) as Prisma.InputJsonValue,
+        })),
+      },
+    },
+  });
+}
+
+export async function salvarAcao(id: string, campos: Prisma.AcaoUpdateInput) {
+  return prisma.acao.update({ where: { id }, data: campos });
+}
+
+export async function publicarAcao(id: string, publicar: boolean) {
+  return prisma.acao.update({
+    where: { id },
+    data: { status: publicar ? StatusAcao.ATIVA : StatusAcao.RASCUNHO },
+  });
+}
+
+export async function apagarAcao(id: string) {
+  return prisma.acao.delete({ where: { id } });
+}
+
+// ---------------------------------------------------------------------------
+// Blocos
+// ---------------------------------------------------------------------------
+
+export type AlvoDeBloco = { tipo: "campanha"; id: string } | { tipo: "acao"; id: string };
+
+function ondeFica(alvo: AlvoDeBloco) {
+  return alvo.tipo === "campanha" ? { campanhaId: alvo.id } : { acaoId: alvo.id };
+}
+
+export async function listarBlocos(alvo: AlvoDeBloco): Promise<Bloco[]> {
+  const linhas = await prisma.bloco.findMany({
+    where: ondeFica(alvo),
+    orderBy: { ordem: "asc" },
+  });
+  return linhas.map((b) => ({
+    id: b.id,
+    tipo: b.tipo as TipoBloco,
+    ordem: b.ordem,
+    visivel: b.visivel,
+    conteudo: (b.conteudo as Record<string, unknown>) ?? {},
+  }));
+}
+
+export async function adicionarBloco(alvo: AlvoDeBloco, tipo: TipoBloco) {
+  const quantos = await prisma.bloco.count({ where: ondeFica(alvo) });
+  return prisma.bloco.create({
+    data: {
+      ...ondeFica(alvo),
+      tipo,
+      ordem: quantos,
+      visivel: true,
+      conteudo: (novoBloco(tipo, quantos, "x").conteudo ?? {}) as Prisma.InputJsonValue,
+    },
+  });
+}
+
+export async function salvarBloco(id: string, conteudo: Record<string, unknown>) {
+  return prisma.bloco.update({
+    where: { id },
+    data: { conteudo: conteudo as Prisma.InputJsonValue },
+  });
+}
+
+export async function alternarBloco(id: string) {
+  const b = await prisma.bloco.findUnique({ where: { id }, select: { visivel: true } });
+  if (!b) return;
+  return prisma.bloco.update({ where: { id }, data: { visivel: !b.visivel } });
+}
+
+export async function removerBloco(alvo: AlvoDeBloco, id: string) {
+  await prisma.bloco.delete({ where: { id } });
+  // Reordena pra nao deixar buraco na sequencia.
+  const resto = await prisma.bloco.findMany({
+    where: ondeFica(alvo),
+    orderBy: { ordem: "asc" },
+    select: { id: true },
+  });
+  await prisma.$transaction(
+    resto.map((b, i) => prisma.bloco.update({ where: { id: b.id }, data: { ordem: i } }))
+  );
+}
+
+/**
+ * Move um bloco uma posicao pra cima ou pra baixo.
+ *
+ * Troca as duas ordens dentro de uma transacao: sem isso, uma falha no meio
+ * deixaria dois blocos com a mesma ordem e a pagina embaralhada.
+ */
+export async function moverBloco(alvo: AlvoDeBloco, id: string, direcao: "cima" | "baixo") {
+  const pilha = await prisma.bloco.findMany({
+    where: ondeFica(alvo),
+    orderBy: { ordem: "asc" },
+    select: { id: true, ordem: true },
+  });
+
+  const i = pilha.findIndex((b) => b.id === id);
+  if (i < 0) return;
+  const j = direcao === "cima" ? i - 1 : i + 1;
+  if (j < 0 || j >= pilha.length) return; // ja esta na ponta
+
+  await prisma.$transaction([
+    prisma.bloco.update({ where: { id: pilha[i].id }, data: { ordem: pilha[j].ordem } }),
+    prisma.bloco.update({ where: { id: pilha[j].id }, data: { ordem: pilha[i].ordem } }),
+  ]);
+}
+
+// ---------------------------------------------------------------------------
+// Apoiadores
+// ---------------------------------------------------------------------------
+
+export async function apoiadoresRecentes(
+  campanhaId: string,
+  quantos = 8
+): Promise<ApoiadorRecente[]> {
+  const pedidos = await prisma.pedido.findMany({
+    where: { campanhaId, status: "PAGO" },
+    orderBy: { paidAt: "desc" },
+    take: quantos,
+    select: {
+      id: true,
+      nome: true,
+      anonimo: true,
+      valorBrutoCentavos: true,
+      paidAt: true,
+      itens: { select: { acao: { select: { titulo: true } } }, take: 1 },
+    },
+  });
+
+  // Quem pediu anonimato some da lista, mas continua contando no total: esconder
+  // o nome e o combinado, sumir com a contribuicao seria outra coisa.
+  return pedidos.map((p) => ({
+    id: p.id,
+    nome: p.anonimo ? "Apoio anônimo" : p.nome,
+    anonimo: p.anonimo,
+    valorCentavos: p.valorBrutoCentavos,
+    acao: p.itens[0]?.acao.titulo ?? "Doação",
+    quando: p.paidAt,
+  }));
+}
+
+export async function contarApoiadores(campanhaId: string): Promise<number> {
+  // Conta PEDIDO, nao item: quem comprou 4 numeros da rifa e uma pessoa so.
+  return prisma.pedido.count({ where: { campanhaId, status: "PAGO" } });
+}
+
+// ---------------------------------------------------------------------------
+// Usuario e sessao
+// ---------------------------------------------------------------------------
+
+export async function usuarioPorEmail(email: string) {
+  return prisma.usuario.findUnique({ where: { email } });
+}
+
+export async function usuarioPorId(id: string) {
+  return prisma.usuario.findUnique({
+    where: { id },
+    select: { id: true, nome: true, email: true },
+  });
+}
+
+export async function abrirSessao(tokenHash: string, usuarioId: string, expiraEm: Date) {
+  return prisma.sessao.create({ data: { tokenHash, usuarioId, expiraEm } });
+}
+
+/**
+ * Devolve a sessao valida, ou null.
+ *
+ * Sessao vencida e apagada na hora em vez de so ignorada: assim a tabela nao
+ * vira um deposito de sessao morta que ninguem limpa.
+ */
+export async function lerSessao(tokenHash: string) {
+  const s = await prisma.sessao.findUnique({
+    where: { tokenHash },
+    select: { usuarioId: true, expiraEm: true },
+  });
+  if (!s) return null;
+
+  if (s.expiraEm.getTime() < Date.now()) {
+    await prisma.sessao.delete({ where: { tokenHash } }).catch(() => {});
+    return null;
+  }
+  return s;
+}
+
+export async function fecharSessao(tokenHash: string) {
+  await prisma.sessao.delete({ where: { tokenHash } }).catch(() => {});
+}

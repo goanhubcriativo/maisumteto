@@ -1,11 +1,18 @@
-// Bolão Teto — schema do banco.
+// Plataforma Casa Amiga.
 //
-// Uma "Casinha" é o carrinho: agrupa vários palpites (R$10 cada) + um
-// "chorinho" (doação extra opcional), pagos num único PIX.
+// A ideia central em uma frase: uma CAMPANHA (o contrato de casa amiga, meta
+// de ~R$ 18 mil) tem varias ACOES (doacao, bolao, rifa, camisa, jantar). Toda
+// acao, por baixo, produz a mesma coisa: um PEDIDO pago via PIX, carimbado com
+// a acao de origem. E todo dinheiro que entra ou sai vira um LANCAMENTO no
+// livro-caixa, que e a unica fonte de verdade do quanto realmente foi pra casa.
 //
-// Provider = postgresql (Vercel/Neon). A DATABASE_URL vem das variáveis de
-// ambiente (na Vercel, o Vercel Postgres injeta automaticamente).
-// Para rodar localmente, aponte DATABASE_URL para um Postgres (o mesmo da nuvem serve).
+// Regra de ouro do dinheiro: a barra de progresso da vaquinha mostra o LIQUIDO
+// (bruto - custo da acao - taxa do gateway), nunca o bruto. Uma camisa de R$ 50
+// que custou R$ 28 nao sao R$ 50 de vaquinha, e o sistema nao maquia isso.
+//
+// Multi-tenant desde o inicio: cada EQUIPE pluga a propria credencial de
+// pagamento e o PIX cai direto na conta dela. A plataforma nunca custodia
+// dinheiro de terceiro.
 
 generator client {
   provider = "prisma-client-js"
@@ -15,6 +22,529 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ---------------------------------------------------------------------------
+// Tenant: equipe e pessoas
+// ---------------------------------------------------------------------------
+
+model Equipe {
+  id   String @id @default(cuid())
+  nome String
+  slug String @unique // usado na URL publica: /e/teto-pr-natal
+
+  // Conta que recebe o PIX. Fica na equipe, nao na plataforma: o dinheiro cai
+  // direto na conta do lider e a plataforma nunca custodia dinheiro de terceiro.
+  //
+  // A ligacao e por OAuth, nao por token colado a mao. Motivo: o publico e
+  // voluntario com conta pessoa fisica, que nao vai navegar painel de
+  // desenvolvedor pra achar um Access Token, e um token colado teria poder
+  // total e vida eterna. O OAuth devolve token com escopo, expiracao (180 dias
+  // no MP) e refresh, e o proprio voluntario revoga quando quiser.
+  //
+  // Nada aqui e gravado em texto puro: passa por src/lib/cripto.ts (AES-256-GCM).
+  gateway            Gateway @default(MERCADOPAGO)
+  gatewayAmbiente    String  @default("sandbox") // sandbox | production
+  gatewayContaId     String? // id do vendedor no gateway (user_id no MP)
+  gatewayTokenCifrado   String? // access token
+  gatewayRefreshCifrado String? // refresh token, pra renovar sem incomodar a pessoa
+  gatewayTokenExpiraEm  DateTime?
+
+  // Quem aparece como recebedor no comprovante do PIX. Fica visivel na pagina
+  // publica: se o dinheiro passa por uma conta pessoal, quem doa tem que saber
+  // de quem e a conta antes de pagar, nao depois.
+  recebedorRotulo String? // ex.: "Higor Bernardino (CPF ***.456.789-**)"
+
+  campanhas Campanha[]
+  membros   Membro[]
+  repasses  Repasse[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Usuario {
+  id       String  @id @default(cuid())
+  nome     String
+  email    String  @unique
+  whatsapp String?
+
+  // scrypt: "salt:hash", ambos em hex. Ver src/lib/auth.ts.
+  // Nulo enquanto a pessoa foi convidada e ainda nao definiu senha.
+  senhaHash String?
+
+  membros     Membro[]
+  lancamentos Lancamento[]
+  repasses    Repasse[]
+  sessoes     Sessao[]
+
+  createdAt DateTime @default(now())
+}
+
+// Sessao de login. Guardamos o HASH do token, nunca o token em si: se o banco
+// vazar, os cookies que estao no navegador das pessoas continuam inuteis.
+model Sessao {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  usuarioId String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  expiraEm  DateTime
+  criadaEm  DateTime @default(now())
+  ultimoUso DateTime @default(now())
+
+  @@index([usuarioId])
+  @@index([expiraEm])
+}
+
+model Membro {
+  id String @id @default(cuid())
+
+  equipeId  String
+  equipe    Equipe  @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  papel Papel @default(MEMBRO)
+
+  createdAt DateTime @default(now())
+
+  @@unique([equipeId, usuarioId])
+  @@index([usuarioId])
+}
+
+enum Papel {
+  LIDER  // configura gateway, ve extrato completo, fecha campanha
+  MEMBRO // cria e toca acoes, ve o proprio desempenho
+}
+
+enum Gateway {
+  ASAAS
+  MERCADOPAGO
+}
+
+// ---------------------------------------------------------------------------
+// Campanha: o contrato de casa amiga
+// ---------------------------------------------------------------------------
+
+model Campanha {
+  id       String @id @default(cuid())
+  equipeId String
+  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+
+  slug     String @unique // /c/casa-amiga-dezembro
+  titulo   String
+  resumo   String? @db.Text // chamada curta, aparece no card
+  historia String? @db.Text // o texto longo da pagina
+
+  capaUrl String?
+
+  // Ficha que aparece no alto da pagina publica.
+  periodo           String? // "Dezembro de 2026"
+  equipeArrecadacao String? // "Higor Bernardino - Luan Cantele"
+  sede              String? // "TETO Paraná"
+
+  // Textos institucionais das duas colunas. Ficam na campanha, e nao fixos no
+  // codigo, porque cada equipe conta a historia do seu jeito.
+  sobreTeto     String? @db.Text
+  sobreContrato String? @db.Text
+
+  metaCentavos Int // ex.: 1800000 = R$ 18 mil
+  prazo        DateTime?
+
+  status StatusCampanha @default(RASCUNHO)
+
+  acoes       Acao[]
+  pedidos     Pedido[]
+  lancamentos Lancamento[]
+  repasses    Repasse[]
+  blocos      Bloco[]
+  assinaturas Assinatura[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([equipeId, status])
+}
+
+enum StatusCampanha {
+  RASCUNHO
+  ATIVA
+  ENCERRADA
+}
+
+// ---------------------------------------------------------------------------
+// Acao: cada jeito de arrecadar
+// ---------------------------------------------------------------------------
+
+model Acao {
+  id         String   @id @default(cuid())
+  campanhaId String
+  campanha   Campanha @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
+
+  tipo   TipoAcao
+  slug   String // unico dentro da campanha: /c/casa-amiga-dezembro/bolao-da-final
+  titulo String
+  descricao String? @db.Text
+  capaUrl   String?
+
+  status StatusAcao @default(RASCUNHO)
+
+  // Precificacao. Doacao livre deixa precoCentavos nulo (o doador escolhe).
+  precoCentavos Int?
+
+  // Custo. Os dois modos convivem:
+  //  - custoUnitarioCentavos: custo que anda junto com a venda (a camisa em si).
+  //    Vira lancamento automatico de CUSTO a cada item pago.
+  //  - custo de lote comprado adiantado (as 30 camisas de uma vez, o aluguel do
+  //    salao do jantar): NAO fica aqui, entra como Lancamento manual de CUSTO
+  //    amarrado nesta acao. E o que permite a acao aparecer no vermelho antes de
+  //    vender a primeira unidade, que e a verdade.
+  custoUnitarioCentavos Int @default(0)
+
+  // Escassez: 100 numeros da rifa, 80 ingressos do jantar, 30 camisas.
+  // Nulo = ilimitado (doacao, bolao com palpite repetido).
+  estoqueTotal    Int?
+  limitePorPedido Int?
+
+  // Meta propria opcional ("essa camisa precisa levantar R$ 1.500").
+  metaCentavos Int?
+
+  // Quando abre e quando fecha. Serve pra deixar a campanha inteira pre-montada
+  // e ir soltando aos poucos: ate `abreEm` a acao aparece borrada como EM BREVE
+  // e vira clicavel sozinha na data. Ver src/lib/paleta.ts e docs/PAINEL.md.
+  abreEm  DateTime?
+  fechaEm DateTime?
+
+  // Id da cor na paleta (src/lib/paleta.ts). Pinta o cartao da acao e a fatia
+  // dela no grafico da campanha, que e o que liga "esse dinheiro veio dali".
+  cor String? @default("teto")
+
+  // Campos que so existem para um tipo. Bolao: { "timeCasa": "...", "precoPalpite": 1000 }.
+  // Rifa: { "premio": "...", "sorteioEm": "..." }. Produto: { "tamanhos": ["P","M","G"] }.
+  // Evento: { "local": "...", "quando": "..." }.
+  config Json?
+
+  itens       Item[]
+  lancamentos Lancamento[]
+  blocos      Bloco[]
+  assinaturas Assinatura[]
+  lances      Lance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([campanhaId, slug])
+  @@index([campanhaId, status])
+}
+
+// Os tipos sao as RECEITAS da caixa de ferramentas (src/lib/catalogo.ts).
+// O enum aqui e so o rotulo: o que cada tipo pergunta, quanto costuma custar e
+// com que blocos a pagina nasce mora no catalogo, que e codigo e nao migracao.
+enum TipoAcao {
+  DOACAO            // valor livre, espontanea. Toda campanha nasce com uma.
+  DOACAO_RECORRENTE // compromisso semanal ou mensal ate o fim da campanha
+  RIFA
+  BINGO
+  PRODUTO           // camisa, caneca, bolo
+  EVENTO            // jantar, festa, corrida, noite de jogos
+  COLETA            // captacao na rua: semaforo, praca, porta de evento
+  LEILAO
+  BOLAO
+  OUTRO
+}
+
+enum StatusAcao {
+  RASCUNHO
+  ATIVA
+  PAUSADA
+  ENCERRADA
+}
+
+// ---------------------------------------------------------------------------
+// Pedido: uma transacao PIX (o carrinho). Generalizacao da "Casinha" do bolao.
+// ---------------------------------------------------------------------------
+
+model Pedido {
+  id         String   @id @default(cuid())
+  campanhaId String
+  campanha   Campanha @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
+
+  // Um pedido pode misturar itens de acoes diferentes (camisa + rifa no mesmo PIX).
+  // Por isso a acao mora no Item, nao aqui.
+
+  // Quem esta contribuindo. Sem cadastro: preenche uma vez e paga.
+  nome     String
+  whatsapp String
+  cpf      String?
+  email    String?
+  anonimo  Boolean @default(false) // se true, some da lista publica de apoiadores
+
+  // Valores em centavos.
+  valorBrutoCentavos Int // soma dos itens + doacao extra
+  doacaoExtraCentavos Int @default(0) // o "chorinho" opcional
+  taxaCentavos       Int? // taxa do gateway, quando o webhook informa
+  liquidoCentavos    Int? // o que caiu de fato na conta (netValue)
+
+  status StatusPedido @default(PENDENTE)
+
+  // Pagamento
+  gatewayPagamentoId String?   @unique
+  gatewayClienteId   String?
+  pixPayload         String?   @db.Text // copia e cola
+  pixQrCodeImage     String?   @db.Text // base64, sem o prefixo data:
+  pixExpiraEm        DateTime?
+
+  itens       Item[]
+  lancamentos Lancamento[]
+
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+
+  @@index([campanhaId, status])
+  @@index([createdAt])
+}
+
+enum StatusPedido {
+  PENDENTE
+  PAGO
+  EXPIRADO
+  CANCELADO
+  ESTORNADO
+}
+
+model Item {
+  id String @id @default(cuid())
+
+  pedidoId String
+  pedido   Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  acaoId   String
+  acao     Acao   @relation(fields: [acaoId], references: [id], onDelete: Restrict)
+
+  quantidade          Int @default(1)
+  valorUnitarioCentavos Int
+  custoUnitarioCentavos Int @default(0) // congelado no momento da venda
+
+  // O que caracteriza este item dentro do tipo da acao.
+  // Bolao: { "placarCasa": 2, "placarVisitante": 1 }. Rifa: { "numero": 42 }.
+  // Produto: { "tamanho": "M" }. Evento: { "lote": "1" }.
+  dados Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([acaoId])
+  @@index([pedidoId])
+}
+
+// ---------------------------------------------------------------------------
+// Lancamento: o livro-caixa. A resposta para "de qual acao veio cada real".
+// ---------------------------------------------------------------------------
+
+model Lancamento {
+  id         String   @id @default(cuid())
+  campanhaId String
+  campanha   Campanha @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
+
+  // De qual acao veio. Nulo = custo geral da campanha (uma arte encomendada,
+  // o material de divulgacao).
+  acaoId String?
+  acao   Acao?   @relation(fields: [acaoId], references: [id], onDelete: SetNull)
+
+  // Se nasceu de um pedido pago, fica rastreado ate a venda que o gerou.
+  pedidoId String?
+  pedido   Pedido? @relation(fields: [pedidoId], references: [id], onDelete: SetNull)
+
+  tipo      TipoLancamento
+  descricao String
+
+  // ATENCAO: valor COM SINAL. Positivo entra, negativo sai.
+  // Nao gravar direto: usar os helpers de src/lib/lancamentos.ts, que garantem
+  // o sinal certo pra cada tipo. Gravar na mao e como errar o sinal do extrato.
+  valorCentavos Int
+
+  data           DateTime @default(now())
+  comprovanteUrl String?
+
+  criadoPorId String?
+  criadoPor   Usuario? @relation(fields: [criadoPorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([campanhaId, data])
+  @@index([acaoId])
+  @@index([pedidoId])
+}
+
+enum TipoLancamento {
+  RECEITA  // entrou (venda paga, doacao)   -> sempre positivo
+  CUSTO    // gasto da acao (camisa, salao) -> sempre negativo
+  TAXA     // taxa do gateway               -> sempre negativo
+  AJUSTE   // correcao manual               -> pode ser dos dois
+}
+
+// ---------------------------------------------------------------------------
+// Bloco: a pagina montada pela propria equipe (o construtor).
+// ---------------------------------------------------------------------------
+
+// Um bloco pertence a UMA campanha ou a UMA acao, nunca as duas. Isso deixa a
+// mesma peca montar tanto a pagina da campanha quanto a de cada acao.
+//
+// `conteudo` guarda so CONTEUDO, nunca aparencia: nao ha cor, fonte nem margem
+// aqui. O visual vem do tema. Ver src/lib/blocos.ts para o porque.
+model Bloco {
+  id String @id @default(cuid())
+
+  campanhaId String?
+  campanha   Campanha? @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
+  acaoId     String?
+  acao       Acao?     @relation(fields: [acaoId], references: [id], onDelete: Cascade)
+
+  tipo    String // ver TipoBloco em src/lib/blocos.ts
+  ordem   Int
+  visivel Boolean @default(true)
+
+  // Formato varia por tipo: TEXTO { texto }, GALERIA { imagens[] },
+  // PERGUNTAS { itens: [{ pergunta, resposta }] }, e assim por diante.
+  conteudo Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([campanhaId, ordem])
+  @@index([acaoId, ordem])
+}
+
+// ---------------------------------------------------------------------------
+// Assinatura: a doacao recorrente.
+// ---------------------------------------------------------------------------
+
+// PIX nao tem debito automatico. Entao "recorrente" aqui e COMPROMISSO, nao
+// cobranca automatica: a pessoa promete um valor por periodo, e a cada periodo
+// recebe um PIX novo no WhatsApp pra pagar com um toque.
+//
+// Isso e mais honesto e mais barato do que a alternativa (cartao com maquina de
+// recorrencia, que exige mais dados, falha por cartao vencido e cobra mais caro).
+// A pessoa pode parar quando quiser, e parar e so nao pagar a proxima.
+//
+// Cada parcela paga vira um Pedido normal, entao ela entra no livro-caixa pelo
+// mesmo caminho de todo o resto. A Assinatura so guarda a promessa.
+model Assinatura {
+  id         String   @id @default(cuid())
+  campanhaId String
+  campanha   Campanha @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
+  acaoId     String
+  acao       Acao     @relation(fields: [acaoId], references: [id], onDelete: Cascade)
+
+  nome     String
+  whatsapp String
+  email    String?
+  anonimo  Boolean @default(false)
+
+  valorCentavos Int
+  periodicidade Periodicidade
+
+  status StatusAssinatura @default(ATIVA)
+
+  // Quando sai o proximo lembrete. Nulo quando a assinatura acabou.
+  proximaCobranca DateTime?
+  /** Quantas parcelas ja foram pagas. Serve pro "3 de 8" na tela. */
+  parcelasPagas   Int       @default(0)
+  /** Quantas parcelas cabem ate o fim da campanha, calculado na adesao. */
+  parcelasPrevistas Int
+
+  createdAt   DateTime  @default(now())
+  encerradaEm DateTime?
+
+  @@index([campanhaId, status])
+  @@index([proximaCobranca])
+}
+
+enum Periodicidade {
+  SEMANAL
+  MENSAL
+}
+
+enum StatusAssinatura {
+  ATIVA
+  PAUSADA
+  ENCERRADA // chegou ao fim da campanha ou a pessoa parou
+}
+
+// ---------------------------------------------------------------------------
+// Lance: o leilao.
+// ---------------------------------------------------------------------------
+
+// Todo lance fica gravado, inclusive os perdedores: o historico publico e o que
+// faz o leilao ser confiavel sem precisar de ninguem fiscalizando.
+model Lance {
+  id     String @id @default(cuid())
+  acaoId String
+  acao   Acao   @relation(fields: [acaoId], references: [id], onDelete: Cascade)
+
+  nome     String
+  whatsapp String
+  valorCentavos Int
+
+  // Vira true quando o leilao fecha e este e o maior lance.
+  vencedor Boolean @default(false)
+  // Preenchido quando o vencedor paga: liga o lance ao Pedido do PIX.
+  pedidoId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([acaoId, valorCentavos])
+}
+
+// ---------------------------------------------------------------------------
+// Repasse: quanto ja saiu da conta do lider e chegou na Teto.
+// ---------------------------------------------------------------------------
+
+// Repasse NAO e Lancamento, e isso e proposital.
+//
+// Lancamento responde "quanto a campanha arrecadou". Repasse responde "onde
+// esse dinheiro esta agora". Se repasse fosse um lancamento negativo, a barra
+// de progresso cairia justo quando o dinheiro chega na Teto, que e o momento em
+// que a arrecadacao fica mais real, nao menos.
+//
+// Esse modelo existe porque o PIX cai numa conta pessoal (BYO-key de PF). A
+// plataforma nao consegue impedir isso, mas consegue tornar a divida visivel:
+// "R$ 4.200 arrecadados, R$ 3.000 repassados, R$ 1.200 ainda na conta do lider".
+// E o que transforma conta pessoal de buraco de confianca em transito auditado.
+//
+// saldoARepassar = liquido dos lancamentos - soma dos repasses (ver extrato.ts).
+model Repasse {
+  id         String   @id @default(cuid())
+  campanhaId String
+  campanha   Campanha @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
+  equipeId   String
+  equipe     Equipe   @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+
+  valorCentavos Int      // sempre positivo: e sempre uma saida rumo a Teto
+  data          DateTime @default(now())
+
+  // Comprovante e o que da lastro ao numero publico. Sem ele o repasse e so
+  // uma afirmacao do lider sobre si mesmo.
+  comprovanteUrl String?
+  observacao     String?
+
+  criadoPorId String?
+  criadoPor   Usuario? @relation(fields: [criadoPorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([campanhaId, data])
+  @@index([equipeId])
+}
+
+// ===========================================================================
+// BOLÃO DA COPA (legado)
+//
+// A campanha do bolão já terminou. Estes modelos continuam aqui porque os dados
+// são reais (apostadores, pagamentos) e a página segue no ar em /bolaodacopa
+// para quem guardou o link.
+//
+// Ficam separados do resto de propósito: nada da plataforma aponta pra cá, e
+// nada daqui aponta pra plataforma. São dois assuntos que dividem o banco, não
+// um assunto só.
+// ===========================================================================
 
 model Casinha {
   id        String   @id @default(cuid())
