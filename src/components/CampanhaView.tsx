@@ -12,8 +12,6 @@ import Link from "next/link";
 import { formatarBRL, formatarBRLCurto } from "@/lib/dinheiro";
 import { IconeDaAcao, IconeCasa, rotuloDoTipo } from "@/components/icones";
 import Blocos from "@/components/Blocos";
-import ObraDaCasa from "@/components/ObraDaCasa";
-import EtapasDaObra from "@/components/EtapasDaObra";
 import Revelar from "@/components/Revelar";
 import ChamadaFinal from "@/components/ChamadaFinal";
 import Numero from "@/components/Numero";
@@ -388,8 +386,7 @@ export default function CampanhaView({
 
           <nav className="topo-nav">
             <a href="#ajudar">Formas de ajudar</a>
-            <a href="#obra">A obra</a>
-            <a href="#sobre-teto">Sobre a Teto</a>
+              <a href="#sobre-teto">Sobre a Teto</a>
             <a href="#contribuiu">Quem contribuiu</a>
           </nav>
 
@@ -479,7 +476,6 @@ export default function CampanhaView({
 
       <nav className="menu">
         <div className="container menu-linha">
-          <a href="#obra">A obra</a>
           <a href="#ajudar">Formas de ajudar</a>
           <a href="#arrecadacao">De onde veio</a>
           <a href="#sobre-teto">Sobre a Teto</a>
@@ -489,27 +485,6 @@ export default function CampanhaView({
 
       <main className="corpo">
         <div className="container">
-          {/* A obra desenhada desceu da capa pra ca de proposito. Ela encanta
-              quem conhece o processo da Teto e nao diz nada pra quem nao
-              conhece, entao vira EXPLICACAO e nao vitrine. */}
-          <section className="secao" id="obra">
-            <div className="secao-cabeca">
-              <p className="rotulo-secao">Como funciona</p>
-              <h2 className="secao-titulo">A casa vai subindo conforme entra dinheiro</h2>
-              <p className="secao-intro">
-                A casa da Teto é montada sobre pilotis, em mutirão, num fim de semana.
-                Aqui ela aparece do jeito que está sendo paga: o que já foi arrecadado
-                é linha cheia, o que falta é linha pontilhada.
-              </p>
-            </div>
-            <ObraDaCasa arrecadadoCentavos={arrecadado} metaCentavos={resumo.metaCentavos} />
-          </section>
-
-          <EtapasDaObra
-            arrecadadoCentavos={arrecadado}
-            metaCentavos={resumo.metaCentavos}
-          />
-
           {/* Uma figura, duas respostas: o comprimento diz quanto ja foi
               arrecadado da meta, as fatias dizem de onde veio cada parte. */}
           <section className="secao" id="arrecadacao">
