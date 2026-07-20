@@ -12,7 +12,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { consultarPagamento, statusEhPago } from "@/lib/mercadopago";
 import { registrarPedidoPago } from "@/lib/lancamentos";
-import { avancarAssinatura } from "@/lib/assinaturas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,7 +29,6 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
       pixQrCodeImage: true,
       pixExpiraEm: true,
       gatewayPagamentoId: true,
-      assinaturaId: true,
       nome: true,
       itens: { select: { quantidade: true, acao: { select: { titulo: true, slug: true } } } },
     },
@@ -57,16 +55,9 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
                 : null,
           },
         });
-        const registro = await registrarPedidoPago(pedido.id, {
+        await registrarPedidoPago(pedido.id, {
           liquidoCentavos: info.netValueCentavos,
         });
-
-        // Mesma guarda do webhook: so avanca a assinatura quando o registro foi
-        // novo. Os dois caminhos podem confirmar o mesmo pagamento, e sem isso a
-        // parcela seria contada duas vezes.
-        if (pedido.assinaturaId && registro.motivo === "ok") {
-          await avancarAssinatura(pedido.assinaturaId);
-        }
 
         return NextResponse.json({ ...pedido, status: "PAGO" });
       }

@@ -55,7 +55,6 @@ export async function POST(req: NextRequest) {
   const quantidade = Math.floor(Number(corpo.quantidade ?? 1));
   const valorLivre = Number(corpo.valorCentavos ?? 0);
   const dados = (corpo.dados ?? {}) as Record<string, unknown>;
-  const periodicidade = String(corpo.periodicidade ?? "");
 
   if (nome.length < 3) {
     return NextResponse.json({ erro: "Escreva seu nome completo." }, { status: 400 });
@@ -120,59 +119,9 @@ export async function POST(req: NextRequest) {
     valorItens = precoUnitario * quantos;
   }
 
-  // Doacao recorrente: alem do pedido, guarda o COMPROMISSO.
-  //
-  // O pagamento de agora e a primeira parcela; a assinatura e o que diz que vem
-  // mais. Sem esse registro, a equipe nao teria como saber quem se comprometeu,
-  // por quanto tempo, nem a quem lembrar depois.
-  const ehRecorrente = acao.tipo === "DOACAO_RECORRENTE";
-  if (ehRecorrente && !["SEMANAL", "MENSAL"].includes(periodicidade)) {
-    return NextResponse.json(
-      { erro: "Escolha se a doação é semanal ou mensal." },
-      { status: 400 }
-    );
-  }
-
-  // A assinatura nasce ANTES do pedido, pra que o primeiro pagamento ja saia
-  // amarrado nela. Sem o vinculo, o webhook nao saberia qual compromisso
-  // avancar quando o PIX fosse pago.
-  let assinaturaId: string | null = null;
-  if (ehRecorrente) {
-    const campanha = await prisma.campanha.findUnique({
-      where: { id: acao.campanhaId },
-      select: { prazo: true },
-    });
-
-    const dias = campanha?.prazo
-      ? Math.max(0, Math.ceil((campanha.prazo.getTime() - Date.now()) / 864e5))
-      : 0;
-    const passo = periodicidade === "SEMANAL" ? 7 : 30;
-    // Sem prazo na campanha nao da pra saber quantas serao; 12 e um teto
-    // razoavel que a equipe ajusta depois, e melhor do que zero.
-    const previstas = dias > 0 ? Math.max(1, Math.floor(dias / passo)) : 12;
-
-    const assinatura = await prisma.assinatura.create({
-      data: {
-        campanhaId: acao.campanhaId,
-        acaoId: acao.id,
-        nome,
-        whatsapp,
-        email,
-        anonimo,
-        valorCentavos: valorItens,
-        periodicidade: periodicidade as "SEMANAL" | "MENSAL",
-        parcelasPrevistas: previstas,
-        // So vira compromisso de verdade quando a primeira for paga.
-        proximaCobranca: null,
-      },
-    });
-    assinaturaId = assinatura.id;
-  }
-
   const pedido = await prisma.pedido.create({
     data: {
       campanhaId: acao.campanhaId,
-      assinaturaId,
       nome,
       whatsapp,
       cpf,

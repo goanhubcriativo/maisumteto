@@ -1,11 +1,4 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "regions": ["gru1"],
-  "crons": [
-    {
-      "path": "/api/rotina",
-      "schedule": "0 12 * * *"
-    }
-  ]
+  "regions": ["gru1"]
 }

@@ -1533,31 +1533,3 @@ a.acao:hover {
     margin-top: 36px;
   }
 }
-
-/* Escolha de periodicidade e resumo do compromisso (doacao recorrente). */
-.ap-periodo {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.ap-resumo {
-  display: grid;
-  gap: 6px;
-  background: var(--acao-fundo, var(--teto-6));
-  border: 1px solid var(--acao-borda, var(--teto-12));
-  border-radius: 10px;
-  padding: 16px;
-}
-.ap-resumo strong {
-  font-size: 17px;
-  letter-spacing: -0.3px;
-}
-.ap-resumo span {
-  font-size: 13.5px;
-  line-height: 1.5;
-  color: var(--tinta-70);
-}
-.ap-resumo-nota {
-  padding-top: 8px;
-  border-top: 1px solid var(--linha);
-}

@@ -16,16 +16,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export type Periodicidade = "SEMANAL" | "MENSAL";
-
 interface Props {
   acaoId: string;
   /** Tipo da acao. Muda o que o formulario pergunta. */
   tipo: string;
-  /** Quais periodicidades a equipe oferece: "SEMANAL", "MENSAL" ou "AMBAS". */
-  periodicidades?: string;
-  /** Quantas cobrancas cabem ate a campanha acabar, por periodicidade. */
-  parcelasAte?: { SEMANAL: number; MENSAL: number };
   /** Nulo = valor livre (a pessoa escolhe quanto). */
   precoCentavos: number | null;
   /** Quantas unidades ainda existem. Nulo = sem limite. */
@@ -60,22 +54,16 @@ function mascararCpf(valor: string) {
 export default function FormularioDeApoio({
   acaoId,
   tipo,
-  periodicidades = "AMBAS",
-  parcelasAte,
   precoCentavos,
   restante,
   valoresSugeridos = [20, 50, 100, 200],
   corForte,
 }: Props) {
-  const recorrente = tipo === "DOACAO_RECORRENTE";
   const router = useRouter();
   const valorLivre = precoCentavos == null;
 
   const [valor, setValor] = useState<number | null>(null);
   const [valorDigitado, setValorDigitado] = useState("");
-  const [periodo, setPeriodo] = useState<Periodicidade>(
-    periodicidades === "SEMANAL" ? "SEMANAL" : "MENSAL"
-  );
   const [quantidade, setQuantidade] = useState(1);
   const [telefone, setTelefone] = useState("");
   const [cpf, setCpf] = useState("");
@@ -104,7 +92,6 @@ export default function FormularioDeApoio({
           anonimo: dados.get("anonimo") === "on",
           quantidade,
           valorCentavos: valorLivre ? valor : undefined,
-          periodicidade: recorrente ? periodo : undefined,
         }),
       });
 
@@ -124,32 +111,10 @@ export default function FormularioDeApoio({
 
   return (
     <form className="ap" onSubmit={enviar}>
-      {recorrente && periodicidades === "AMBAS" && (
-        <div className="ap-bloco">
-          <span className="ap-pergunta">De quanto em quanto tempo?</span>
-          <div className="ap-periodo">
-            {(["MENSAL", "SEMANAL"] as Periodicidade[]).map((op) => {
-              const marcado = periodo === op;
-              return (
-                <button
-                  key={op}
-                  type="button"
-                  className={`ap-valor${marcado ? " escolhido" : ""}`}
-                  style={marcado ? { borderColor: corForte, color: corForte } : undefined}
-                  onClick={() => setPeriodo(op)}
-                >
-                  {op === "MENSAL" ? "Todo mês" : "Toda semana"}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {valorLivre ? (
         <div className="ap-bloco">
           <span className="ap-pergunta">
-            {recorrente ? "Quanto por vez?" : "Quanto você quer doar?"}
+            Quanto você quer doar?
           </span>
 
           <div className="ap-valores">
@@ -269,31 +234,6 @@ export default function FormularioDeApoio({
         </label>
       </div>
 
-      {/* O resumo do compromisso. Recorrencia sem numero total e promessa no
-          escuro: a pessoa precisa ver quanto vai dar no fim antes de aceitar. */}
-      {recorrente && total > 0 && (
-        <div className="ap-resumo">
-          <strong>
-            {formatar(total)} {periodo === "MENSAL" ? "por mês" : "por semana"}
-          </strong>
-          <span>
-            {parcelasAte ? (
-              <>
-                São {parcelasAte[periodo]}{" "}
-                {parcelasAte[periodo] === 1 ? "cobrança" : "cobranças"} até a campanha
-                terminar, somando {formatar(total * parcelasAte[periodo])}.
-              </>
-            ) : (
-              <>Continua enquanto a campanha estiver aberta.</>
-            )}
-          </span>
-          <span className="ap-resumo-nota">
-            Você paga a primeira agora. As próximas chegam por WhatsApp, e você paga
-            quando quiser. Pode parar a qualquer momento.
-          </span>
-        </div>
-      )}
-
       {erro && (
         <p className="ap-erro" role="alert">
           {erro}
@@ -309,16 +249,12 @@ export default function FormularioDeApoio({
         {enviando
           ? "Gerando seu PIX..."
           : total > 0
-            ? recorrente
-              ? `Pagar a primeira de ${formatar(total)}`
-              : `Pagar ${formatar(total)} por PIX`
+            ? `Pagar ${formatar(total)} por PIX`
             : "Escolha um valor acima"}
       </button>
 
       <p className="ap-rodape">
-        {recorrente
-          ? "Sem cartão e sem débito automático: cada cobrança é um PIX que você aprova."
-          : "Pagamento por PIX. Leva menos de um minuto."}
+        Pagamento por PIX. Leva menos de um minuto.
       </p>
     </form>
   );

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { consultarPagamento, statusEhPago } from "@/lib/mercadopago";
 import { registrarPedidoPago } from "@/lib/lancamentos";
-import { avancarAssinatura } from "@/lib/assinaturas";
 import { revalidatePath } from "next/cache";
 
 export const runtime = "nodejs";
@@ -75,18 +74,9 @@ export async function POST(req: NextRequest) {
       // Vira dinheiro no livro-caixa. É idempotente por dentro: o MP reenvia o
       // mesmo aviso quando não recebe 200 a tempo, e sem essa guarda a vaquinha
       // subiria duas vezes com um pagamento só.
-      const registro = await registrarPedidoPago(pedido.id, {
+      await registrarPedidoPago(pedido.id, {
         liquidoCentavos: info.netValueCentavos,
       });
-
-      // Doacao recorrente: conta a parcela e marca a proxima.
-      //
-      // So avanca quando o registro foi NOVO. registrarPedidoPago devolve "ja
-      // lancado" quando o MP reenvia o mesmo aviso, e sem essa guarda a
-      // assinatura pularia parcelas a cada reenvio.
-      if (pedido.assinaturaId && registro.motivo === "ok") {
-        await avancarAssinatura(pedido.assinaturaId);
-      }
 
       // A página é dinâmica, mas revalidar aqui faz o total aparecer na hora.
       revalidatePath("/");

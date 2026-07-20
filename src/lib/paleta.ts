@@ -97,7 +97,6 @@ export function corDe(id: string | null | undefined): CorDaPaleta {
  */
 export const COR_SUGERIDA: Record<string, string> = {
   DOACAO: "teto",
-  DOACAO_RECORRENTE: "mar",
   RIFA: "ocre",
   BINGO: "vinho",
   PRODUTO: "roxo",

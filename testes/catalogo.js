@@ -39,8 +39,8 @@ for (const r of RECEITAS) {
   }
 }
 
-// Um tipo generico demais atras do outro: DOACAO e DOACAO_RECORRENTE nao podem
-// cair no mesmo icone, senao a caixa de ferramentas fica com dois iguais.
+// Uma receita sem bloco inicial nasceria como pagina em branco, e campo de
+// escolha sem opcoes trava quem esta cadastrando a acao.
 for (const r of RECEITAS) {
   if (!r.blocosIniciais || r.blocosIniciais.length === 0) {
     falhar(`${r.tipo}: sem blocosIniciais (a pagina nasceria vazia)`);

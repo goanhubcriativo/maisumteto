@@ -161,8 +161,7 @@ export default async function EditarCampanha() {
             />
             <span className="campo-ajuda">
               Quando a arrecadação termina. É o que define os &quot;dias restantes&quot; na
-              página e até quando vão as doações recorrentes. Em branco, a campanha fica
-              aberta sem data.
+              página. Em branco, a campanha fica aberta sem data.
             </span>
           </label>
 

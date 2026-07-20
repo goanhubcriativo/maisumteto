@@ -157,7 +157,6 @@ model Campanha {
   lancamentos Lancamento[]
   repasses    Repasse[]
   blocos      Bloco[]
-  assinaturas Assinatura[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -226,7 +225,6 @@ model Acao {
   itens       Item[]
   lancamentos Lancamento[]
   blocos      Bloco[]
-  assinaturas Assinatura[]
   lances      Lance[]
 
   createdAt DateTime @default(now())
@@ -241,7 +239,6 @@ model Acao {
 // com que blocos a pagina nasce mora no catalogo, que e codigo e nao migracao.
 enum TipoAcao {
   DOACAO            // valor livre, espontanea. Toda campanha nasce com uma.
-  DOACAO_RECORRENTE // compromisso semanal ou mensal ate o fim da campanha
   RIFA
   BINGO
   PRODUTO           // camisa, caneca, bolo
@@ -293,11 +290,6 @@ model Pedido {
   pixQrCodeImage     String?   @db.Text // base64, sem o prefixo data:
   pixExpiraEm        DateTime?
 
-  // De qual assinatura esta cobranca veio. Nulo = pagamento avulso.
-  // E o que permite, quando o PIX e pago, saber qual compromisso avancar.
-  assinaturaId String?
-  assinatura   Assinatura? @relation(fields: [assinaturaId], references: [id], onDelete: SetNull)
-
   itens       Item[]
   lancamentos Lancamento[]
 
@@ -305,7 +297,6 @@ model Pedido {
   paidAt    DateTime?
 
   @@index([campanhaId, status])
-  @@index([assinaturaId])
   @@index([createdAt])
 }
 
@@ -416,64 +407,6 @@ model Bloco {
 
   @@index([campanhaId, ordem])
   @@index([acaoId, ordem])
-}
-
-// ---------------------------------------------------------------------------
-// Assinatura: a doacao recorrente.
-// ---------------------------------------------------------------------------
-
-// PIX nao tem debito automatico. Entao "recorrente" aqui e COMPROMISSO, nao
-// cobranca automatica: a pessoa promete um valor por periodo, e a cada periodo
-// recebe um PIX novo no WhatsApp pra pagar com um toque.
-//
-// Isso e mais honesto e mais barato do que a alternativa (cartao com maquina de
-// recorrencia, que exige mais dados, falha por cartao vencido e cobra mais caro).
-// A pessoa pode parar quando quiser, e parar e so nao pagar a proxima.
-//
-// Cada parcela paga vira um Pedido normal, entao ela entra no livro-caixa pelo
-// mesmo caminho de todo o resto. A Assinatura so guarda a promessa.
-model Assinatura {
-  id         String   @id @default(cuid())
-  campanhaId String
-  campanha   Campanha @relation(fields: [campanhaId], references: [id], onDelete: Cascade)
-  acaoId     String
-  acao       Acao     @relation(fields: [acaoId], references: [id], onDelete: Cascade)
-
-  nome     String
-  whatsapp String
-  email    String?
-  anonimo  Boolean @default(false)
-
-  valorCentavos Int
-  periodicidade Periodicidade
-
-  status StatusAssinatura @default(ATIVA)
-
-  // Quando sai o proximo lembrete. Nulo quando a assinatura acabou.
-  proximaCobranca DateTime?
-  /** Quantas parcelas ja foram pagas. Serve pro "3 de 8" na tela. */
-  parcelasPagas   Int       @default(0)
-  /** Quantas parcelas cabem ate o fim da campanha, calculado na adesao. */
-  parcelasPrevistas Int
-
-  pedidos Pedido[]
-
-  createdAt   DateTime  @default(now())
-  encerradaEm DateTime?
-
-  @@index([campanhaId, status])
-  @@index([proximaCobranca])
-}
-
-enum Periodicidade {
-  SEMANAL
-  MENSAL
-}
-
-enum StatusAssinatura {
-  ATIVA
-  PAUSADA
-  ENCERRADA // chegou ao fim da campanha ou a pessoa parou
 }
 
 // ---------------------------------------------------------------------------

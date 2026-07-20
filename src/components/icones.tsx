@@ -89,17 +89,6 @@ export function IconeCasa({ className }: Props) {
   );
 }
 
-/** Doacao recorrente: o ciclo que se repete. */
-export function IconeRecorrente({ className }: Props) {
-  return (
-    <svg {...base} className={className} aria-hidden="true">
-      <path d="M20.4 12a8.4 8.4 0 0 1-14.6 5.7" />
-      <path d="M3.6 12a8.4 8.4 0 0 1 14.6-5.7" />
-      <path d="M18.2 2.9v3.4h-3.4M5.8 21.1v-3.4h3.4" />
-    </svg>
-  );
-}
-
 /** Bingo: a cartela. */
 export function IconeBingo({ className }: Props) {
   return (
@@ -148,7 +137,6 @@ export function IconeOutro({ className }: Props) {
 // React 19 tirou o namespace JSX global: o tipo do elemento vem de react.
 const porTipo: Record<string, (p: Props) => ReactElement> = {
   DOACAO: IconeDoacao,
-  DOACAO_RECORRENTE: IconeRecorrente,
   BOLAO: IconeBolao,
   RIFA: IconeRifa,
   BINGO: IconeBingo,
@@ -169,7 +157,6 @@ export function IconeDaAcao({ tipo, className }: { tipo: string; className?: str
 // "Ação" e a etiqueta do cartao deixa de dizer o que aquilo e.
 export const rotuloDoTipo: Record<string, string> = {
   DOACAO: "Doação",
-  DOACAO_RECORRENTE: "Recorrente",
   BOLAO: "Bolão",
   RIFA: "Rifa",
   BINGO: "Bingo",

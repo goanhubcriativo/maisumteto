@@ -106,17 +106,6 @@ export default async function PaginaDaAcao({ params }: Props) {
   const fim = acao.fechaEm ?? campanha.prazo;
   const diasAteOFim = fim ? Math.max(0, Math.ceil((fim.getTime() - Date.now()) / 864e5)) : 0;
 
-  // Sem prazo definido nao da pra dizer quantas cobrancas serao, e chutar "1"
-  // seria pior do que nao dizer: a pessoa acharia que e cobranca unica.
-  const parcelasAte =
-    diasAteOFim > 0
-      ? {
-          SEMANAL: Math.max(1, Math.floor(diasAteOFim / 7)),
-          MENSAL: Math.max(1, Math.floor(diasAteOFim / 30)),
-        }
-      : undefined;
-  const periodicidades = String(acao.config?.periodicidades ?? "AMBAS");
-
   const sugeridosCrus = acao.config?.valoresSugeridos;
   const valoresSugeridos = Array.isArray(sugeridosCrus)
     ? sugeridosCrus.map((v) => Number(String(v).replace(/\D/g, ""))).filter((n) => n > 0)
@@ -303,8 +292,6 @@ export default async function PaginaDaAcao({ params }: Props) {
                 <FormularioDeApoio
                   acaoId={acao.id}
                   tipo={acao.tipo}
-                  periodicidades={periodicidades}
-                  parcelasAte={parcelasAte}
                   precoCentavos={acao.precoCentavos}
                   restante={acao.restante}
                   valoresSugeridos={valoresSugeridos}
