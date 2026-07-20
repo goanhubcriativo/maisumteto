@@ -162,9 +162,10 @@ export const RECEITAS: Receita[] = [
       "Se ela parar de pagar, o compromisso é encerrado sem cobrança nenhuma.",
     ],
     comoParticipar: [
-      "Você escolhe um valor e se ele vem toda semana ou todo mês.",
-      "A cada período, chega um PIX no seu WhatsApp. É só pagar com um toque.",
-      "Quando quiser parar, é só não pagar o próximo. Sem multa, sem ligação, sem burocracia.",
+      "Escolha o valor e se ele vem toda semana ou todo mês. A tela mostra quantas cobranças são até a campanha acabar.",
+      "Você paga a primeira agora, por PIX. Não é débito automático: não pedimos cartão nem autorização no banco.",
+      "As próximas chegam por WhatsApp, no dia combinado, com um PIX pronto. Você paga quando quiser.",
+      "Para parar, é só avisar a equipe ou não pagar a próxima. Não existe multa nem cobrança automática.",
     ],
     precificacao: "LIVRE",
     modeloDeCusto: "NENHUM",

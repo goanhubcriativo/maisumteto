@@ -1412,7 +1412,9 @@ a.acao:hover {
 
 .participar-grade {
   display: grid;
-  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  /* 70/30: o formulario e o que a pessoa PREENCHE, os passos so o que ela le.
+     Estavam quase meio a meio, e o texto acabava com mais espaco que os campos. */
+  grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
   gap: 34px;
   align-items: start;
   margin-top: 26px;
@@ -1525,4 +1527,32 @@ a.acao:hover {
   .secao-conteudo {
     margin-top: 36px;
   }
+}
+
+/* Escolha de periodicidade e resumo do compromisso (doacao recorrente). */
+.ap-periodo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.ap-resumo {
+  display: grid;
+  gap: 6px;
+  background: var(--acao-fundo, var(--teto-6));
+  border: 1px solid var(--acao-borda, var(--teto-12));
+  border-radius: 10px;
+  padding: 16px;
+}
+.ap-resumo strong {
+  font-size: 17px;
+  letter-spacing: -0.3px;
+}
+.ap-resumo span {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--tinta-70);
+}
+.ap-resumo-nota {
+  padding-top: 8px;
+  border-top: 1px solid var(--linha);
 }

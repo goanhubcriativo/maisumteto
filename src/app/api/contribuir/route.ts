@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
   const quantidade = Math.floor(Number(corpo.quantidade ?? 1));
   const valorLivre = Number(corpo.valorCentavos ?? 0);
   const dados = (corpo.dados ?? {}) as Record<string, unknown>;
+  const periodicidade = String(corpo.periodicidade ?? "");
 
   if (nome.length < 3) {
     return NextResponse.json({ erro: "Escreva seu nome completo." }, { status: 400 });
@@ -119,6 +120,19 @@ export async function POST(req: NextRequest) {
     valorItens = precoUnitario * quantos;
   }
 
+  // Doacao recorrente: alem do pedido, guarda o COMPROMISSO.
+  //
+  // O pagamento de agora e a primeira parcela; a assinatura e o que diz que vem
+  // mais. Sem esse registro, a equipe nao teria como saber quem se comprometeu,
+  // por quanto tempo, nem a quem lembrar depois.
+  const ehRecorrente = acao.tipo === "DOACAO_RECORRENTE";
+  if (ehRecorrente && !["SEMANAL", "MENSAL"].includes(periodicidade)) {
+    return NextResponse.json(
+      { erro: "Escolha se a doação é semanal ou mensal." },
+      { status: 400 }
+    );
+  }
+
   const pedido = await prisma.pedido.create({
     data: {
       campanhaId: acao.campanhaId,
@@ -142,6 +156,36 @@ export async function POST(req: NextRequest) {
       },
     },
   });
+
+  if (ehRecorrente) {
+    const campanha = await prisma.campanha.findUnique({
+      where: { id: acao.campanhaId },
+      select: { prazo: true },
+    });
+
+    const dias = campanha?.prazo
+      ? Math.max(0, Math.ceil((campanha.prazo.getTime() - Date.now()) / 864e5))
+      : 0;
+    const passo = periodicidade === "SEMANAL" ? 7 : 30;
+    const previstas = Math.max(1, Math.floor(dias / passo));
+
+    await prisma.assinatura.create({
+      data: {
+        campanhaId: acao.campanhaId,
+        acaoId: acao.id,
+        nome,
+        whatsapp,
+        email,
+        anonimo,
+        valorCentavos: valorItens,
+        periodicidade: periodicidade as "SEMANAL" | "MENSAL",
+        parcelasPrevistas: previstas,
+        // A proxima so e marcada quando a primeira for paga: quem gerou o PIX e
+        // desistiu nao vira compromisso.
+        proximaCobranca: null,
+      },
+    });
+  }
 
   try {
     const pix = await criarPagamentoPix({

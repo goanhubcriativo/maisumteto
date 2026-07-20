@@ -100,6 +100,23 @@ export default async function PaginaDaAcao({ params }: Props) {
 
   // Os atalhos de valor saem da configuração da ação (a equipe define na criação).
   // Sem eles, quem não sabe quanto dar trava na hora de escolher.
+  // Quantas cobrancas cabem ate a campanha acabar. E o que transforma
+  // "R$ 20 por mes" em "R$ 160 no total", que e o numero que a pessoa precisa
+  // ver antes de assumir um compromisso.
+  const fim = acao.fechaEm ?? campanha.prazo;
+  const diasAteOFim = fim ? Math.max(0, Math.ceil((fim.getTime() - Date.now()) / 864e5)) : 0;
+
+  // Sem prazo definido nao da pra dizer quantas cobrancas serao, e chutar "1"
+  // seria pior do que nao dizer: a pessoa acharia que e cobranca unica.
+  const parcelasAte =
+    diasAteOFim > 0
+      ? {
+          SEMANAL: Math.max(1, Math.floor(diasAteOFim / 7)),
+          MENSAL: Math.max(1, Math.floor(diasAteOFim / 30)),
+        }
+      : undefined;
+  const periodicidades = String(acao.config?.periodicidades ?? "AMBAS");
+
   const sugeridosCrus = acao.config?.valoresSugeridos;
   const valoresSugeridos = Array.isArray(sugeridosCrus)
     ? sugeridosCrus.map((v) => Number(String(v).replace(/\D/g, ""))).filter((n) => n > 0)
@@ -285,6 +302,9 @@ export default async function PaginaDaAcao({ params }: Props) {
                 </h2>
                 <FormularioDeApoio
                   acaoId={acao.id}
+                  tipo={acao.tipo}
+                  periodicidades={periodicidades}
+                  parcelasAte={parcelasAte}
                   precoCentavos={acao.precoCentavos}
                   restante={acao.restante}
                   valoresSugeridos={valoresSugeridos}
