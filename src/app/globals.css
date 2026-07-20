@@ -2368,3 +2368,375 @@ a.acao:hover {
     font-size: 12px;
   }
 }
+
+/* ===========================================================================
+   Virada 3: aproximar da referencia (Biztop).
+
+   Duas criticas do Higor derrubaram o que eu tinha feito:
+
+   1. "a casa sendo construida e legal pra quem conhece o processo, mas nao
+      impacta quem nao conhece". Verdade. Piloti e jargao. Quem chega de fora
+      nao doa por causa de uma etapa de obra, doa por causa da FAMILIA. Entao a
+      capa passa a falar de gente e o desenho da obra desce pra uma secao de
+      explicacao, que e o lugar certo dele.
+
+   2. "ficou longe da referencia". Tambem verdade. A referencia e fotografica e
+      arredondada: painel escuro com foto grande ao lado, cartoes alternando
+      claro / cor / escuro, etiqueta com asterisco, botao em pilula com seta.
+      Eu tinha entregue desenho de linha sobre fundo escuro, que e o oposto.
+=========================================================================== */
+
+:root {
+  --papel: #f1f6fa;
+  --escuro: #072a3d;
+  --raio-g: 22px;
+}
+
+body {
+  background: var(--papel);
+}
+
+/* --- Etiqueta de secao (o "✳ Our Approach" da referencia) ---------------- */
+
+.rotulo-secao {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 7px 15px;
+  border-radius: 999px;
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  color: var(--tinta-70);
+}
+.rotulo-secao::before {
+  content: "✳";
+  color: var(--teto);
+  font-size: 13px;
+}
+.rotulo-claro {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* --- Botoes em pilula com seta ------------------------------------------ */
+
+.botao {
+  border-radius: 999px;
+  padding: 14px 24px;
+}
+.botao-seta::after {
+  content: "»";
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0.75;
+}
+.botao-pequeno {
+  padding: 9px 16px;
+  font-size: 13.5px;
+}
+
+/* --- A capa: painel escuro arredondado + foto --------------------------- */
+
+.capa {
+  padding: 18px 0 6px;
+}
+.capa-painel {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 0;
+  border-radius: var(--raio-g);
+  overflow: hidden;
+  background:
+    radial-gradient(120% 100% at 10% 0%, rgba(0, 146, 221, 0.35), transparent 60%),
+    linear-gradient(155deg, #0b3a52 0%, #072a3d 55%, #05202f 100%);
+  color: #fff;
+}
+.capa-texto {
+  padding: 52px 48px 46px;
+  align-self: center;
+}
+.capa-titulo {
+  margin: 0 0 16px;
+  font-size: 50px;
+  line-height: 1.06;
+  font-weight: 800;
+  letter-spacing: -1.7px;
+}
+/* A palavra destacada, como o "BUSINESS" verde da referencia. */
+.capa-titulo em {
+  font-style: normal;
+  color: #4cc3ff;
+}
+.capa-linha {
+  margin: 0 0 26px;
+  max-width: 46ch;
+  font-size: 17px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.8);
+}
+.capa-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+/* A prova social da referencia era "4.9 ★ 5K+ Reviews". Aqui e quanta gente ja
+   entrou, que e o numero honesto que esta campanha tem. */
+.capa-prova {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 7px 14px 7px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.92);
+}
+.capa-prova strong {
+  font-weight: 700;
+}
+.prova-bolhas {
+  display: flex;
+}
+.prova-bolhas span {
+  width: 25px;
+  height: 25px;
+  margin-right: -8px;
+  border-radius: 50%;
+  border: 2px solid #0b3a52;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* A foto. Sem foto NAO some: vira um painel com a casa desenhada, que segura a
+   composicao de duas colunas em vez de deixar um buraco. */
+.capa-foto {
+  position: relative;
+  min-height: 420px;
+  background-size: cover;
+  background-position: center;
+}
+.capa-foto-vazia {
+  background:
+    linear-gradient(200deg, rgba(0, 146, 221, 0.3), rgba(5, 32, 47, 0.6)),
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.05) 0 2px,
+      transparent 2px 14px
+    );
+  display: grid;
+  place-items: center;
+}
+.capa-foto-vazia svg {
+  width: 62%;
+  max-width: 300px;
+  opacity: 0.9;
+}
+
+/* --- Faixa de numeros, colada embaixo da capa --------------------------- */
+
+.faixa-numeros {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.numero-caixa {
+  background: var(--branco);
+  border-radius: 16px;
+  padding: 20px 22px;
+  border: 1px solid var(--linha);
+}
+.numero-caixa:first-child {
+  background: var(--teto);
+  border-color: var(--teto);
+  color: #fff;
+}
+.numero-caixa:first-child .numero-rotulo {
+  color: rgba(255, 255, 255, 0.86);
+}
+.numero-grande {
+  display: block;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.9px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.numero-rotulo {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--tinta-70);
+}
+
+/* --- Cartoes de acao: claro / cor / escuro ------------------------------ */
+
+.acao {
+  border-radius: var(--raio-g);
+  padding: 22px;
+  border-color: transparent;
+}
+
+/* O tom alterna como na referencia, mas a COR de cada tom sai da acao, entao a
+   ligacao "esse dinheiro veio dali" com o grafico continua de pe. */
+.acao-tom-cor {
+  background: var(--acao-forte);
+  color: #fff;
+}
+.acao-tom-cor .acao-titulo,
+.acao-tom-cor .acao-preco {
+  color: #fff;
+}
+.acao-tom-cor .acao-desc,
+.acao-tom-cor .acao-pe {
+  color: rgba(255, 255, 255, 0.82);
+}
+.acao-tom-cor .acao-icone {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.acao-tom-cor .acao-barra {
+  background: rgba(255, 255, 255, 0.25);
+}
+.acao-tom-cor .acao-barra-fill {
+  background: #fff;
+}
+.acao-tom-cor .etiqueta {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.acao-tom-escuro {
+  background: var(--escuro);
+  color: #fff;
+}
+.acao-tom-escuro .acao-titulo,
+.acao-tom-escuro .acao-preco {
+  color: #fff;
+}
+.acao-tom-escuro .acao-desc,
+.acao-tom-escuro .acao-pe {
+  color: rgba(255, 255, 255, 0.78);
+}
+.acao-tom-escuro .acao-icone {
+  background: var(--acao-forte);
+  color: #fff;
+}
+.acao-tom-escuro .acao-barra {
+  background: rgba(255, 255, 255, 0.2);
+}
+.acao-tom-escuro .acao-barra-fill {
+  background: var(--acao-forte);
+}
+.acao-tom-escuro .etiqueta {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.acao-icone {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--acao-fundo);
+  color: var(--acao-forte);
+  margin-bottom: 14px;
+}
+
+/* O "Explore More »" da referencia, no pe do cartao. */
+.acao-mais {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 16px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--branco);
+  color: var(--tinta);
+  font-size: 13px;
+  font-weight: 650;
+}
+.acao-mais::after {
+  content: "»";
+  opacity: 0.6;
+}
+.acao-tom-claro .acao-mais {
+  background: var(--acao-fundo);
+  color: var(--acao-forte);
+}
+
+/* --- Secoes claras viram cartoes sobre o papel -------------------------- */
+
+.grande,
+.painel-lateral,
+.etapa,
+.pessoas-mais {
+  border-radius: 18px;
+}
+
+@media (max-width: 900px) {
+  .capa-painel {
+    grid-template-columns: 1fr;
+  }
+  .capa-foto {
+    min-height: 240px;
+    order: -1;
+  }
+  .capa-texto {
+    padding: 34px 24px 32px;
+  }
+  .capa-titulo {
+    font-size: 34px;
+    letter-spacing: -1px;
+  }
+  .faixa-numeros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Botao de contorno sobre fundo escuro. */
+.botao-claro-contorno {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #fff;
+}
+.botao-claro-contorno:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* A obra fora da capa volta a ter fundo proprio. */
+#obra .obra {
+  background: linear-gradient(160deg, #0a2f42 0%, #07283a 60%, #06202f 100%);
+  border-radius: var(--raio-g);
+  padding: 8px 8px 0;
+}
+#obra .obra-cena {
+  max-width: none;
+}
+#obra .obra-leitura {
+  padding: 20px 22px 24px;
+  border-top: none;
+}
+
+@media (max-width: 640px) {
+  .prova-bolhas span,
+  .acao-mais,
+  .rotulo-secao {
+    font-size: 12px;
+  }
+}

@@ -17,6 +17,7 @@ import EtapasDaObra from "@/components/EtapasDaObra";
 import Revelar from "@/components/Revelar";
 import ChamadaFinal from "@/components/ChamadaFinal";
 import Numero from "@/components/Numero";
+import { corDoNome } from "@/lib/cor-do-nome";
 import ListaDeApoiadores from "@/components/ListaDeApoiadores";
 import { corDe, estiloDaCor } from "@/lib/paleta";
 import type { Bloco } from "@/lib/blocos";
@@ -204,13 +205,20 @@ function CartaoAcao({
   acao,
   campanhaSlug,
   faltaNoContrato,
+  indice,
 }: {
   acao: AcaoNaVitrine;
   campanhaSlug: string;
   faltaNoContrato: number;
+  /** Posicao na grade. Define o tom do cartao: claro, cor cheia ou escuro. */
+  indice: number;
 }) {
   const regua = reguaDaAcao(acao, faltaNoContrato);
   const aindaVaiAbrir = acao.motivo === "AINDA_NAO_ABRIU";
+
+  // O tom alterna como na referencia. A COR de cada tom continua saindo da
+  // acao, entao o elo "esse dinheiro veio dali" com o grafico nao se perde.
+  const tom = ["acao-tom-claro", "acao-tom-cor", "acao-tom-escuro"][indice % 3];
 
   const conteudo = (
     <>
@@ -263,6 +271,10 @@ function CartaoAcao({
           <span>{acao.restante === 1 ? "resta 1" : `restam ${acao.restante}`}</span>
         )}
       </div>
+
+      <span className="acao-mais">
+        {acao.disponivel ? "Participar" : "Ver como foi"}
+      </span>
     </>
   );
 
@@ -273,7 +285,7 @@ function CartaoAcao({
   // expectativa, e faz quem chegou hoje voltar no dia que abrir.
   if (aindaVaiAbrir) {
     return (
-      <div className="acao em-breve" style={estilo}>
+      <div className={`acao em-breve ${tom}`} style={estilo}>
         <span className="acao-borrado" aria-hidden="true">
           {conteudo}
         </span>
@@ -296,7 +308,7 @@ function CartaoAcao({
   return (
     <Link
       href={`/c/${campanhaSlug}/${acao.slug}`}
-      className={`acao${acao.disponivel ? "" : " indisponivel"}`}
+      className={`acao ${tom}${acao.disponivel ? "" : " indisponivel"}`}
       style={estilo}
     >
       {conteudo}
@@ -344,87 +356,109 @@ export default function CampanhaView({
         </div>
       </header>
 
-      {/* A capa. Sem foto, NAO fica um retangulo vazio: entra a planta baixa da
-          casa, que e desenho da propria marca. Uma equipe que ainda nao tirou
-          foto boa da comunidade continua com um topo que parece intencional.
+      {/* A capa.
+          Fotografica e arredondada, como a referencia. O titulo e da equipe; a
+          linha embaixo dele e o PEDIDO, e o pedido fala de familia e nao de
+          etapa de obra: quem chega de fora nao sabe o que e um piloti. */}
+      <section className="capa">
+        <div className="container">
+          <div className="capa-painel">
+            <div className="capa-texto">
+              <p className="rotulo-secao rotulo-claro">
+                Contrato de Casa Amiga
+                {campanha.periodo ? ` · ${campanha.periodo}` : ""}
+              </p>
 
-          Capa, placar e obra vivem no MESMO bloco escuro de proposito. Antes
-          eram tres faixas claras empilhadas, e faixa clara atras de faixa clara
-          e o que deixava a pagina lavada. */}
-      <section
-        className={`hero${campanha.capaUrl ? " hero-com-foto" : ""}`}
-        style={
-          campanha.capaUrl
-            ? { backgroundImage: `url(${JSON.stringify(campanha.capaUrl)})` }
-            : undefined
-        }
-      >
-        <div className="container hero-corpo">
-          <p className="hero-etiqueta">
-            <span className="hero-ponto" aria-hidden="true" />
-            Contrato de Casa Amiga
-            {campanha.periodo ? ` · ${campanha.periodo}` : ""}
-          </p>
+              <h1 className="capa-titulo">{campanha.titulo}</h1>
 
-          <h1 className="hero-titulo">{campanha.titulo}</h1>
+              <p className="capa-linha">
+                {campanha.resumo ??
+                  "Uma família vive hoje sobre chão de terra. Quando esta casa ficar de pé, ela dorme no seco, tranca a porta e recomeça."}
+              </p>
 
-          {campanha.resumo && <p className="hero-resumo">{campanha.resumo}</p>}
+              {resumo.apoiadores > 0 && (
+                <p className="capa-prova">
+                  <span className="prova-bolhas" aria-hidden="true">
+                    {apoiadoresRecentes.slice(0, 4).map((a) => (
+                      <span key={a.id} style={{ background: corDoNome(a.nome) }}>
+                        {a.anonimo ? "?" : a.nome.trim().charAt(0).toUpperCase()}
+                      </span>
+                    ))}
+                  </span>
+                  <span>
+                    <strong>{resumo.apoiadores}</strong>{" "}
+                    {resumo.apoiadores === 1 ? "pessoa já entrou" : "pessoas já entraram"}
+                  </span>
+                </p>
+              )}
 
-          <div className="hero-placar">
-            <div className="placar-forte">
-              <Numero className="placar-valor" valor={arrecadado} formato="brl" />
-              <span className="placar-rotulo">
+              <div className="capa-botoes">
+                <a href="#ajudar" className="botao botao-primario botao-seta">
+                  Quero ajudar
+                </a>
+                <a href="#obra" className="botao botao-contorno botao-claro-contorno">
+                  Ver como funciona
+                </a>
+              </div>
+            </div>
+
+            {campanha.capaUrl ? (
+              <div
+                className="capa-foto"
+                style={{ backgroundImage: `url(${JSON.stringify(campanha.capaUrl)})` }}
+                role="img"
+                aria-label="Foto da equipe de arrecadação"
+              />
+            ) : (
+              /* Sem foto o painel NAO some, senao a composicao de duas colunas
+                 vira uma coluna torta. Entra a casa desenhada. */
+              <div className="capa-foto capa-foto-vazia" aria-hidden="true">
+                <svg viewBox="0 0 240 180" fill="none" stroke="#fff" strokeWidth="3">
+                  <path d="M30 92 L120 30 L210 92" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M52 84 V150 H188 V84" strokeLinecap="round" strokeLinejoin="round" />
+                  <rect x="104" y="106" width="32" height="44" rx="2" />
+                  <rect x="146" y="102" width="28" height="24" rx="2" />
+                  <path d="M20 150 H220" strokeLinecap="round" opacity=".55" />
+                  <path d="M70 150 V172 M170 150 V172" strokeLinecap="round" opacity=".4" />
+                </svg>
+              </div>
+            )}
+          </div>
+
+          {/* Os numeros saem de dentro da capa e viram cartoes proprios, como a
+              faixa de estatisticas da referencia. */}
+          <div className="faixa-numeros">
+            <div className="numero-caixa">
+              <Numero className="numero-grande" valor={arrecadado} formato="brl" />
+              <span className="numero-rotulo">
                 de {formatarBRL(resumo.metaCentavos)}, o custo da casa
               </span>
             </div>
-
-            <div className="placar-item">
-              <Numero className="placar-numero" valor={resumo.apoiadores} />
-              <span className="placar-rotulo">
-                {resumo.apoiadores === 1 ? "pessoa entrou nessa" : "pessoas entraram nessa"}
+            <div className="numero-caixa">
+              <Numero className="numero-grande" valor={resumo.apoiadores} />
+              <span className="numero-rotulo">
+                {resumo.apoiadores === 1 ? "pessoa contribuiu" : "pessoas contribuíram"}
               </span>
             </div>
-
-            {campanha.prazo && (
-              <div className="placar-item">
-                <Numero className="placar-numero" valor={dias !== null ? dias : 0} />
-                <span className="placar-rotulo">
-                  {dias === 1 ? "dia até o prazo" : "dias até o prazo"}
-                </span>
-              </div>
-            )}
-
-            <div className="placar-item">
-              <Numero className="placar-numero" valor={vitrine.length} />
-              <span className="placar-rotulo">
+            <div className="numero-caixa">
+              <Numero className="numero-grande" valor={dias !== null ? dias : 0} />
+              <span className="numero-rotulo">
+                {dias === 1 ? "dia até o prazo" : "dias até o prazo"}
+              </span>
+            </div>
+            <div className="numero-caixa">
+              <Numero className="numero-grande" valor={vitrine.length} />
+              <span className="numero-rotulo">
                 {vitrine.length === 1 ? "ação da equipe" : "ações da equipe"}
               </span>
             </div>
           </div>
-
-          <ObraDaCasa arrecadadoCentavos={arrecadado} metaCentavos={resumo.metaCentavos} />
-
-          <div className="hero-acoes">
-            <a href="#ajudar" className="botao botao-claro botao-grande">
-              Quero ajudar a levantar
-            </a>
-            <span className="hero-nota">
-              Pagamento por PIX, direto pelo celular. Leva menos de um minuto.
-            </span>
-          </div>
-
-          {campanha.equipeArrecadacao && (
-            <p className="hero-equipe">
-              <span className="hero-equipe-rotulo">Equipe de arrecadação</span>
-              <span className="hero-equipe-nomes">{campanha.equipeArrecadacao}</span>
-            </p>
-          )}
         </div>
       </section>
 
       <nav className="menu">
         <div className="container menu-linha">
-          <a href="#etapas">A obra</a>
+          <a href="#obra">A obra</a>
           <a href="#ajudar">Formas de ajudar</a>
           <a href="#arrecadacao">De onde veio</a>
           <a href="#sobre-teto">Sobre a Teto</a>
@@ -434,6 +468,22 @@ export default function CampanhaView({
 
       <main className="corpo">
         <div className="container">
+          {/* A obra desenhada desceu da capa pra ca de proposito. Ela encanta
+              quem conhece o processo da Teto e nao diz nada pra quem nao
+              conhece, entao vira EXPLICACAO e nao vitrine. */}
+          <section className="secao" id="obra">
+            <div className="secao-cabeca">
+              <p className="rotulo-secao">Como funciona</p>
+              <h2 className="secao-titulo">A casa vai subindo conforme entra dinheiro</h2>
+              <p className="secao-intro">
+                A casa da Teto é montada sobre pilotis, em mutirão, num fim de semana.
+                Aqui ela aparece do jeito que está sendo paga: o que já foi arrecadado
+                é linha cheia, o que falta é linha pontilhada.
+              </p>
+            </div>
+            <ObraDaCasa arrecadadoCentavos={arrecadado} metaCentavos={resumo.metaCentavos} />
+          </section>
+
           <EtapasDaObra
             arrecadadoCentavos={arrecadado}
             metaCentavos={resumo.metaCentavos}
@@ -500,7 +550,8 @@ export default function CampanhaView({
           {/* Formas de ajudar, 4 por linha. */}
           <section className="secao" id="ajudar">
             <div className="secao-cabeca">
-              <h2 className="secao-titulo">Formas de ajudar</h2>
+              <p className="rotulo-secao">Formas de ajudar</p>
+              <h2 className="secao-titulo">Escolha o seu jeito de entrar nessa</h2>
               <p className="secao-intro">
                 Cada uma destas ações foi organizada pela equipe e paga o próprio custo antes de
                 sobrar para a casa. Os valores ao lado de cada uma são o que já entrou limpo, depois
@@ -512,15 +563,25 @@ export default function CampanhaView({
               <div className="vazio">A equipe ainda está montando as ações desta campanha.</div>
             ) : (
               <div className="acoes">
-                {vitrine.map((acao, i) => (
+                {/* O tom forte vai pras acoes VIVAS. Distribuir por posicao crua
+                    faria a cor cheia cair numa acao encerrada, que ja e cinza
+                    por regra, e a grade ficaria sem nenhuma cor de verdade. */}
+                {(() => {
+                  let vivas = -1;
+                  return vitrine.map((acao, i) => {
+                    if (acao.disponivel) vivas++;
+                    return (
                   <Revelar key={acao.id} atraso={Math.min(i * 70, 420)} className="acao-berco">
                     <CartaoAcao
                       acao={acao}
                       campanhaSlug={campanha.slug}
                       faltaNoContrato={falta}
+                      indice={acao.disponivel ? vivas + 1 : 0}
                     />
                   </Revelar>
-                ))}
+                    );
+                  });
+                })()}
               </div>
             )}
           </section>
