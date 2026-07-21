@@ -17,14 +17,14 @@ import ChamadaFinal from "@/components/ChamadaFinal";
 import Numero from "@/components/Numero";
 import { corDoNome } from "@/lib/cor-do-nome";
 import ListaDeApoiadores from "@/components/ListaDeApoiadores";
-import { corDe, estiloDaCor } from "@/lib/paleta";
+import { estiloDaCor, marcaDe } from "@/lib/paleta";
 import type { Bloco } from "@/lib/blocos";
 import type { AcaoNaVitrine, ApoiadorRecente } from "@/lib/vitrine";
+import { SOBRE_TETO, SOBRE_CONTRATO, paragrafos } from "@/lib/textos";
 
 export interface DadosDaCampanha {
   slug: string;
   titulo: string;
-  resumo: string | null;
   historia: string | null;
   capaUrl: string | null;
   capaFoco?: string | null;
@@ -34,8 +34,6 @@ export interface DadosDaCampanha {
   /** Quem toca a arrecadacao, ex.: "Higor Bernardino - Luan Cantele". */
   equipeArrecadacao?: string | null;
   sede?: string | null;
-  sobreTeto?: string | null;
-  sobreContrato?: string | null;
   equipe: { nome: string; recebedorRotulo: string | null };
 }
 
@@ -149,7 +147,8 @@ function fatiasDoGrafico(vitrine: AcaoNaVitrine[], liquidoTotal: number) {
     .map((a) => ({
       nome: a.titulo,
       valor: a.liquidoCentavos,
-      cor: corDe(a.cor).forte,
+      // Mancha, nao texto: usa o tom de identidade da cor (ver src/lib/paleta.ts).
+      cor: marcaDe(a.cor),
     }))
     .sort((a, b) => b.valor - a.valor);
 
@@ -614,7 +613,7 @@ export default function CampanhaView({
                   <h2 className="secao-titulo">Sobre a Teto</h2>
                 </div>
                 <div className="texto">
-                  {(campanha.sobreTeto ?? "").split("\n\n").map((p, i) => (
+                  {paragrafos(SOBRE_TETO).map((p, i) => (
                     <p key={i}>{p}</p>
                   ))}
                 </div>
@@ -623,7 +622,7 @@ export default function CampanhaView({
               <div className="painel-lateral">
                 <h2 className="secao-titulo">O contrato de Casa Amiga</h2>
                 <div className="texto">
-                  {(campanha.sobreContrato ?? "").split("\n\n").map((p, i) => (
+                  {paragrafos(SOBRE_CONTRATO).map((p, i) => (
                     <p key={i}>{p}</p>
                   ))}
                 </div>

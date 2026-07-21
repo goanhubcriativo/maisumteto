@@ -15,8 +15,23 @@
 export interface CorDaPaleta {
   id: string;
   nome: string;
-  /** Cor cheia: botao, barra preenchida, numero em destaque. */
+  /**
+   * O tom que aguenta TEXTO: cor de letra sobre branco e fundo de bloco com
+   * letra branca por cima. Por isso passa em 4.5:1 contra o branco, sem exceção.
+   */
   forte: string;
+  /**
+   * O tom da identidade, usado só onde a cor é mancha e nunca carrega texto:
+   * a bolinha do seletor, a fatia do gráfico, o preenchimento da barra.
+   *
+   * Existe por causa do azul do logo. Ele é claro demais para segurar texto
+   * (3,4:1 contra o branco), mas é ele que a pessoa reconhece como a cor da
+   * Teto. Separar os dois papéis deixa a marca aparecer onde ela é só cor, e
+   * mantém a leitura garantida onde há palavra escrita.
+   *
+   * Nas outras cores é igual ao forte, e aí não muda nada.
+   */
+  marca?: string;
   /** Fundo levissimo, pra chapar atras de icone e etiqueta. */
   fundo: string;
   /** Borda do fundo leve. */
@@ -25,8 +40,16 @@ export interface CorDaPaleta {
 
 export const PALETA: CorDaPaleta[] = [
   {
-    id: "teto",
+    id: "logo",
     nome: "Azul Teto",
+    forte: "#0a6ea9",
+    marca: "#0092dd", // o azul do arquivo do logo
+    fundo: "rgba(0, 146, 221, 0.08)",
+    borda: "rgba(0, 146, 221, 0.18)",
+  },
+  {
+    id: "teto",
+    nome: "Azul",
     forte: "#0d5fa6",
     fundo: "rgba(0, 146, 221, 0.07)",
     borda: "rgba(0, 146, 221, 0.16)",
@@ -88,6 +111,12 @@ export function corDe(id: string | null | undefined): CorDaPaleta {
   return PALETA.find((c) => c.id === id) ?? COR_PADRAO;
 }
 
+/** O tom de mancha da cor: identidade quando existe, senão o mesmo forte. */
+export function marcaDe(id: string | null | undefined): string {
+  const c = corDe(id);
+  return c.marca ?? c.forte;
+}
+
 /**
  * Sugestao de cor por tipo de acao.
  *
@@ -96,7 +125,7 @@ export function corDe(id: string | null | undefined): CorDaPaleta {
  * facil; escolher do zero, sem referencia, e que trava.
  */
 export const COR_SUGERIDA: Record<string, string> = {
-  DOACAO: "teto",
+  DOACAO: "logo",
   RIFA: "ocre",
   BINGO: "vinho",
   PRODUTO: "roxo",
@@ -104,7 +133,7 @@ export const COR_SUGERIDA: Record<string, string> = {
   COLETA: "campo",
   LEILAO: "grafite",
   BOLAO: "campo",
-  OUTRO: "teto",
+  OUTRO: "logo",
 };
 
 /**
@@ -116,6 +145,7 @@ export function estiloDaCor(id: string | null | undefined): React.CSSProperties 
   const c = corDe(id);
   return {
     ["--acao-forte" as string]: c.forte,
+    ["--acao-marca" as string]: c.marca ?? c.forte,
     ["--acao-fundo" as string]: c.fundo,
     ["--acao-borda" as string]: c.borda,
   };

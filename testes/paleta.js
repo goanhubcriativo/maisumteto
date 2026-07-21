@@ -28,6 +28,10 @@ function contraste(a, b) {
 
 const BRANCO = "#ffffff";
 const MINIMO = 4.5;
+// A cor de marca nunca carrega texto: ela e mancha (bolinha do seletor, fatia
+// do grafico, barra). O piso dela e o de elemento grafico, 3:1, e nao o de
+// texto. E o que permite o azul claro do logo aparecer sem quebrar leitura.
+const MINIMO_MARCA = 3;
 
 let falhas = 0;
 console.log("Contraste de cada cor contra o branco (mínimo AA = 4.5:1)\n");
@@ -39,6 +43,15 @@ for (const c of PALETA) {
   console.log(
     `${passa ? "PASS " : "FALHA"} ${c.nome.padEnd(16)} ${c.forte}  ${razao.toFixed(2)}:1`
   );
+
+  if (c.marca) {
+    const r = contraste(c.marca, BRANCO);
+    const ok = r >= MINIMO_MARCA;
+    if (!ok) falhas++;
+    console.log(
+      `${ok ? "PASS " : "FALHA"} ${(c.nome + " (marca)").padEnd(16)} ${c.marca}  ${r.toFixed(2)}:1`
+    );
+  }
 }
 
 // Ids unicos: dois ids iguais fariam corDe() devolver sempre o primeiro.

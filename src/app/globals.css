@@ -835,6 +835,7 @@ a.acao:hover {
 
 .acao {
   --acao-forte: var(--teto);
+  --acao-marca: var(--teto);
   --acao-fundo: var(--teto-6);
   --acao-borda: var(--teto-12);
 }
@@ -846,8 +847,9 @@ a.acao:hover {
 .acao .acao-preco {
   color: var(--acao-forte);
 }
+/* Mancha pura, sem texto em cima: usa o tom de identidade da cor. */
 .acao .acao-barra-fill {
-  background: var(--acao-forte);
+  background: var(--acao-marca, var(--acao-forte));
 }
 .acao .etiqueta {
   background: var(--acao-fundo);

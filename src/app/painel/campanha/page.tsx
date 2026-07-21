@@ -70,9 +70,6 @@ export default async function EditarCampanha({
       sede: String(dados.get("sede") ?? "").trim() || null,
       capaUrl: String(dados.get("capa") ?? "").trim() || null,
       capaFoco: String(dados.get("capaFoco") ?? "").trim() || null,
-      resumo: String(dados.get("resumo") ?? "").trim() || null,
-      sobreTeto: String(dados.get("sobreTeto") ?? "").trim() || null,
-      sobreContrato: String(dados.get("sobreContrato") ?? "").trim() || null,
       ...(meta && meta > 0 ? { metaCentavos: meta } : {}),
     });
 
@@ -173,8 +170,13 @@ export default async function EditarCampanha({
               className="campo-entrada"
               name="equipe"
               defaultValue={campanha.equipeArrecadacao ?? ""}
-              placeholder="Nomes separados por hífen"
+              placeholder="Higor Bernardino, Luan Cantele"
             />
+            <span className="campo-ajuda">
+              Escreva o nome e o sobrenome de quem está nesta equipe, separados por vírgula. É o
+              que permite a quem doa identificar que aquela é a arrecadação da pessoa que pediu
+              ajuda.
+            </span>
           </label>
 
           <label className="campo">
@@ -186,8 +188,8 @@ export default async function EditarCampanha({
               defaultValue={campanha.prazo ? paraCampoData(campanha.prazo) : ""}
             />
             <span className="campo-ajuda">
-              Quando a arrecadação termina. É o que define os &quot;dias restantes&quot; na
-              página. Em branco, a campanha fica aberta sem data.
+              Até quando vocês pretendem arrecadar. É o que define os &quot;dias restantes&quot;
+              na página. Em branco, a campanha fica aberta sem data.
             </span>
           </label>
 
@@ -202,39 +204,14 @@ export default async function EditarCampanha({
             <span className="campo-ajuda">O custo fechado desta casa.</span>
           </label>
 
-          <label className="campo">
-            <span className="campo-rotulo">Chamada curta</span>
-            <textarea
-              className="campo-entrada"
-              name="resumo"
-              rows={3}
-              defaultValue={campanha.resumo ?? ""}
-            />
-          </label>
-
-          <label className="campo">
-            <span className="campo-rotulo">Sobre a Teto</span>
-            <textarea
-              className="campo-entrada"
-              name="sobreTeto"
-              rows={7}
-              defaultValue={campanha.sobreTeto ?? ""}
-            />
-            <span className="campo-ajuda">
-              Deixe uma linha em branco entre os parágrafos. Este texto precisa da revisão da Teto
-              antes de ir ao ar.
-            </span>
-          </label>
-
-          <label className="campo">
-            <span className="campo-rotulo">O contrato de Casa Amiga</span>
-            <textarea
-              className="campo-entrada"
-              name="sobreContrato"
-              rows={5}
-              defaultValue={campanha.sobreContrato ?? ""}
-            />
-          </label>
+          {/* Sobre a Teto e o contrato de Casa Amiga NAO sao campos.
+              Explicam a organizacao e o modelo, e isso e igual em toda equipe:
+              viraram texto do sistema, em src/lib/textos.ts. */}
+          <p className="campo-ajuda">
+            Os textos <strong>Sobre a Teto</strong> e <strong>O contrato de Casa Amiga</strong>{" "}
+            são do sistema e aparecem iguais em toda campanha. Se algum precisar mudar, fale com
+            quem cuida da plataforma.
+          </p>
 
           <button className="botao botao-primario" type="submit">
             Salvar campanha

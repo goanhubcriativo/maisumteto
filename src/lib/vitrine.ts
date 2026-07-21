@@ -91,9 +91,9 @@ export async function vitrineDaCampanha(slug: string) {
   });
   if (!registro) return null;
 
-  // TODO: periodo, equipeArrecadacao, sede e os textos institucionais viram
-  // campos de verdade no schema. Enquanto o piloto tem uma equipe so, derivar
-  // do que ja existe evita migracao a cada ajuste de texto.
+  // TODO: periodo e sede viram campos de verdade no schema. Enquanto o piloto
+  // tem uma equipe so, derivar do que ja existe evita migracao a cada ajuste.
+  // Os textos institucionais nao entram aqui: sao do sistema (src/lib/textos.ts).
   const campanha = {
     ...registro,
     periodo: registro.prazo
@@ -101,8 +101,6 @@ export async function vitrineDaCampanha(slug: string) {
       : null,
     equipeArrecadacao: registro.equipe.membros.map((m) => m.usuario.nome).join(" - ") || null,
     sede: "TETO Paraná",
-    sobreTeto: null,
-    sobreContrato: null,
   };
 
   const [resumo, porAcao, acoes, vendas, apoiadores, recentes] = await Promise.all([

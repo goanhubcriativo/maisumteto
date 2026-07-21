@@ -21,7 +21,6 @@ import { definicaoDe, type TipoBloco } from "@/lib/blocos";
 import { PALETA } from "@/lib/paleta";
 import { formatarBRL, formatarBRLCurto, paraCentavos } from "@/lib/dinheiro";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
-import Blocos from "@/components/Blocos";
 import { IconeDaAcao } from "@/components/icones";
 
 export const dynamic = "force-dynamic";
@@ -93,14 +92,16 @@ export default async function EditarAcao({
   const acaoId = acao.id;
   const tituloAtual = acao.titulo;
 
-  // Quais cores as OUTRAS acoes ja usam. Serve pra avisar, nao pra impedir: a
-  // escolha continua sendo da pessoa, mas ela precisa saber que duas acoes da
-  // mesma cor viram duas fatias iguais no grafico da campanha.
-  const coresOcupadas = new Map<string, string>();
+  // Quais cores as OUTRAS acoes ja usam.
+  //
+  // Guarda so o conjunto, e nao mais de quem e cada uma: dizer "ja usada por
+  // Rifa do churrasco" em cada bolinha enchia a tela de nome de acao e virava
+  // uma segunda lista de acoes dentro do seletor de cor. O aviso que importa e
+  // um so, embaixo, e sobre a cor escolhida.
+  const coresOcupadas = new Set<string>();
   for (const outra of await listarAcoes(campanha.id)) {
     if (outra.id === acaoId) continue;
-    const cor = outra.cor ?? "teto";
-    if (!coresOcupadas.has(cor)) coresOcupadas.set(cor, outra.titulo);
+    coresOcupadas.add(outra.cor ?? "teto");
   }
 
   async function salvarBasico(dados: FormData) {
@@ -329,34 +330,25 @@ export default async function EditarAcao({
               claro, de bater o olho, de onde veio cada parte do dinheiro.
             </span>
             <div className="cores">
-              {PALETA.map((c) => {
-                const jaUsadaPor = coresOcupadas.get(c.id);
-                return (
-                  <label
-                    key={c.id}
-                    className={`cor${jaUsadaPor ? " repetida" : ""}`}
-                    title={jaUsadaPor ? `Já usada por ${jaUsadaPor}` : c.nome}
-                  >
-                    <input
-                      type="radio"
-                      name="cor"
-                      value={c.id}
-                      defaultChecked={(acao.cor ?? "teto") === c.id}
-                    />
-                    <span className="cor-bolha" style={{ background: c.forte }} />
-                    <span className="cor-nome">
-                      {c.nome}
-                      {jaUsadaPor && <em className="cor-usada">{jaUsadaPor}</em>}
-                    </span>
-                  </label>
-                );
-              })}
+              {PALETA.map((c) => (
+                <label key={c.id} className="cor" title={c.nome}>
+                  <input
+                    type="radio"
+                    name="cor"
+                    value={c.id}
+                    defaultChecked={(acao.cor ?? "teto") === c.id}
+                  />
+                  {/* A bolinha mostra o tom de identidade da cor, que e o mesmo
+                      que vai pintar a fatia dela no grafico da campanha. */}
+                  <span className="cor-bolha" style={{ background: c.marca ?? c.forte }} />
+                  <span className="cor-nome">{c.nome}</span>
+                </label>
+              ))}
             </div>
             {coresOcupadas.has(acao.cor ?? "teto") && (
               <p className="cor-aviso">
-                Esta cor já é de <strong>{coresOcupadas.get(acao.cor ?? "teto")}</strong>. No
-                gráfico da campanha as duas ficam com a mesma fatia, e aí a cor deixa de dizer de
-                onde veio o dinheiro. Vale escolher outra.
+                Outra ação já usa esta cor. No gráfico da campanha as duas ficam com a mesma
+                fatia, e aí a cor deixa de dizer de onde veio o dinheiro. Vale escolher outra.
               </p>
             )}
           </fieldset>
@@ -417,18 +409,12 @@ export default async function EditarAcao({
         sozinho.
       </p>
 
+      {/* Nao ha previa embutida aqui de proposito. Ela mostrava os blocos fora
+          da pagina de verdade (sem topo, sem cor, sem o resto), entao respondia
+          "como esta ficando" com uma resposta que nao era a pagina. Quem quer
+          ver como ficou usa o "Ver prévia da página", la em cima, que abre a
+          coisa real. */}
       <EditorDeBlocos blocos={blocos} acoes={acoesDoEditor} />
-
-      <div className="painel-secao-cabeca">
-        <h2>Como está ficando</h2>
-      </div>
-      <div className="previa-moldura">
-        {blocos.some((b) => b.visivel) ? (
-          <Blocos blocos={blocos} ctx={{ arrecadadoCentavos: acao.liquidoCentavos }} />
-        ) : (
-          <p className="vazio">Nada visível ainda. Preencha um bloco para ver a prévia.</p>
-        )}
-      </div>
 
       <form action={apagar} className="zona-perigo">
         <div>

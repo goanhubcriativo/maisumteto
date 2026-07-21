@@ -13,6 +13,7 @@ import {
   listarBlocos,
 } from "@/lib/repositorio";
 import { resumoCampanha } from "@/lib/extrato";
+import { CHAMADA } from "@/lib/textos";
 
 // O progresso muda a cada PIX pago, entao a pagina nao pode ficar em cache.
 export const dynamic = "force-dynamic";
@@ -22,10 +23,10 @@ export async function generateMetadata(): Promise<Metadata> {
     const c = await campanhaAtual();
     return {
       title: c.titulo,
-      description: c.resumo ?? undefined,
+      description: CHAMADA,
       openGraph: {
         title: c.titulo,
-        description: c.resumo ?? undefined,
+        description: CHAMADA,
         type: "website",
       },
     };
