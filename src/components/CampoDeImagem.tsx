@@ -17,9 +17,23 @@ interface Props {
   /** Nome do campo enviado no formulário. O valor é a URL da imagem. */
   name: string;
   valorInicial?: string | null;
+  /** Ponto focal salvo, no formato "50% 30%". */
+  focoInicial?: string | null;
   rotulo: string;
   ajuda?: string;
 }
+
+/**
+ * Os recortes de verdade, medidos na página publicada.
+ *
+ * A capa é bem deitada no computador e quase quadrada no celular. É por isso
+ * que a foto da equipe sumiu: no editor a pessoa via a foto inteira, e no ar o
+ * recorte pegou o centro geométrico, que naquela foto era a parede.
+ */
+const RECORTES = [
+  { nome: "Computador", proporcao: "1425 / 554" },
+  { nome: "Celular", proporcao: "375 / 442" },
+];
 
 const LADO_MAXIMO = 1600;
 const QUALIDADE = 0.82;
@@ -50,8 +64,23 @@ async function reduzir(arquivo: File): Promise<Blob> {
   });
 }
 
-export default function CampoDeImagem({ name, valorInicial, rotulo, ajuda }: Props) {
+export default function CampoDeImagem({
+  name,
+  valorInicial,
+  focoInicial,
+  rotulo,
+  ajuda,
+}: Props) {
   const [url, setUrl] = useState(valorInicial ?? "");
+  const [foco, setFoco] = useState(focoInicial ?? "50% 50%");
+
+  /** Clicar na prévia move o ponto que precisa continuar aparecendo. */
+  function mirar(evento: React.MouseEvent<HTMLDivElement>) {
+    const caixa = evento.currentTarget.getBoundingClientRect();
+    const x = Math.round(((evento.clientX - caixa.left) / caixa.width) * 100);
+    const y = Math.round(((evento.clientY - caixa.top) / caixa.height) * 100);
+    setFoco(`${Math.max(0, Math.min(100, x))}% ${Math.max(0, Math.min(100, y))}%`);
+  }
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const entrada = useRef<HTMLInputElement>(null);
@@ -93,11 +122,42 @@ export default function CampoDeImagem({ name, valorInicial, rotulo, ajuda }: Pro
       {/* O valor que o formulário envia continua sendo texto: assim o resto do
           sistema não muda, e um endereço colado à mão ainda funciona. */}
       <input type="hidden" name={name} value={url} />
+      <input type="hidden" name={`${name}Foco`} value={foco} />
 
       <div className="imagem-area">
         {url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img className="imagem-previa" src={url} alt="Prévia da foto escolhida" />
+          <>
+            {/* Os dois recortes de verdade, lado a lado. E o que responde
+                "como vai ficar" sem precisar publicar pra descobrir. */}
+            <div className="recortes">
+              {RECORTES.map((r) => (
+                <div key={r.nome} className="recorte">
+                  <span className="recorte-nome">{r.nome}</span>
+                  <div
+                    className="recorte-janela"
+                    style={{
+                      aspectRatio: r.proporcao,
+                      backgroundImage: `url(${JSON.stringify(url)})`,
+                      backgroundPosition: foco,
+                    }}
+                    onClick={mirar}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Recorte para ${r.nome}. Clique para escolher o que fica no centro.`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") e.currentTarget.click();
+                    }}
+                  >
+                    <span className="recorte-mira" style={{ left: foco.split(" ")[0], top: foco.split(" ")[1] }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="recorte-dica">
+              Clique na foto onde estão as pessoas. Os dois recortes acompanham, e é
+              exatamente assim que vai aparecer no ar.
+            </p>
+          </>
         ) : (
           <div className="imagem-vazia">Nenhuma foto ainda</div>
         )}

@@ -69,6 +69,7 @@ export default async function EditarCampanha({
       equipeArrecadacao: String(dados.get("equipe") ?? "").trim() || null,
       sede: String(dados.get("sede") ?? "").trim() || null,
       capaUrl: String(dados.get("capa") ?? "").trim() || null,
+      capaFoco: String(dados.get("capaFoco") ?? "").trim() || null,
       resumo: String(dados.get("resumo") ?? "").trim() || null,
       sobreTeto: String(dados.get("sobreTeto") ?? "").trim() || null,
       sobreContrato: String(dados.get("sobreContrato") ?? "").trim() || null,
@@ -161,6 +162,7 @@ export default async function EditarCampanha({
           <CampoDeImagem
             name="capa"
             valorInicial={campanha.capaUrl}
+            focoInicial={campanha.capaFoco}
             rotulo="Foto de capa"
             ajuda="Aparece no topo da página, em preto e branco com um véu azul por cima. Foto deitada e larga funciona melhor. Sem foto, o topo usa o desenho da casa."
           />

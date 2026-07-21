@@ -309,6 +309,8 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
                   tipo={acao.tipo}
                   precoCentavos={acao.precoCentavos}
                   restante={acao.restante}
+                  estoqueTotal={acao.estoqueTotal}
+                  limitePorPedido={acao.limitePorPedido}
                   valoresSugeridos={valoresSugeridos}
                   corForte={cor.forte}
                 />

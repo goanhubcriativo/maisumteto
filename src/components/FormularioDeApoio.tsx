@@ -14,6 +14,7 @@
 // tropeçar.
 
 import { useState } from "react";
+import EscolherNumeros from "@/components/EscolherNumeros";
 import { useRouter } from "next/navigation";
 
 interface Props {
@@ -24,6 +25,9 @@ interface Props {
   precoCentavos: number | null;
   /** Quantas unidades ainda existem. Nulo = sem limite. */
   restante: number | null;
+  /** Quantos numeros a rifa tem no total. Liga a grade de escolha. */
+  estoqueTotal?: number | null;
+  limitePorPedido?: number | null;
   /** Botões de atalho para doação, em reais. */
   valoresSugeridos?: number[];
   corForte: string;
@@ -56,6 +60,8 @@ export default function FormularioDeApoio({
   tipo,
   precoCentavos,
   restante,
+  estoqueTotal,
+  limitePorPedido,
   valoresSugeridos = [20, 50, 100, 200],
   corForte,
 }: Props) {
@@ -65,13 +71,18 @@ export default function FormularioDeApoio({
   const [valor, setValor] = useState<number | null>(null);
   const [valorDigitado, setValorDigitado] = useState("");
   const [quantidade, setQuantidade] = useState(1);
+  // Rifa e escolha de numero, e nao compra por quantidade: a pessoa quer o 7,
+  // a data do aniversario, o numero da camisa.
+  const [numeros, setNumeros] = useState<number[]>([]);
+  const ehRifa = tipo === "RIFA" && (estoqueTotal ?? 0) > 0;
   const [telefone, setTelefone] = useState("");
   const [cpf, setCpf] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
   const maximo = restante ?? 50;
-  const total = valorLivre ? (valor ?? 0) : (precoCentavos ?? 0) * quantidade;
+  const quantos = ehRifa ? numeros.length : quantidade;
+  const total = valorLivre ? (valor ?? 0) : (precoCentavos ?? 0) * quantos;
 
   async function enviar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -90,7 +101,8 @@ export default function FormularioDeApoio({
           whatsapp: telefone,
           cpf,
           anonimo: dados.get("anonimo") === "on",
-          quantidade,
+          quantidade: quantos,
+          dados: ehRifa ? { numeros } : undefined,
           valorCentavos: valorLivre ? valor : undefined,
         }),
       });
@@ -157,6 +169,16 @@ export default function FormularioDeApoio({
               />
             </div>
           </label>
+        </div>
+      ) : ehRifa ? (
+        <div className="ap-bloco">
+          <EscolherNumeros
+            acaoId={acaoId}
+            total={estoqueTotal ?? 0}
+            limite={limitePorPedido}
+            corForte={corForte}
+            aoMudar={setNumeros}
+          />
         </div>
       ) : (
         <div className="ap-bloco">

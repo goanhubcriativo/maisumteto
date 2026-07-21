@@ -1245,3 +1245,51 @@ textarea.campo-entrada {
   flex-wrap: wrap;
   margin-bottom: 6px;
 }
+
+/* Os dois recortes reais da capa, lado a lado. */
+.recortes {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.recorte-nome {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(18, 48, 63, 0.55);
+}
+.recorte-janela {
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  background-size: cover;
+  cursor: crosshair;
+  /* Mesmo tratamento da pagina publica, pra previa nao mentir. */
+  filter: grayscale(1) contrast(1.06) brightness(0.92);
+  box-shadow: inset 0 0 0 1px rgba(18, 48, 63, 0.14);
+}
+.recorte-mira {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+.recorte-dica {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(18, 48, 63, 0.62);
+}
+
+@media (max-width: 640px) {
+  .recortes {
+    grid-template-columns: 1fr;
+  }
+}

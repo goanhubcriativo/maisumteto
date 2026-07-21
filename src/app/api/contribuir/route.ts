@@ -11,6 +11,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { numerosOcupados, reservarNumeros } from "@/lib/rifa";
 import { criarPagamentoPix, expiracaoISO } from "@/lib/mercadopago";
 import { buscarAcao } from "@/lib/repositorio";
 
@@ -119,6 +120,51 @@ export async function POST(req: NextRequest) {
     valorItens = precoUnitario * quantos;
   }
 
+  // Rifa: os numeros escolhidos mandam na quantidade e no preco.
+  //
+  // Nunca confiar na quantidade que o navegador enviou: quem escolheu tres
+  // numeros paga tres, e nao o que o corpo da requisicao disser.
+  const ehRifa = acao.tipo === "RIFA" && (acao.estoqueTotal ?? 0) > 0;
+  let numerosEscolhidos: number[] = [];
+
+  if (ehRifa) {
+    const crus = Array.isArray(dados.numeros) ? dados.numeros : [];
+    numerosEscolhidos = [
+      ...new Set(
+        crus
+          .map((n) => Math.floor(Number(n)))
+          .filter((n) => Number.isFinite(n) && n >= 1 && n <= (acao.estoqueTotal ?? 0))
+      ),
+    ];
+
+    if (numerosEscolhidos.length === 0) {
+      return NextResponse.json({ erro: "Escolha pelo menos um número." }, { status: 400 });
+    }
+    if (acao.limitePorPedido && numerosEscolhidos.length > acao.limitePorPedido) {
+      return NextResponse.json(
+        { erro: `Máximo de ${acao.limitePorPedido} números por pedido.` },
+        { status: 400 }
+      );
+    }
+
+    const jaLevados = await numerosOcupados(acao.id);
+    const conflito = numerosEscolhidos.filter((n) => jaLevados.includes(n));
+    if (conflito.length > 0) {
+      return NextResponse.json(
+        {
+          erro:
+            conflito.length === 1
+              ? `O número ${conflito[0]} acabou de ser levado. Escolha outro.`
+              : `Os números ${conflito.join(", ")} acabaram de ser levados. Escolha outros.`,
+        },
+        { status: 409 }
+      );
+    }
+
+    quantos = numerosEscolhidos.length;
+    valorItens = (precoUnitario ?? 0) * quantos;
+  }
+
   const pedido = await prisma.pedido.create({
     data: {
       campanhaId: acao.campanhaId,
@@ -142,6 +188,27 @@ export async function POST(req: NextRequest) {
       },
     },
   });
+
+  // A reserva vem DEPOIS do pedido porque ela aponta pra ele. Se algum numero
+  // escapou entre a conferencia e agora, o banco recusa e o pedido e desfeito:
+  // melhor mandar a pessoa escolher outro do que vender o mesmo numero duas
+  // vezes e descobrir no dia do sorteio.
+  if (ehRifa) {
+    const perdidos = await reservarNumeros(acao.id, pedido.id, numerosEscolhidos);
+    if (perdidos.length > 0) {
+      await prisma.pedido.delete({ where: { id: pedido.id } });
+      return NextResponse.json(
+        {
+          erro:
+            perdidos.length === 1
+              ? `O número ${perdidos[0]} acabou de ser levado. Escolha outro.`
+              : `Os números ${perdidos.join(", ")} acabaram de ser levados. Escolha outros.`,
+        },
+        { status: 409 }
+      );
+    }
+  }
+
 
   try {
     const pix = await criarPagamentoPix({

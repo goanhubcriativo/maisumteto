@@ -136,6 +136,13 @@ model Campanha {
   historia String? @db.Text // o texto longo da pagina
 
   capaUrl String?
+  /// Onde fica o assunto da foto, em porcentagem: "50% 30%".
+  ///
+  /// A capa e recortada de forma diferente no computador (bem deitada) e no
+  /// celular (quase quadrada). Sem um ponto de referencia, o recorte pega o
+  /// centro geometrico e corta justamente as pessoas, que costumam estar na
+  /// faixa de baixo da foto. Isso guarda o que precisa continuar visivel.
+  capaFoco String?
 
   // Ficha que aparece no alto da pagina publica.
   periodo           String? // "Dezembro de 2026"
@@ -226,6 +233,7 @@ model Acao {
   lancamentos Lancamento[]
   blocos      Bloco[]
   lances      Lance[]
+  numerosRifa NumeroRifa[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -292,6 +300,7 @@ model Pedido {
 
   itens       Item[]
   lancamentos Lancamento[]
+  numerosRifa NumeroRifa[]
 
   createdAt DateTime  @default(now())
   paidAt    DateTime?
@@ -564,4 +573,34 @@ model Imagem {
   nome   String?
 
   createdAt DateTime @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// NumeroRifa: qual numero e de quem.
+// ---------------------------------------------------------------------------
+
+// Existe por causa de UMA garantia: a chave unica (acaoId, numero).
+//
+// Conferir "esse numero esta livre?" e depois gravar nao basta. Duas pessoas
+// clicando no 7 ao mesmo tempo passariam as duas pela conferencia e as duas
+// levariam o 7. Com a chave unica, o banco recusa a segunda gravacao e a
+// segunda pessoa recebe um aviso, em vez de descobrir no dia do sorteio.
+//
+// O numero fica preso ao pedido, e nao ao pagamento: quem gerou o PIX segura o
+// numero enquanto o PIX vale. Se o pedido for cancelado ou o PIX vencer sem
+// pagamento, a reserva e liberada (ver src/lib/rifa.ts).
+model NumeroRifa {
+  id     String @id @default(cuid())
+  acaoId String
+  acao   Acao   @relation(fields: [acaoId], references: [id], onDelete: Cascade)
+
+  numero Int
+
+  pedidoId String
+  pedido   Pedido @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([acaoId, numero])
+  @@index([pedidoId])
 }

@@ -36,6 +36,8 @@ export interface AcaoNaVitrine {
   metaCentavos: number | null;
   /** Nulo quando a acao nao tem estoque (doacao, bolao). */
   estoqueTotal: number | null;
+  /** Teto de itens por pedido. Na rifa, quantos numeros cabem de uma vez. */
+  limitePorPedido: number | null;
   restante: number | null;
   disponivel: boolean;
   /** Por que nao da pra participar agora. Nulo quando da. */
@@ -154,6 +156,7 @@ export async function vitrineDaCampanha(slug: string) {
     liquidoCentavos: liquidoPorAcao.get(acao.id) ?? 0,
     metaCentavos: acao.metaCentavos,
     estoqueTotal: acao.estoqueTotal,
+    limitePorPedido: acao.limitePorPedido,
     ...avaliar(acao, vendidosPorAcao.get(acao.id) ?? 0, agora),
   }));
 

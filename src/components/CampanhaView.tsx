@@ -27,6 +27,7 @@ export interface DadosDaCampanha {
   resumo: string | null;
   historia: string | null;
   capaUrl: string | null;
+  capaFoco?: string | null;
   prazo: Date | null;
   /** O periodo da construcao, ex.: "Dezembro de 2026". */
   periodo?: string | null;
@@ -414,7 +415,10 @@ export default function CampanhaView({
         {campanha.capaUrl ? (
           <div
             className="capa-foto"
-            style={{ backgroundImage: `url(${JSON.stringify(campanha.capaUrl)})` }}
+            style={{
+              backgroundImage: `url(${JSON.stringify(campanha.capaUrl)})`,
+              backgroundPosition: campanha.capaFoco ?? "50% 50%",
+            }}
             role="img"
             aria-label="Foto da equipe de arrecadação"
           />
@@ -507,6 +511,21 @@ export default function CampanhaView({
             ))}
           </div>
 
+          {/* A legenda mora aqui, colada na barra que ela explica. Antes a
+              barra aparecia duas vezes na pagina, identica, com a legenda so na
+              segunda: quem via a primeira nao sabia o que eram as faixas. */}
+          {fatias.length > 0 && (
+            <div className="placar-legenda">
+              {fatias.map((f) => (
+                <span key={f.nome} className="placar-legenda-item">
+                  <span className="placar-legenda-cor" style={{ background: f.cor }} />
+                  <span className="placar-legenda-nome">{f.nome}</span>
+                  <strong>{formatarBRL(f.valor)}</strong>
+                </span>
+              ))}
+            </div>
+          )}
+
           <div className="placar-pes">
             <span>
               <strong>{resumo.apoiadores}</strong>{" "}
@@ -530,64 +549,6 @@ export default function CampanhaView({
 
       <main className="corpo">
         <div className="container">
-          {/* Uma figura, duas respostas: o comprimento diz quanto ja foi
-              arrecadado da meta, as fatias dizem de onde veio cada parte. */}
-          <section className="secao" id="arrecadacao">
-            <div className="secao-cabeca">
-              <h2 className="secao-titulo">De onde veio cada real</h2>
-              <p className="secao-intro">
-                Nenhum dinheiro aqui caiu do céu. Cada faixa é uma ação que alguém da
-                equipe organizou, e o tamanho dela é o que sobrou limpo para a casa,
-                depois do material e da taxa do PIX.
-              </p>
-            </div>
-
-            <div
-              className="grafico"
-              role="img"
-              aria-label={`${formatarBRL(arrecadado)} de ${formatarBRL(resumo.metaCentavos)}, divididos por ação`}
-            >
-              {fatias.map((f) => (
-                <div
-                  key={f.nome}
-                  className="grafico-fatia"
-                  style={{
-                    width: `${(f.valor / resumo.metaCentavos) * 100}%`,
-                    background: f.cor,
-                  }}
-                  title={`${f.nome}: ${formatarBRL(f.valor)}`}
-                />
-              ))}
-            </div>
-
-            <div className="grafico-regua">
-              <span>
-                <strong>{Math.floor(resumo.percentual)}%</strong> da meta
-              </span>
-              <span>
-                {falta > 0 ? (
-                  <>
-                    faltam <strong>{formatarBRL(falta)}</strong>
-                  </>
-                ) : (
-                  <strong>meta alcançada</strong>
-                )}
-              </span>
-            </div>
-
-            <div className="legenda">
-              {fatias.map((f) => (
-                <div key={f.nome} className="legenda-item">
-                  <span className="legenda-cor" style={{ background: f.cor }} />
-                  <span>
-                    <span className="legenda-nome">{f.nome}</span>
-                    <span className="legenda-valor">{formatarBRL(f.valor)}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </section>
-
           {/* Formas de ajudar, 4 por linha. */}
           <section className="secao" id="ajudar">
             <div className="secao-cabeca">

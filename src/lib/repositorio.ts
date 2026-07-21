@@ -147,6 +147,7 @@ export async function listarAcoes(campanhaId: string): Promise<AcaoDoPainel[]> {
     liquidoCentavos: liquidos.get(a.id) ?? 0,
     metaCentavos: a.metaCentavos,
     estoqueTotal: a.estoqueTotal,
+    limitePorPedido: a.limitePorPedido,
     abreEm: a.abreEm,
     fechaEm: a.fechaEm,
     cor: a.cor,
