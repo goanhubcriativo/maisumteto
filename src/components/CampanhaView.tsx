@@ -317,11 +317,10 @@ function CartaoAcao({
         {acao.disponivel && acao.restante !== null && acao.restante <= 10 && (
           <span>{acao.restante === 1 ? "resta 1" : `restam ${acao.restante}`}</span>
         )}
+        <span className="acao-mais">
+          {acao.disponivel ? "Participar" : "Ver como foi"}
+        </span>
       </div>
-
-      <span className="acao-mais">
-        {acao.disponivel ? "Participar" : "Ver como foi"}
-      </span>
     </>
   );
 
@@ -681,31 +680,22 @@ export default function CampanhaView({
         apoiadores={resumo.apoiadores}
       />
 
+      {/* Um rodape so: quem toca a arrecadacao de um lado, a entrada do painel
+          do outro. Dois rodapes empilhados era leitura minha, nao pedido. */}
       <footer className="rodape">
         <div className="container rodape-linha">
-          {campanha.equipeArrecadacao ? (
-            <span>
-              <em className="rodape-rotulo">Equipe de arrecadação</em>
-              <strong>{campanha.equipeArrecadacao}</strong>
-            </span>
-          ) : (
-            <span>
-              <strong>{campanha.sede ?? "TETO Paraná"}</strong>
-            </span>
-          )}
-        </div>
-      </footer>
+          <span className="rodape-equipe">
+            <em className="rodape-rotulo">Equipe de arrecadação</em>
+            <strong>
+              {campanha.equipeArrecadacao ?? campanha.sede ?? "TETO Paraná"}
+            </strong>
+          </span>
 
-      {/* Entrada do painel, sozinha numa barrinha propria. Fica por ultimo de
-          proposito: quem organiza precisa achar sem decorar endereco, e quem
-          doa nao pode se distrair com ela no meio do caminho. */}
-      <div className="barra-equipe">
-        <div className="container">
           <Link href="/entrar" className="rodape-entrar">
             Área da equipe
           </Link>
         </div>
-      </div>
+      </footer>
     </>
   );
 }

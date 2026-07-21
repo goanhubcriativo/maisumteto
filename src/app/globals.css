@@ -3275,3 +3275,242 @@ body {
     font-size: 12px;
   }
 }
+
+/* ===========================================================================
+   Acertos de acabamento, e a revisao do celular.
+=========================================================================== */
+
+/* 5) Cabecalho com respiro e menu em caixa normal. Caixa alta em quatro itens
+   longos vira um bloco cinza que ninguem le. */
+.topo {
+  padding: 18px 0;
+}
+.topo-nav a {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 4px 18px;
+}
+.filete {
+  height: 10px;
+}
+
+/* 4) A etiqueta da capa em azul, e nao em branco lavado. */
+.capa-etiqueta {
+  background: rgba(0, 146, 221, 0.28);
+  border-color: rgba(120, 205, 255, 0.55);
+  color: #d7f0ff;
+}
+
+/* 1) Respiro entre o fim da capa e a barra que sobe por cima dela. */
+.capa-corpo {
+  padding-bottom: 92px;
+}
+
+/* 3) O botao da capa mais baixo. */
+.capa-botoes .botao {
+  padding: 11px 20px;
+  font-size: 14.5px;
+}
+.capa-botoes .botao-selo::after {
+  width: 22px;
+  height: 22px;
+  font-size: 12px;
+}
+
+/* 6) Etiqueta a esquerda, botao a direita, na mesma linha. */
+.acao-pe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.acao-mais {
+  margin-top: 0;
+  margin-left: auto;
+}
+
+/* 7) Rodape unico, azul claro, equipe de um lado e painel do outro. */
+.rodape {
+  background: var(--acento);
+  color: #062534;
+  padding: 20px 0;
+}
+.rodape-linha {
+  justify-content: space-between;
+  text-align: left;
+  gap: 16px;
+}
+.rodape-rotulo {
+  color: rgba(6, 37, 52, 0.62);
+}
+.rodape-linha strong {
+  color: #062534;
+}
+.rodape-entrar {
+  font-size: 13px;
+  font-weight: 700;
+  color: #062534;
+  text-decoration: none;
+  border: 1px solid rgba(6, 37, 52, 0.35);
+  border-radius: 999px;
+  padding: 9px 18px;
+  white-space: nowrap;
+}
+.rodape-entrar:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+.barra-equipe {
+  display: none;
+}
+
+/* 8) O fechamento mais sutil. O verde nao existia na paleta e o valor em 40px
+   gritava mais que o pedido. */
+.fechamento-sobre {
+  color: var(--acento);
+}
+.fechamento-titulo {
+  font-size: 27px;
+  letter-spacing: -0.5px;
+  font-weight: 700;
+}
+.fechamento-texto {
+  font-size: 15.5px;
+}
+.fechamento-acoes .botao {
+  padding: 12px 22px;
+  font-size: 14.5px;
+}
+
+/* ---------------------------------------------------------------------------
+   9) O celular.
+
+   A pagina foi desenhada no monitor e o telefone herdou sobras: capa alta
+   demais, tipo grande demais, cartoes com padding de desktop e a barra de
+   arrecadacao espremida. Aqui ela e tratada como tela propria, e nao como
+   versao encolhida da outra.
+--------------------------------------------------------------------------- */
+
+@media (max-width: 760px) {
+  .filete {
+    height: 7px;
+  }
+  .topo {
+    padding: 12px 0;
+  }
+  .topo-linha {
+    gap: 12px;
+  }
+  .topo-logo img {
+    height: 22px;
+  }
+  .marca-texto {
+    font-size: 14px;
+  }
+
+  /* A capa deixa de ter altura fixa: no telefone ela so precisa caber o texto,
+     e 520px de altura empurravam a arrecadacao pra fora da primeira tela. */
+  .capa-corpo {
+    min-height: 0;
+    padding: 30px 0 58px;
+  }
+  .capa-titulo {
+    font-size: 30px;
+    line-height: 1.08;
+    letter-spacing: -0.6px;
+  }
+  .capa-etiqueta {
+    margin-bottom: 14px;
+    padding: 6px 12px;
+    letter-spacing: 0.1em;
+  }
+  .capa-periodo {
+    font-size: 14px;
+    max-width: none;
+  }
+  .capa-col-lado {
+    gap: 14px;
+  }
+  .capa-botoes {
+    width: 100%;
+    gap: 14px;
+  }
+  .capa-botoes .botao {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  /* A barra de arrecadacao ganha ar: era o bloco mais espremido do telefone. */
+  .placar-caixa {
+    margin-top: -34px;
+    padding: 18px 16px 16px;
+    border-radius: 16px;
+  }
+  .placar-topo {
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  .placar-valor {
+    font-size: 28px;
+  }
+  .placar-de {
+    font-size: 13px;
+  }
+  .placar-pct {
+    font-size: 20px;
+  }
+  .placar-pes {
+    font-size: 13px;
+    gap: 6px 16px;
+  }
+  .placar-legenda {
+    gap: 6px 16px;
+  }
+  .placar-legenda-item {
+    font-size: 13px;
+  }
+
+  /* Cartoes: padding de desktop deixava pouco espaco pro texto. */
+  .acao {
+    padding: 52px 16px 18px;
+    border-radius: 18px;
+  }
+  .acao-desc {
+    font-size: 14px;
+  }
+  .acao-pe {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .acoes-cabeca .secao-titulo {
+    font-size: 24px;
+  }
+  .secao-titulo {
+    font-size: 24px;
+    letter-spacing: -0.4px;
+  }
+  .secao {
+    margin-top: 40px;
+  }
+
+  /* Quem contribuiu: tres colunas num telefone e ilegivel. */
+  .pessoas {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .fechamento {
+    padding: 38px 0 40px;
+  }
+  .fechamento-titulo {
+    font-size: 22px;
+  }
+
+  .rodape-linha {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+}
