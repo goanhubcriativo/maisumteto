@@ -1209,6 +1209,19 @@ textarea.campo-entrada {
   font-weight: 800;
 }
 
+/* O contrario do aviso-salvo: o lançamento que nao entrou, e por que. */
+.aviso-ruim {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(179, 64, 44, 0.09);
+  border: 1px solid rgba(179, 64, 44, 0.3);
+  color: var(--vermelho);
+  font-size: 14.5px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
 /* Campo de foto com envio de arquivo. */
 .imagem-area {
   display: grid;

@@ -76,6 +76,7 @@ model Usuario {
   lancamentos Lancamento[]
   repasses    Repasse[]
   sessoes     Sessao[]
+  pedidosManuais Pedido[] @relation("PedidoRegistradoPor")
 
   createdAt DateTime @default(now())
 }
@@ -298,6 +299,20 @@ model Pedido {
   liquidoCentavos    Int? // o que caiu de fato na conta (netValue)
 
   status StatusPedido @default(PENDENTE)
+
+  // ---- Lancamento manual --------------------------------------------------
+  // A rifa vendida na rua, o dinheiro que entrou na mao. Metade do que uma
+  // equipe arrecada nunca passa pelo PIX, e sem isso o extrato conta so a
+  // metade que passou, ou seja, mente por omissao.
+  //
+  // Nasce PAGO: nao existe "aguardando pagamento" em dinheiro ja recebido.
+  manual Boolean @default(false)
+  /// Como o dinheiro chegou: "Dinheiro", "PIX direto na conta", "Transferencia".
+  formaManual String?
+  /// Quem, da equipe, registrou. E o que da nome a responsabilidade: numero
+  /// lancado na mao sem autor e numero que ninguem consegue conferir depois.
+  registradoPorId String?
+  registradoPor   Usuario? @relation("PedidoRegistradoPor", fields: [registradoPorId], references: [id], onDelete: SetNull)
 
   // Pagamento
   gatewayPagamentoId String?   @unique

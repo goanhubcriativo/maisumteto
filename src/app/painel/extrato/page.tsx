@@ -49,6 +49,9 @@ export default async function Extrato() {
       valorBrutoCentavos: true,
       taxaCentavos: true,
       liquidoCentavos: true,
+      manual: true,
+      formaManual: true,
+      registradoPor: { select: { nome: true } },
       itens: { select: { quantidade: true, acao: { select: { titulo: true } } } },
     },
   });
@@ -60,6 +63,11 @@ export default async function Extrato() {
   const taxa = pedidos.reduce((t, p) => t + (p.taxaCentavos ?? 0), 0);
   const liquido = pedidos.reduce((t, p) => t + (p.liquidoCentavos ?? p.valorBrutoCentavos), 0);
   const semTaxa = pedidos.filter((p) => p.taxaCentavos == null).length;
+
+  // O que entrou fora do site. Serve para conferir: o que NAO e manual tem que
+  // estar no extrato do banco, e o que e manual tem que estar com a equipe.
+  const manuais = pedidos.filter((p) => p.manual);
+  const manualCentavos = manuais.reduce((t, p) => t + p.valorBrutoCentavos, 0);
 
   return (
     <div className="painel-largura">
@@ -104,6 +112,14 @@ export default async function Extrato() {
         </div>
       </section>
 
+      {manuais.length > 0 && (
+        <p className="painel-intro" style={{ marginTop: 16 }}>
+          Deste total, <strong>{formatarBRL(manualCentavos)}</strong> entrou fora do site, em{" "}
+          {manuais.length === 1 ? "um lançamento manual" : `${manuais.length} lançamentos manuais`}
+          . O resto passou pelo PIX e tem que bater com o extrato do banco.
+        </p>
+      )}
+
       {semTaxa > 0 && (
         <p className="painel-intro" style={{ marginTop: 16 }}>
           {semTaxa === 1
@@ -133,7 +149,19 @@ export default async function Extrato() {
             <tbody>
               {pedidos.map((p) => (
                 <tr key={p.id}>
-                  <td>{quando(p.paidAt)}</td>
+                  <td>
+                    {quando(p.paidAt)}
+                    {/* Manual e PIX contam igual no dinheiro, mas nao se conferem
+                        igual: o PIX aparece no app do banco, o manual so existe
+                        porque alguem da equipe digitou. Quem confere precisa
+                        saber de qual dos dois se trata, e com quem falar. */}
+                    {p.manual && (
+                      <span className="tabela-nota">
+                        {p.formaManual ?? "Lançamento manual"}
+                        {p.registradoPor && `, por ${p.registradoPor.nome}`}
+                      </span>
+                    )}
+                  </td>
                   <td>
                     {p.nome}
                     {/* O anonimato vale para a PÁGINA PÚBLICA. Aqui a equipe
