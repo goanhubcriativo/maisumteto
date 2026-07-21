@@ -31,6 +31,14 @@ Toda acao, por baixo, produz a mesma coisa: um **Pedido** pago via PIX, com
 **Lancamento**. O tipo da acao muda a tela e as regras, nunca o caminho do
 dinheiro. E o que permite somar bolao com camisa na mesma barra de progresso.
 
+O dinheiro que entra **fora do site** (a rifa vendida na rua, a camisa paga em
+dinheiro) percorre exatamente esse mesmo caminho, pela tela da acao no painel:
+vira Pedido com Item e vira Lancamento, so que ja nasce PAGO, sem taxa de
+gateway, marcado como `manual` e com o nome de quem da equipe registrou. Ver
+`src/lib/manual.ts`. Dois caminhos separados de entrada de dinheiro seriam duas
+contabilidades pra conferir uma com a outra, e boa parte do que uma equipe
+arrecada nunca passa pelo PIX.
+
 O que e especifico de cada tipo (o placar do bolao, o numero da rifa, o tamanho
 da camisa) mora em `Item.dados` (Json). O que configura a acao (o premio da rifa,
 o local do jantar) mora em `Acao.config`. Nenhum dos dois vira coluna, senao a
