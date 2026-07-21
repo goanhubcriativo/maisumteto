@@ -390,23 +390,9 @@ export default function CampanhaView({
 
   return (
     <>
-      {/* Barra utilitaria, como a faixa verde do topo da referencia. */}
-      <div className="utilitaria">
-        <div className="container utilitaria-linha">
-          <span className="utilitaria-item">
-            <IconeCasa />
-            {campanha.sede ?? "TETO Paraná"}
-          </span>
-          {campanha.periodo && (
-            <span className="utilitaria-item utilitaria-some">
-              Construção em {campanha.periodo}
-            </span>
-          )}
-          <span className="utilitaria-fim">
-            {campanha.equipeArrecadacao ?? campanha.equipe.nome}
-          </span>
-        </div>
-      </div>
+      {/* Um filete de cor, so pra marcar o alto da pagina. Antes carregava
+          informacao que ja aparece embaixo, e competia com o cabecalho. */}
+      <div className="filete" aria-hidden="true" />
 
       <header className="topo">
         <div className="container topo-linha">
@@ -431,9 +417,6 @@ export default function CampanhaView({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo-teto.png" alt="TETO" />
             </span>
-            <a href="#ajudar" className="botao botao-acento botao-selo">
-              Quero doar
-            </a>
           </div>
         </div>
       </header>
@@ -470,45 +453,48 @@ export default function CampanhaView({
         )}
 
         <div className="container capa-corpo">
-          {resumo.apoiadores > 0 && (
-            <p className="capa-prova">
-              <span className="prova-bolhas" aria-hidden="true">
-                {apoiadoresRecentes.slice(0, 4).map((a) => (
-                  <span key={a.id} style={{ background: corDoNome(a.nome) }}>
-                    {a.anonimo ? "?" : a.nome.trim().charAt(0).toUpperCase()}
+          {/* Duas colunas ancoradas na base: o alto da foto fica livre, que e
+              onde costuma estar o rosto das pessoas. */}
+          <div className="capa-colunas">
+            <div className="capa-col">
+              <p className="capa-etiqueta">Campanha de arrecadação voluntária</p>
+              <h1 className="capa-titulo">{tituloComDestaque(campanha.titulo)}</h1>
+            </div>
+
+            <div className="capa-col capa-col-lado">
+              <p className="capa-periodo">
+                Arrecadação para a construção de casas
+                {campanha.periodo ? ` em ${campanha.periodo}` : ""}
+              </p>
+
+              {resumo.apoiadores > 0 && (
+                <p className="capa-prova">
+                  <span className="prova-bolhas" aria-hidden="true">
+                    {apoiadoresRecentes.slice(0, 4).map((a) => (
+                      <span key={a.id} style={{ background: corDoNome(a.nome) }}>
+                        {a.anonimo ? "?" : a.nome.trim().charAt(0).toUpperCase()}
+                      </span>
+                    ))}
                   </span>
-                ))}
-              </span>
-              <span>
-                <strong>{resumo.apoiadores}</strong>{" "}
-                {resumo.apoiadores === 1 ? "pessoa já doou" : "pessoas já doaram"}
-              </span>
-            </p>
-          )}
+                  <span>
+                    <strong>{resumo.apoiadores}</strong>{" "}
+                    {resumo.apoiadores === 1 ? "pessoa já doou" : "pessoas já doaram"}
+                  </span>
+                </p>
+              )}
 
-          <h1 className="capa-titulo">{tituloComDestaque(campanha.titulo)}</h1>
-
-          <p className="capa-linha">
-            {campanha.resumo ??
-              "Uma família vive hoje sobre chão de terra. Quando esta casa ficar de pé, ela dorme no seco, tranca a porta e recomeça."}
-          </p>
-
-          <div className="capa-botoes">
-            <a href="#ajudar" className="botao botao-acento botao-selo">
-              Quero doar
-            </a>
-
-            {/* O par "icone redondo + rotulo em duas linhas" e o telefone da
-                referencia. Aqui vira o quanto falta, que e o dado equivalente. */}
-            <span className="capa-aparte">
-              <span className="capa-aparte-marca" aria-hidden="true">
-                <IconeCasa />
-              </span>
-              <span className="capa-aparte-texto">
-                <em>Ainda faltam</em>
-                <strong>{formatarBRL(falta)}</strong>
-              </span>
-            </span>
+              <div className="capa-botoes">
+                <a href="#ajudar" className="botao botao-acento botao-selo">
+                  Quero doar
+                </a>
+                <span className="capa-aparte">
+                  <span className="capa-aparte-texto">
+                    <em>Ainda faltam</em>
+                    <strong>{formatarBRL(falta)}</strong>
+                  </span>
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -606,9 +592,7 @@ export default function CampanhaView({
                     Cada uma foi organizada pela equipe e paga o próprio custo antes de sobrar
                     para a casa. Os valores são o que já entrou limpo.
                   </p>
-                  <a href="#contribuiu" className="botao botao-acento botao-selo botao-pequeno">
-                    Ver quem já entrou
-                  </a>
+                  <p className="acoes-instrucao">Escolha como participar</p>
                 </div>
 
                 {vitrine.map((acao, i) => (

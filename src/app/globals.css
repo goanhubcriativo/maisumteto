@@ -3006,3 +3006,157 @@ body {
     animation: none;
   }
 }
+
+/* ===========================================================================
+   Ajustes: filete no topo, capa em duas colunas, fita menor, botao pra dentro.
+=========================================================================== */
+
+/* O filete substitui a barra utilitaria. Ela carregava informacao que ja
+   aparece embaixo e competia com o cabecalho; agora e so um detalhe de cor. */
+.filete {
+  height: 6px;
+  background: var(--acento);
+}
+.utilitaria,
+.utilitaria-linha {
+  display: none;
+}
+
+/* --- A capa em duas colunas -------------------------------------------- */
+
+/* Altura fixa: a area da foto passa a ser sempre a mesma, entao a equipe
+   enquadra uma vez e vale pra qualquer campanha. E o conteudo fica ancorado na
+   BASE, deixando o alto da foto livre, que e onde estao os rostos. */
+.capa-corpo {
+  display: flex;
+  align-items: flex-end;
+  min-height: 520px;
+  padding: 48px 0 44px;
+}
+.capa-colunas {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 30px 56px;
+  align-items: end;
+  width: 100%;
+}
+.capa-col-lado {
+  display: grid;
+  gap: 16px;
+  justify-items: start;
+}
+
+.capa-etiqueta {
+  display: inline-block;
+  margin: 0 0 18px;
+  padding: 8px 15px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.capa-titulo {
+  margin: 0;
+}
+.capa-periodo {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.78);
+}
+.capa-prova {
+  margin: 0;
+}
+.capa-botoes {
+  gap: 18px;
+}
+
+/* --- A fita: menor, contida, com respiro ate o titulo ------------------- */
+
+/* Ela vazava pra cima dos cartoes vizinhos. Agora o cartao recorta, entao a
+   fita termina rente a borda em vez de invadir o vizinho. Isso so foi possivel
+   porque o botao saiu de fora do cartao. */
+.acao {
+  overflow: hidden;
+  /* Folga entre a fita e o titulo. Com 46px sobravam 9px de respiro, e a fita
+     parecia grudada no nome da acao. */
+  padding-top: 58px;
+}
+.fita {
+  top: 12px;
+  left: -14px;
+  right: -14px;
+  height: 20px;
+  border-radius: 0;
+}
+.fita-item {
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  padding: 0 8px;
+}
+.fita-item::after {
+  margin-left: 8px;
+  font-size: 8px;
+}
+
+/* --- O botao do cartao volta pra dentro -------------------------------- */
+
+/* Pendurado pra fora ele obrigava o cartao a nao recortar nada, o que era a
+   causa da fita invadir o vizinho. Dentro, discreto, resolve os dois. */
+.acao-mais {
+  position: static;
+  align-self: flex-start;
+  margin-top: 16px;
+  padding: 0;
+  background: none !important;
+  box-shadow: none !important;
+  border-radius: 0;
+  color: var(--acao-forte);
+  font-size: 14px;
+  font-weight: 700;
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 2px;
+}
+.acao-tom-cor .acao-mais {
+  color: #fff;
+}
+.acao:hover .acao-mais {
+  opacity: 0.75;
+}
+
+/* A instrucao no lugar do botao que levava pra outra secao. */
+.acoes-instrucao {
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--teto);
+}
+
+@media (max-width: 900px) {
+  .capa-corpo {
+    min-height: 0;
+    padding: 34px 0 36px;
+  }
+  .capa-colunas {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .capa-etiqueta {
+    font-size: 12px;
+  }
+  /* A fita fica FORA do piso de 12px de propósito: ela é decorativa, está
+     marcada como oculta para leitor de tela e repete a mesma palavra sem
+     parar. Aumentar o corpo dela engordaria a tarja e desfaria o "fininho"
+     que era o pedido. Nenhuma informação existe só ali: o tipo da ação
+     aparece de novo na etiqueta, em tamanho de leitura. */
+}
