@@ -2837,3 +2837,80 @@ body {
     transform: none;
   }
 }
+
+/* --- Toda acao e um bloco macico na cor dela ---------------------------- */
+
+/* Encerrada e esgotada ficavam cinza, e a grade perdia justamente a cor da
+   acao que mais rendeu. Agora elas MANTEM a cor, so que rebaixada: continua
+   claro que acabou, sem apagar a identidade da acao. A distincao passa a ser
+   de intensidade, e nao de presenca ou ausencia de cor. */
+.acao.indisponivel {
+  background: var(--acao-forte);
+  opacity: 0.72;
+  box-shadow: none;
+}
+.acao.indisponivel .acao-titulo,
+.acao.indisponivel .acao-preco {
+  color: #fff;
+}
+.acao.indisponivel .acao-desc,
+.acao.indisponivel .acao-pe {
+  color: rgba(255, 255, 255, 0.82);
+}
+.acao.indisponivel .acao-icone {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: transparent;
+  color: #fff;
+  opacity: 1;
+}
+.acao.indisponivel .acao-barra {
+  background: rgba(255, 255, 255, 0.25);
+}
+.acao.indisponivel .acao-barra-fill {
+  background: #fff;
+}
+.acao.indisponivel .etiqueta {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+/* Em breve: a cor aparece por baixo do borrado, entao a pessoa ja reconhece de
+   que acao se trata antes mesmo de abrir. */
+.acao.em-breve {
+  background: var(--acao-forte);
+}
+.acao.em-breve .acao-titulo,
+.acao.em-breve .acao-preco {
+  color: #fff;
+}
+.acao.em-breve .acao-desc {
+  color: rgba(255, 255, 255, 0.85);
+}
+.acao.em-breve .acao-icone {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+/* A pilula do cartao: azul aceso com texto ESCURO.
+
+   Com texto branco ela ficava em 3,41:1, abaixo do minimo de 4,5:1 para texto
+   pequeno. Escurecer o fundo resolveria o contraste, mas ai ela sumiria dentro
+   do cartao de doacao, que ja e azul escuro. Texto escuro sobre o azul aceso
+   passa em 5:1 e mantem a pilula visivel sobre QUALQUER cor de cartao. E o
+   mesmo tratamento do botao do cabecalho. */
+.acao-mais,
+.acao-tom-claro .acao-mais,
+.acao-tom-cor .acao-mais,
+.acao-tom-escuro .acao-mais {
+  background: var(--teto);
+  color: #062534;
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.9),
+    0 6px 16px rgba(6, 37, 52, 0.28);
+}
+.acao-mais::after {
+  opacity: 0.7;
+}
+.acao:hover .acao-mais {
+  background: #2aa8e8;
+}

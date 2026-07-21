@@ -223,20 +223,19 @@ function CartaoAcao({
   acao,
   campanhaSlug,
   faltaNoContrato,
-  indice,
 }: {
   acao: AcaoNaVitrine;
   campanhaSlug: string;
   faltaNoContrato: number;
-  /** Posicao na grade. Define o tom do cartao: claro, cor cheia ou escuro. */
-  indice: number;
 }) {
   const regua = reguaDaAcao(acao, faltaNoContrato);
   const aindaVaiAbrir = acao.motivo === "AINDA_NAO_ABRIU";
 
-  // O tom alterna como na referencia. A COR de cada tom continua saindo da
-  // acao, entao o elo "esse dinheiro veio dali" com o grafico nao se perde.
-  const tom = ["acao-tom-claro", "acao-tom-cor", "acao-tom-escuro"][indice % 3];
+  // TODA acao e bloco macico na cor dela. Alternar claro / cor / escuro deixava
+  // a grade sem cor de verdade, porque o tom forte caia justamente na acao
+  // encerrada, que ja e apagada por regra. E a cor cheia e o que amarra o
+  // cartao a fatia dele na barra de arrecadacao.
+  const tom = "acao-tom-cor";
 
   const conteudo = (
     <>
@@ -565,25 +564,15 @@ export default function CampanhaView({
               <div className="vazio">A equipe ainda está montando as ações desta campanha.</div>
             ) : (
               <div className="acoes">
-                {/* O tom forte vai pras acoes VIVAS. Distribuir por posicao crua
-                    faria a cor cheia cair numa acao encerrada, que ja e cinza
-                    por regra, e a grade ficaria sem nenhuma cor de verdade. */}
-                {(() => {
-                  let vivas = -1;
-                  return vitrine.map((acao, i) => {
-                    if (acao.disponivel) vivas++;
-                    return (
+                {vitrine.map((acao, i) => (
                   <Revelar key={acao.id} atraso={Math.min(i * 70, 420)} className="acao-berco">
                     <CartaoAcao
                       acao={acao}
                       campanhaSlug={campanha.slug}
                       faltaNoContrato={falta}
-                      indice={acao.disponivel ? vivas + 1 : 0}
                     />
                   </Revelar>
-                    );
-                  });
-                })()}
+                ))}
               </div>
             )}
           </section>
