@@ -1293,3 +1293,51 @@ textarea.campo-entrada {
     grid-template-columns: 1fr;
   }
 }
+
+/* Tabela do extrato. Rola na horizontal em telas estreitas em vez de espremer
+   oito colunas: coluna de R$ quebrada em duas linhas e ilegivel. */
+.tabela-rolo {
+  margin-top: 22px;
+  overflow-x: auto;
+  border: 1px solid rgba(18, 48, 63, 0.12);
+  border-radius: 12px;
+  background: #fff;
+}
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 860px;
+}
+.tabela th {
+  text-align: left;
+  padding: 12px 14px;
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(18, 48, 63, 0.55);
+  border-bottom: 1px solid rgba(18, 48, 63, 0.12);
+  white-space: nowrap;
+}
+.tabela td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(18, 48, 63, 0.07);
+  vertical-align: top;
+}
+.tabela tr:last-child td {
+  border-bottom: none;
+}
+.tabela .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tabela .forte {
+  font-weight: 700;
+}
+.tabela-nota {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: rgba(18, 48, 63, 0.5);
+}
