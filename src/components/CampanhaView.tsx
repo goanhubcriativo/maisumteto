@@ -407,8 +407,9 @@ export default function CampanhaView({
           </Link>
 
           <nav className="topo-nav">
-            <a href="#ajudar">Formas de ajudar</a>
-              <a href="#sobre-teto">Sobre a Teto</a>
+            <a href="#sobre-teto">Sobre a Teto</a>
+            <a href="#arrecadacao">Sobre a arrecadação</a>
+            <a href="#ajudar">Como ajudar</a>
             <a href="#contribuiu">Quem contribuiu</a>
           </nav>
 
@@ -502,7 +503,7 @@ export default function CampanhaView({
       {/* A barra de arrecadacao sobe POR CIMA da capa. Ela e o numero que
           decide se a pessoa doa, entao nao pode ficar perdida no meio da
           pagina: fica na emenda, onde o olho ja esta. */}
-      <section className="placar">
+      <section className="placar" id="arrecadacao">
         <div className="container placar-caixa">
           <div className="placar-topo">
             <div className="placar-forte">
@@ -682,19 +683,29 @@ export default function CampanhaView({
 
       <footer className="rodape">
         <div className="container rodape-linha">
-          <span>
-            <strong>{campanha.equipe.nome}</strong> · {campanha.sede ?? "TETO Paraná"}
-          </span>
-          <span className="rodape-links">
-            <span>Pagamentos por PIX · o extrato de cada ação é público</span>
-            {/* Entrada do painel. Fica no rodapé de propósito: quem organiza
-                precisa achar sem decorar endereço, e quem doa não se distrai. */}
-            <Link href="/entrar" className="rodape-entrar">
-              Área da equipe
-            </Link>
-          </span>
+          {campanha.equipeArrecadacao ? (
+            <span>
+              <em className="rodape-rotulo">Equipe de arrecadação</em>
+              <strong>{campanha.equipeArrecadacao}</strong>
+            </span>
+          ) : (
+            <span>
+              <strong>{campanha.sede ?? "TETO Paraná"}</strong>
+            </span>
+          )}
         </div>
       </footer>
+
+      {/* Entrada do painel, sozinha numa barrinha propria. Fica por ultimo de
+          proposito: quem organiza precisa achar sem decorar endereco, e quem
+          doa nao pode se distrair com ela no meio do caminho. */}
+      <div className="barra-equipe">
+        <div className="container">
+          <Link href="/entrar" className="rodape-entrar">
+            Área da equipe
+          </Link>
+        </div>
+      </div>
     </>
   );
 }
