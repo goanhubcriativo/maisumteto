@@ -27,7 +27,10 @@ export interface DadosDaCampanha {
   titulo: string;
   historia: string | null;
   capaUrl: string | null;
+  /** Encaixe da foto no quadro do computador ("50% 30%"). */
   capaFoco?: string | null;
+  /** Encaixe no quadro do celular. Vazio: usa o do computador. */
+  capaFocoMobile?: string | null;
   prazo: Date | null;
   /** O periodo da construcao, ex.: "Dezembro de 2026". */
   periodo?: string | null;
@@ -270,7 +273,10 @@ function CartaoAcao({
       {acao.capaUrl ? (
         <span
           className="acao-capa"
-          style={{ backgroundImage: `url(${JSON.stringify(acao.capaUrl)})` }}
+          style={{
+            backgroundImage: `url(${JSON.stringify(acao.capaUrl)})`,
+            backgroundPosition: acao.capaFoco ?? "50% 50%",
+          }}
           aria-hidden="true"
         >
           <span className="acao-icone acao-icone-sobre">
@@ -432,23 +438,20 @@ export default function CampanhaView({
         {campanha.capaUrl ? (
           <div
             className="capa-foto"
-            style={{
-              backgroundImage: `url(${JSON.stringify(campanha.capaUrl)})`,
-              backgroundPosition: campanha.capaFoco ?? "50% 50%",
-            }}
+            style={
+              {
+                backgroundImage: `url(${JSON.stringify(campanha.capaUrl)})`,
+                // Um encaixe para cada quadro. O CSS escolhe qual vale pelo
+                // tamanho da tela (ver .capa-foto em globals.css).
+                "--foco-desktop": campanha.capaFoco ?? "50% 50%",
+                "--foco-mobile": campanha.capaFocoMobile ?? campanha.capaFoco ?? "50% 50%",
+              } as React.CSSProperties
+            }
             role="img"
             aria-label="Foto da equipe de arrecadação"
           />
         ) : (
-          <div className="capa-foto capa-foto-vazia" aria-hidden="true">
-            <svg viewBox="0 0 240 180" fill="none" stroke="#fff" strokeWidth="2.5">
-              <path d="M30 92 L120 30 L210 92" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M52 84 V150 H188 V84" strokeLinecap="round" strokeLinejoin="round" />
-              <rect x="104" y="106" width="32" height="44" rx="2" />
-              <rect x="146" y="102" width="28" height="24" rx="2" />
-              <path d="M20 150 H220" strokeLinecap="round" opacity=".5" />
-            </svg>
-          </div>
+          <div className="capa-foto capa-foto-vazia" aria-hidden="true" />
         )}
 
         <div className="container capa-corpo">

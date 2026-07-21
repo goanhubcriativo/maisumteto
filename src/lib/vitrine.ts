@@ -47,6 +47,8 @@ export interface AcaoNaVitrine {
   /** Id da cor na paleta (src/lib/paleta.ts). */
   cor?: string | null;
   capaUrl?: string | null;
+  /** Como a foto foi encaixada no quadro do cartao ("50% 30%"). */
+  capaFoco?: string | null;
 }
 
 /**

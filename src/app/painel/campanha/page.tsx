@@ -14,7 +14,7 @@ import {
 import { paraCentavos } from "@/lib/dinheiro";
 import type { TipoBloco } from "@/lib/blocos";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
-import CampoDeImagem from "@/components/CampoDeImagem";
+import CampoDeImagem, { QUADROS_DA_CAPA } from "@/components/CampoDeImagem";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +70,7 @@ export default async function EditarCampanha({
       sede: String(dados.get("sede") ?? "").trim() || null,
       capaUrl: String(dados.get("capa") ?? "").trim() || null,
       capaFoco: String(dados.get("capaFoco") ?? "").trim() || null,
+      capaFocoMobile: String(dados.get("capaFocoMobile") ?? "").trim() || null,
       ...(meta && meta > 0 ? { metaCentavos: meta } : {}),
     });
 
@@ -159,9 +160,12 @@ export default async function EditarCampanha({
           <CampoDeImagem
             name="capa"
             valorInicial={campanha.capaUrl}
-            focoInicial={campanha.capaFoco}
+            quadros={QUADROS_DA_CAPA.map((q) => ({
+              ...q,
+              valorInicial: q.chave === "Mobile" ? campanha.capaFocoMobile : campanha.capaFoco,
+            }))}
             rotulo="Foto de capa"
-            ajuda="Aparece no topo da página, em preto e branco com um véu azul por cima. Foto deitada e larga funciona melhor. Sem foto, o topo usa o desenho da casa."
+            ajuda="Aparece no topo da página, em preto e branco com um véu azul por cima. Foto deitada e larga funciona melhor. Sem foto, o topo fica azul liso."
           />
 
           <label className="campo">

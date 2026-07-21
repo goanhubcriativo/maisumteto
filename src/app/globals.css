@@ -2560,6 +2560,22 @@ body {
   /* A mascara lateral sai: agora a foto vale a largura toda. */
   -webkit-mask-image: none;
   mask-image: none;
+  /* O encaixe vem em duas variaveis, escritas em linha pelo servidor. Cada
+     quadro foi arrastado por conta propria no painel, porque o recorte deitado
+     e o quase-quadrado nao cabem no mesmo ponto. */
+  background-position: var(--foco-desktop, 50% 50%);
+}
+@media (max-width: 900px) {
+  .capa-foto {
+    background-position: var(--foco-mobile, var(--foco-desktop, 50% 50%));
+  }
+}
+
+/* Sem foto, o topo e azul liso. Nada de casa desenhada: o desenho ocupava o
+   lugar da foto de verdade e virava enfeite de espaco vazio. */
+.capa-foto-vazia {
+  background: var(--teto);
+  filter: none;
 }
 
 /* O veu azul, por cima da foto e por baixo do texto. Dois passes: o azul da
@@ -2577,10 +2593,6 @@ body {
 .capa-corpo {
   z-index: 2;
 }
-.capa-foto-vazia {
-  filter: none;
-}
-
 /* --- 6) A barra de arrecadacao, por cima da capa ------------------------ */
 
 .placar {

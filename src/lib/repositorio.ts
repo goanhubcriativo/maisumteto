@@ -152,6 +152,7 @@ export async function listarAcoes(campanhaId: string): Promise<AcaoDoPainel[]> {
     fechaEm: a.fechaEm,
     cor: a.cor,
     capaUrl: a.capaUrl,
+    capaFoco: a.capaFoco,
     config: (a.config as Record<string, unknown>) ?? {},
     custoUnitarioCentavos: a.custoUnitarioCentavos,
     criadaEm: a.createdAt,

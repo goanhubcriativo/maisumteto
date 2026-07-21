@@ -1257,14 +1257,19 @@ textarea.campo-entrada {
   margin-bottom: 6px;
 }
 
-/* Os dois recortes reais da capa, lado a lado. */
-.recortes {
+/* Os quadros reais da capa, lado a lado. O quadro nao muda de tamanho: quem
+   se move e a foto dentro dele. */
+.quadros {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 12px;
   align-items: start;
 }
-.recorte-nome {
+/* Um quadro so ocupa a largura toda em vez de esticar sozinho na esquerda. */
+.quadros:has(> .quadro:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.quadro-nome {
   display: block;
   margin-bottom: 6px;
   font-size: 11.5px;
@@ -1273,34 +1278,33 @@ textarea.campo-entrada {
   text-transform: uppercase;
   color: rgba(18, 48, 63, 0.55);
 }
-.recorte-janela {
+.quadro-janela {
   position: relative;
   width: 100%;
   border-radius: 8px;
   background-size: cover;
-  cursor: crosshair;
+  background-repeat: no-repeat;
+  cursor: grab;
+  touch-action: none; /* senao o dedo rola a pagina em vez de arrastar a foto */
   /* Mesmo tratamento da pagina publica, pra previa nao mentir. */
   filter: grayscale(1) contrast(1.06) brightness(0.92);
   box-shadow: inset 0 0 0 1px rgba(18, 48, 63, 0.14);
 }
-.recorte-mira {
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  margin: -9px 0 0 -9px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45);
-  pointer-events: none;
+.quadro-janela.pegando {
+  cursor: grabbing;
 }
-.recorte-dica {
+.quadro-janela:focus-visible {
+  outline: 2px solid var(--teto);
+  outline-offset: 2px;
+}
+.quadro-dica {
   margin: 0;
   font-size: 13px;
   color: rgba(18, 48, 63, 0.62);
 }
 
 @media (max-width: 640px) {
-  .recortes {
+  .quadros {
     grid-template-columns: 1fr;
   }
 }

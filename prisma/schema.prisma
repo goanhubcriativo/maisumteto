@@ -136,13 +136,19 @@ model Campanha {
   historia String? @db.Text // o texto longo da pagina
 
   capaUrl String?
-  /// Onde fica o assunto da foto, em porcentagem: "50% 30%".
+  /// Como a foto foi encaixada no quadro do COMPUTADOR, em porcentagem: "50% 30%".
   ///
   /// A capa e recortada de forma diferente no computador (bem deitada) e no
   /// celular (quase quadrada). Sem um ponto de referencia, o recorte pega o
   /// centro geometrico e corta justamente as pessoas, que costumam estar na
   /// faixa de baixo da foto. Isso guarda o que precisa continuar visivel.
   capaFoco String?
+  /// O mesmo, para o quadro do CELULAR, encaixado de forma independente.
+  ///
+  /// Sao dois quadros de proporcao muito diferente: o encaixe que salva a foto
+  /// no deitado costuma cortar cabeca no quase-quadrado. Um valor so servia mal
+  /// aos dois, entao cada quadro guarda o seu. Vazio: usa o do computador.
+  capaFocoMobile String?
 
   // Ficha que aparece no alto da pagina publica.
   periodo           String? // "Dezembro de 2026"
@@ -191,6 +197,8 @@ model Acao {
   titulo String
   descricao String? @db.Text
   capaUrl   String?
+  /// Como a foto foi encaixada no quadro do cartao desta acao ("50% 30%").
+  capaFoco  String?
 
   status StatusAcao @default(RASCUNHO)
 

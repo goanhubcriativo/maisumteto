@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import CampoDeImagem from "@/components/CampoDeImagem";
+import CampoDeImagem, { QUADRO_DA_ACAO } from "@/components/CampoDeImagem";
 import { revalidatePath } from "next/cache";
 import {
   adicionarBloco,
@@ -118,6 +118,7 @@ export default async function EditarAcao({
       metaCentavos: paraCentavos(String(dados.get("meta") ?? "")),
       cor: String(dados.get("cor") ?? "") || undefined,
       capaUrl: String(dados.get("capa") ?? "").trim() || null,
+      capaFoco: String(dados.get("capaFoco") ?? "").trim() || null,
       abreEm: dataOuNulo("abreEm"),
       fechaEm: dataOuNulo("fechaEm"),
     });
@@ -356,6 +357,7 @@ export default async function EditarAcao({
           <CampoDeImagem
             name="capa"
             valorInicial={acao.capaUrl}
+            quadros={QUADRO_DA_ACAO.map((q) => ({ ...q, valorInicial: acao.capaFoco }))}
             rotulo="Foto da ação"
             ajuda="Aparece no alto do cartão desta ação, em preto e branco com um véu azul."
           />
