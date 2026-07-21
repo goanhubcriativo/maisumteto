@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import CampoDeImagem, { QUADRO_DA_ACAO } from "@/components/CampoDeImagem";
+import CampoDeImagem from "@/components/CampoDeImagem";
+import { QUADRO_DA_ACAO } from "@/lib/quadros";
 import { revalidatePath } from "next/cache";
 import {
   adicionarBloco,

@@ -14,7 +14,8 @@ import {
 import { paraCentavos } from "@/lib/dinheiro";
 import type { TipoBloco } from "@/lib/blocos";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
-import CampoDeImagem, { QUADROS_DA_CAPA } from "@/components/CampoDeImagem";
+import CampoDeImagem from "@/components/CampoDeImagem";
+import { QUADROS_DA_CAPA } from "@/lib/quadros";
 
 export const dynamic = "force-dynamic";
 

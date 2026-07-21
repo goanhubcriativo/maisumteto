@@ -20,27 +20,12 @@
 // celular.
 
 import { useEffect, useRef, useState } from "react";
+import type { Quadro } from "@/lib/quadros";
 
-/** Um quadro de recorte: o nome que aparece e a proporção real da página. */
-export interface Quadro {
-  /** Vira o nome do campo enviado: `${name}Foco${chave}`. */
-  chave: string;
-  nome: string;
-  /** Proporção no formato do CSS aspect-ratio, ex.: "1425 / 554". */
-  proporcao: string;
-  valorInicial?: string | null;
-}
-
-/** Os recortes de verdade da capa da campanha, medidos na página publicada. */
-export const QUADROS_DA_CAPA: Omit<Quadro, "valorInicial">[] = [
-  { chave: "", nome: "Computador", proporcao: "1425 / 554" },
-  { chave: "Mobile", nome: "Celular", proporcao: "375 / 442" },
-];
-
-/** O recorte do cartão de uma ação na grade da página. */
-export const QUADRO_DA_ACAO: Omit<Quadro, "valorInicial">[] = [
-  { chave: "", nome: "Cartão da ação", proporcao: "340 / 132" },
-];
+// As constantes QUADROS_DA_CAPA e QUADRO_DA_ACAO moram em src/lib/quadros.ts,
+// e nao aqui: valor comum exportado de um modulo "use client" nao chega inteiro
+// no server component que importa. So o TIPO vem de la, que e apagado na
+// compilacao e nao cruza fronteira nenhuma.
 
 interface Props {
   /** Nome do campo enviado no formulário. O valor é a URL da imagem. */
