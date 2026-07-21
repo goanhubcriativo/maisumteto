@@ -2862,104 +2862,6 @@ body {
   background: #2aa8e8;
 }
 
-/* --- A faixa corrida ---------------------------------------------------- */
-
-/* Duas camadas inclinadas em sentidos opostos, atravessando a pagina inteira.
-   A de tras aparece so nas pontas, como sombra colorida da da frente.
-
-   A inclinacao obriga as camadas a serem MAIS LARGAS que a tela: girar um
-   retangulo do tamanho exato deixaria triangulos vazios nos cantos. Dai o
-   width 106% com deslocamento de -3%. */
-.faixa {
-  position: relative;
-  height: 108px;
-  margin: 44px 0;
-  overflow: hidden;
-}
-.faixa-camada {
-  position: absolute;
-  left: -3%;
-  width: 106%;
-  height: 54px;
-  top: 27px;
-  display: flex;
-  align-items: center;
-}
-.faixa-fundo {
-  background: var(--azul-fundo);
-  transform: rotate(-1.6deg);
-}
-.faixa-frente {
-  background: var(--teto);
-  transform: rotate(1.4deg);
-  overflow: hidden;
-}
-
-.faixa-trilho {
-  display: flex;
-  width: max-content;
-  animation: faixa-correr 26s linear infinite;
-}
-.faixa-metade {
-  display: flex;
-  align-items: center;
-}
-.faixa-item {
-  display: inline-flex;
-  align-items: center;
-  padding: 0 26px;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  color: #fff;
-}
-/* O asterisco da identidade separa os itens, como na referencia. */
-.faixa-item::after {
-  content: "✳";
-  margin-left: 26px;
-  font-size: 14px;
-  opacity: 0.7;
-}
-
-/* Desloca exatamente METADE do trilho: a segunda copia termina onde a primeira
-   comecou, entao o laco nao tem emenda visivel. */
-@keyframes faixa-correr {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@media (max-width: 640px) {
-  .faixa {
-    height: 92px;
-    margin: 32px 0;
-  }
-  .faixa-camada {
-    height: 46px;
-    top: 23px;
-  }
-  .faixa-item {
-    font-size: 15px;
-    padding: 0 18px;
-  }
-  .faixa-item::after {
-    margin-left: 18px;
-  }
-}
-
-/* Movimento constante na tela inteira incomoda quem pediu menos animacao, e
-   uma faixa que corre sozinha e exatamente o caso. Parada, ela continua
-   cumprindo o papel de separar e anunciar. */
-@media (prefers-reduced-motion: reduce) {
-  .faixa-trilho {
-    animation: none;
-  }
-}
-
 /* --- Formas de ajudar: o titulo mora na grade -------------------------- */
 
 /* Como na referencia: a primeira celula nao e um cartao, e o cabecalho da
@@ -3020,5 +2922,87 @@ body {
   }
   .acoes-cabeca .secao-titulo {
     font-size: 26px;
+  }
+}
+
+/* --- A fitinha no topo do cartao --------------------------------------- */
+
+/* Fina, torta, atravessando o topo e passando um pouco das bordas: e o que faz
+   ela parecer pregada POR CIMA da caixa, e nao mais uma linha dentro dela.
+   Carrega o tipo da acao correndo de lado, entao a grade ganha movimento sem
+   precisar colorir o cartao inteiro. */
+.acao {
+  position: relative;
+  padding-top: 40px;
+}
+.fita {
+  position: absolute;
+  top: 13px;
+  left: -9px;
+  right: -9px;
+  height: 24px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  transform: rotate(-1.5deg);
+  background: var(--acao-forte);
+  border-radius: 3px;
+}
+
+/* No cartao macico a fita inverte: fundo claro e texto na cor da acao. Da
+   mesma cor do cartao ela sumiria. */
+.acao-tom-cor .fita {
+  background: #fff;
+}
+.acao-tom-cor .fita-item {
+  color: var(--acao-forte);
+}
+
+.fita-trilho {
+  display: flex;
+  width: max-content;
+  animation: fita-correr 18s linear infinite;
+}
+.fita-metade {
+  display: flex;
+  align-items: center;
+}
+.fita-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+  color: #fff;
+}
+.fita-item::after {
+  content: "✳";
+  margin-left: 9px;
+  font-size: 9px;
+  opacity: 0.75;
+}
+
+/* Desloca METADE do trilho: a segunda copia termina onde a primeira comecou,
+   entao o laco nao tem emenda. */
+@keyframes fita-correr {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* A foto da acao comeca abaixo da fita. */
+.acao-capa {
+  margin-top: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fita-trilho {
+    animation: none;
   }
 }

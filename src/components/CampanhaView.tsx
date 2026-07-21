@@ -15,7 +15,6 @@ import Blocos from "@/components/Blocos";
 import Revelar from "@/components/Revelar";
 import ChamadaFinal from "@/components/ChamadaFinal";
 import Numero from "@/components/Numero";
-import FaixaCorrida from "@/components/FaixaCorrida";
 import { corDoNome } from "@/lib/cor-do-nome";
 import ListaDeApoiadores from "@/components/ListaDeApoiadores";
 import { corDe, estiloDaCor } from "@/lib/paleta";
@@ -239,8 +238,34 @@ function CartaoAcao({
   // deixou a grade pesada e sem hierarquia: quando tudo grita, nada chama.
   const tom = destacado ? "acao-tom-cor" : "acao-tom-claro";
 
+  const rotulo = (rotuloDoTipo[acao.tipo] ?? "Ação").toUpperCase();
+
+  /* A faixinha torta atravessando o topo do cartao, com o tipo da acao correndo
+     de lado. Passa das bordas de proposito: e o que faz ela parecer pregada POR
+     CIMA da caixa, e nao mais uma linha dentro dela.
+
+     Fica FORA do conteudo porque nas acoes "em breve" o conteudo e borrado, e
+     filter cria bloco de contencao pra posicionamento absoluto: dentro dele a
+     fita encolhia pra dentro do cartao e saia borrada junto. */
+  const fita = (
+    <span className="fita" aria-hidden="true">
+      <span className="fita-trilho">
+        {[0, 1].map((copia) => (
+          <span className="fita-metade" key={copia}>
+            {Array.from({ length: 6 }, (_, i) => (
+              <span className="fita-item" key={i}>
+                {rotulo}
+              </span>
+            ))}
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+
   const conteudo = (
     <>
+
       {/* A foto da acao, quando existe. Sem foto o cartao NAO fica menor nem
           esquisito: o icone assume o topo, que e o desenho que ja existia. */}
       {acao.capaUrl ? (
@@ -308,6 +333,7 @@ function CartaoAcao({
   if (aindaVaiAbrir) {
     return (
       <div className={`acao em-breve ${tom}`} style={estilo}>
+        {fita}
         <span className="acao-borrado" aria-hidden="true">
           {conteudo}
         </span>
@@ -333,6 +359,7 @@ function CartaoAcao({
       className={`acao ${tom}${acao.disponivel ? "" : " indisponivel"}`}
       style={estilo}
     >
+      {fita}
       {conteudo}
     </Link>
   );
@@ -554,12 +581,6 @@ export default function CampanhaView({
           </div>
         </div>
       </section>
-
-      {/* A faixa corrida separa a capa do resto e anuncia os tipos de acao. */}
-      <FaixaCorrida
-        tipos={vitrine.map((a) => a.tipo)}
-        corDeFundo={fatias[0]?.cor}
-      />
 
       <main className="corpo">
         <div className="container">
