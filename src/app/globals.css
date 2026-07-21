@@ -1256,6 +1256,11 @@ a.acao:hover {
   flex: 0 0 auto;
   accent-color: var(--acao-forte, var(--teto));
 }
+/* A letra miuda do sigilo. Alinhada com o texto da opcao, e nao com a caixa
+   de marcar, pra ler como continuacao da frase de cima. */
+.ap-sigilo {
+  margin: 2px 0 0 28px;
+}
 
 .ap-erro {
   background: rgba(179, 64, 44, 0.08);

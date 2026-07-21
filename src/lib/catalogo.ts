@@ -138,7 +138,8 @@ export const RECEITAS: Receita[] = [
         chave: "permiteAnonimo",
         rotulo: "Permitir doação anônima",
         tipo: "booleano",
-        ajuda: "O nome some da lista pública, mas o valor continua contando no total.",
+        ajuda:
+          "O nome some da lista pública e o valor continua contando no total. Para a equipe o nome continua visível no extrato: o PIX chega identificado pelas regras do Banco Central, e é assim que dá para conferir com o banco. O que a página promete a quem doa é que a equipe não divulga.",
         padrao: true,
       },
     ],

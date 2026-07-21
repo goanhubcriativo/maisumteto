@@ -250,10 +250,22 @@ export default function FormularioDeApoio({
           </span>
         </label>
 
+        {/* A explicacao honesta do anonimato.
+            Prometer "ninguem vai saber" seria mentira: pelas regras do Banco
+            Central o PIX carrega o nome de quem pagou, e a equipe ve isso no
+            extrato dela e no app do banco, sem ter como nao ver. O que existe
+            de verdade e um compromisso de nao divulgar, e e isso que esta
+            escrito aqui. Ver tambem src/app/painel/extrato. */}
         <label className="ap-anonimo">
           <input type="checkbox" name="anonimo" />
           <span>Não quero meu nome na lista de quem contribuiu</span>
         </label>
+        <p className="ap-dica ap-sigilo">
+          Seu nome não vai aparecer na página, e ninguém de fora fica sabendo. A equipe, essa
+          continua vendo: o PIX chega com o nome de quem pagou, é assim que o Banco Central
+          manda, e é o que permite conferir o extrato com o banco. O compromisso da equipe é não
+          divulgar.
+        </p>
       </div>
 
       {erro && (

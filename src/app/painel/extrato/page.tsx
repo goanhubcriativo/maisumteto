@@ -71,6 +71,15 @@ export default async function Extrato() {
             Cada pagamento confirmado, com a ação de onde veio. Só entra o que foi pago
             de verdade.
           </p>
+          {/* O outro lado da promessa feita na pagina publica. Sem isso, quem
+              abre o extrato ve o nome de quem pediu sigilo e nao sabe o que
+              pode fazer com ele. */}
+          <p className="painel-intro">
+            Quem pediu sigilo aparece aqui com o nome, e tem que aparecer: o PIX chega
+            identificado pelas regras do Banco Central, e é assim que vocês conferem esta tela
+            com o app do banco. O que a página promete a essa pessoa é que a equipe{" "}
+            <strong>não divulga</strong> o nome dela. Fora daqui, ela é apoio anônimo.
+          </p>
         </div>
       </div>
 

@@ -730,13 +730,27 @@ textarea.campo-entrada {
   margin: 0;
 }
 
+/* Fica colada no alto enquanto a pilha rola, e nunca passa do fim da tela: o
+   que exceder a altura rola dentro dela mesma. Sem esse teto, os blocos do fim
+   da lista so eram alcancaveis rolando a pagina inteira ate embaixo. */
 .editor-gaveta {
   position: sticky;
   top: 82px;
+  max-height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
   background: var(--branco);
   border: 1px solid var(--linha);
   border-radius: 12px;
-  padding: 18px;
+  padding: 16px;
+}
+.editor-gaveta-topo {
+  flex: 0 0 auto;
+}
+.editor-gaveta-rolo {
+  overflow-y: auto;
+  margin: 0 -6px;
+  padding: 0 6px;
 }
 .editor-gaveta h3 {
   font-size: 12px;
@@ -750,10 +764,10 @@ textarea.campo-entrada {
   font-size: 12.5px;
   line-height: 1.45;
   color: var(--tinta-70);
-  margin: 0 0 16px;
+  margin: 0 0 14px;
 }
 .editor-familia + .editor-familia {
-  margin-top: 16px;
+  margin-top: 14px;
 }
 .editor-familia-nome {
   display: block;
@@ -762,35 +776,26 @@ textarea.campo-entrada {
   letter-spacing: 1.1px;
   text-transform: uppercase;
   color: var(--tinta-50);
-  margin-bottom: 7px;
+  margin-bottom: 5px;
 }
+/* Uma linha por bloco. A explicacao vive no title. */
 .editor-opcao {
   display: block;
   width: 100%;
   text-align: left;
   font: inherit;
+  font-size: 13.5px;
+  font-weight: 650;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 6px 9px;
   cursor: pointer;
   transition: background 0.12s ease, border-color 0.12s ease;
 }
 .editor-opcao:hover {
   background: var(--teto-6);
   border-color: var(--teto-12);
-}
-.editor-opcao-nome {
-  display: block;
-  font-size: 13.5px;
-  font-weight: 700;
-}
-.editor-opcao-para {
-  display: block;
-  font-size: 11.5px;
-  line-height: 1.4;
-  color: var(--tinta-70);
-  margin-top: 1px;
 }
 
 .previa-moldura {
@@ -1052,9 +1057,15 @@ textarea.campo-entrada {
   .editor {
     grid-template-columns: minmax(0, 1fr);
   }
+  /* No celular ela deixa de ser lateral: vira uma faixa no alto, sem teto de
+     altura, porque nao ha coluna do lado pra ela acompanhar. */
   .editor-gaveta {
     position: static;
     order: -1;
+    max-height: none;
+  }
+  .editor-gaveta-rolo {
+    overflow: visible;
   }
   .ferramentas {
     grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -165,26 +165,32 @@ export default function EditorDeBlocos({
         })}
       </div>
 
+      {/* A gaveta e uma coluna fixa, e cada bloco ocupa uma linha so.
+          Antes cada opcao trazia nome e explicacao empilhados: com 18 blocos
+          isso virava uma pagina inteira de texto ao lado da pagina que a pessoa
+          esta montando, e a gaveta passava do fim da tela. A explicacao continua
+          ali, no title, pra quem parar o mouse em cima. */}
       <aside className="editor-gaveta">
-        <h3>Gaveta de blocos</h3>
-        <p className="editor-gaveta-apoio">
-          Toque para acrescentar no fim da página. Depois é só mover para onde quiser.
-        </p>
+        <div className="editor-gaveta-topo">
+          <h3>Gaveta de blocos</h3>
+          <p className="editor-gaveta-apoio">Toque para acrescentar no fim da página.</p>
+        </div>
 
-        {familias().map((familia) => (
-          <div key={familia} className="editor-familia">
-            <span className="editor-familia-nome">{familia}</span>
-            {BLOCOS.filter((b) => b.familia === familia).map((b) => (
-              <form key={b.tipo} action={acoes.adicionar}>
-                <input type="hidden" name="tipo" value={b.tipo} />
-                <button className="editor-opcao" type="submit" title={b.paraQue}>
-                  <span className="editor-opcao-nome">{b.nome}</span>
-                  <span className="editor-opcao-para">{b.paraQue}</span>
-                </button>
-              </form>
-            ))}
-          </div>
-        ))}
+        <div className="editor-gaveta-rolo">
+          {familias().map((familia) => (
+            <div key={familia} className="editor-familia">
+              <span className="editor-familia-nome">{familia}</span>
+              {BLOCOS.filter((b) => b.familia === familia).map((b) => (
+                <form key={b.tipo} action={acoes.adicionar}>
+                  <input type="hidden" name="tipo" value={b.tipo} />
+                  <button className="editor-opcao" type="submit" title={b.paraQue}>
+                    {b.nome}
+                  </button>
+                </form>
+              ))}
+            </div>
+          ))}
+        </div>
       </aside>
     </div>
   );
