@@ -15,6 +15,7 @@ import Blocos from "@/components/Blocos";
 import Revelar from "@/components/Revelar";
 import ChamadaFinal from "@/components/ChamadaFinal";
 import Numero from "@/components/Numero";
+import FaixaCorrida from "@/components/FaixaCorrida";
 import { corDoNome } from "@/lib/cor-do-nome";
 import ListaDeApoiadores from "@/components/ListaDeApoiadores";
 import { corDe, estiloDaCor } from "@/lib/paleta";
@@ -223,19 +224,20 @@ function CartaoAcao({
   acao,
   campanhaSlug,
   faltaNoContrato,
+  destacado = false,
 }: {
   acao: AcaoNaVitrine;
   campanhaSlug: string;
   faltaNoContrato: number;
+  /** O unico cartao macico da grade. E a acao que a equipe quer que voce abra. */
+  destacado?: boolean;
 }) {
   const regua = reguaDaAcao(acao, faltaNoContrato);
   const aindaVaiAbrir = acao.motivo === "AINDA_NAO_ABRIU";
 
-  // TODA acao e bloco macico na cor dela. Alternar claro / cor / escuro deixava
-  // a grade sem cor de verdade, porque o tom forte caia justamente na acao
-  // encerrada, que ja e apagada por regra. E a cor cheia e o que amarra o
-  // cartao a fatia dele na barra de arrecadacao.
-  const tom = "acao-tom-cor";
+  // Um cartao macico no meio de brancos, como na referencia. Colorir TODOS
+  // deixou a grade pesada e sem hierarquia: quando tudo grita, nada chama.
+  const tom = destacado ? "acao-tom-cor" : "acao-tom-claro";
 
   const conteudo = (
     <>
@@ -251,13 +253,16 @@ function CartaoAcao({
             <IconeDaAcao tipo={acao.tipo} />
           </span>
         </span>
-      ) : (
-        <span className="acao-icone">
-          <IconeDaAcao tipo={acao.tipo} />
-        </span>
-      )}
+      ) : null}
 
-      <span className="acao-titulo">{acao.titulo}</span>
+      <span className="acao-topo">
+        {!acao.capaUrl && (
+          <span className="acao-icone">
+            <IconeDaAcao tipo={acao.tipo} />
+          </span>
+        )}
+        <span className="acao-titulo">{acao.titulo}</span>
+      </span>
       <span className="acao-preco">{precoDaAcao(acao)}</span>
 
       {acao.descricao && <p className="acao-desc">{acao.descricao}</p>}
@@ -351,6 +356,10 @@ export default function CampanhaView({
   const falta = Math.max(0, resumo.metaCentavos - arrecadado);
   const dias = diasRestantes(campanha.prazo);
   const fatias = fatiasDoGrafico(vitrine, arrecadado);
+
+  // O cartao macico vai pra primeira acao ABERTA: e a que a pessoa pode usar
+  // agora. Se nao houver nenhuma aberta, a grade fica toda branca, e tudo bem.
+  const idDestacada = vitrine.find((a) => a.disponivel)?.id ?? null;
 
   return (
     <>
@@ -546,30 +555,48 @@ export default function CampanhaView({
         </div>
       </section>
 
+      {/* A faixa corrida separa a capa do resto e anuncia os tipos de acao. */}
+      <FaixaCorrida
+        tipos={vitrine.map((a) => a.tipo)}
+        corDeFundo={fatias[0]?.cor}
+      />
+
       <main className="corpo">
         <div className="container">
-          {/* Formas de ajudar, 4 por linha. */}
-          <section className="secao" id="ajudar">
-            <div className="secao-cabeca">
-              <p className="rotulo-secao">Formas de ajudar</p>
-              <h2 className="secao-titulo">Escolha o seu jeito de entrar nessa</h2>
-              <p className="secao-intro">
-                Cada uma destas ações foi organizada pela equipe e paga o próprio custo antes de
-                sobrar para a casa. Os valores ao lado de cada uma são o que já entrou limpo, depois
-                do material e da taxa do PIX.
-              </p>
-            </div>
-
+          {/* Formas de ajudar.
+              O titulo mora DENTRO da grade, como primeira celula, no lugar de
+              ocupar uma faixa inteira em cima. Ganha uma linha de altura e a
+              secao passa a ler como um bloco so. */}
+          <section className="secao secao-ajudar" id="ajudar">
             {vitrine.length === 0 ? (
-              <div className="vazio">A equipe ainda está montando as ações desta campanha.</div>
+              <>
+                <div className="secao-cabeca">
+                  <p className="rotulo-secao">Formas de ajudar</p>
+                  <h2 className="secao-titulo">Escolha o seu jeito de entrar nessa</h2>
+                </div>
+                <div className="vazio">A equipe ainda está montando as ações desta campanha.</div>
+              </>
             ) : (
               <div className="acoes">
+                <div className="acoes-cabeca">
+                  <p className="rotulo-secao">Formas de ajudar</p>
+                  <h2 className="secao-titulo">Escolha o seu jeito de entrar nessa</h2>
+                  <p className="secao-intro">
+                    Cada uma foi organizada pela equipe e paga o próprio custo antes de sobrar
+                    para a casa. Os valores são o que já entrou limpo.
+                  </p>
+                  <a href="#contribuiu" className="botao botao-acento botao-selo botao-pequeno">
+                    Ver quem já entrou
+                  </a>
+                </div>
+
                 {vitrine.map((acao, i) => (
                   <Revelar key={acao.id} atraso={Math.min(i * 70, 420)} className="acao-berco">
                     <CartaoAcao
                       acao={acao}
                       campanhaSlug={campanha.slug}
                       faltaNoContrato={falta}
+                      destacado={acao.id === idDestacada}
                     />
                   </Revelar>
                 ))}

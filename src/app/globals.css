@@ -2838,59 +2838,6 @@ body {
   }
 }
 
-/* --- Toda acao e um bloco macico na cor dela ---------------------------- */
-
-/* Encerrada e esgotada ficavam cinza, e a grade perdia justamente a cor da
-   acao que mais rendeu. Agora elas MANTEM a cor, so que rebaixada: continua
-   claro que acabou, sem apagar a identidade da acao. A distincao passa a ser
-   de intensidade, e nao de presenca ou ausencia de cor. */
-.acao.indisponivel {
-  background: var(--acao-forte);
-  opacity: 0.72;
-  box-shadow: none;
-}
-.acao.indisponivel .acao-titulo,
-.acao.indisponivel .acao-preco {
-  color: #fff;
-}
-.acao.indisponivel .acao-desc,
-.acao.indisponivel .acao-pe {
-  color: rgba(255, 255, 255, 0.82);
-}
-.acao.indisponivel .acao-icone {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: transparent;
-  color: #fff;
-  opacity: 1;
-}
-.acao.indisponivel .acao-barra {
-  background: rgba(255, 255, 255, 0.25);
-}
-.acao.indisponivel .acao-barra-fill {
-  background: #fff;
-}
-.acao.indisponivel .etiqueta {
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-}
-
-/* Em breve: a cor aparece por baixo do borrado, entao a pessoa ja reconhece de
-   que acao se trata antes mesmo de abrir. */
-.acao.em-breve {
-  background: var(--acao-forte);
-}
-.acao.em-breve .acao-titulo,
-.acao.em-breve .acao-preco {
-  color: #fff;
-}
-.acao.em-breve .acao-desc {
-  color: rgba(255, 255, 255, 0.85);
-}
-.acao.em-breve .acao-icone {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-}
-
 /* A pilula do cartao: azul aceso com texto ESCURO.
 
    Com texto branco ela ficava em 3,41:1, abaixo do minimo de 4,5:1 para texto
@@ -2913,4 +2860,165 @@ body {
 }
 .acao:hover .acao-mais {
   background: #2aa8e8;
+}
+
+/* --- A faixa corrida ---------------------------------------------------- */
+
+/* Duas camadas inclinadas em sentidos opostos, atravessando a pagina inteira.
+   A de tras aparece so nas pontas, como sombra colorida da da frente.
+
+   A inclinacao obriga as camadas a serem MAIS LARGAS que a tela: girar um
+   retangulo do tamanho exato deixaria triangulos vazios nos cantos. Dai o
+   width 106% com deslocamento de -3%. */
+.faixa {
+  position: relative;
+  height: 108px;
+  margin: 44px 0;
+  overflow: hidden;
+}
+.faixa-camada {
+  position: absolute;
+  left: -3%;
+  width: 106%;
+  height: 54px;
+  top: 27px;
+  display: flex;
+  align-items: center;
+}
+.faixa-fundo {
+  background: var(--azul-fundo);
+  transform: rotate(-1.6deg);
+}
+.faixa-frente {
+  background: var(--teto);
+  transform: rotate(1.4deg);
+  overflow: hidden;
+}
+
+.faixa-trilho {
+  display: flex;
+  width: max-content;
+  animation: faixa-correr 26s linear infinite;
+}
+.faixa-metade {
+  display: flex;
+  align-items: center;
+}
+.faixa-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 26px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: #fff;
+}
+/* O asterisco da identidade separa os itens, como na referencia. */
+.faixa-item::after {
+  content: "✳";
+  margin-left: 26px;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* Desloca exatamente METADE do trilho: a segunda copia termina onde a primeira
+   comecou, entao o laco nao tem emenda visivel. */
+@keyframes faixa-correr {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 640px) {
+  .faixa {
+    height: 92px;
+    margin: 32px 0;
+  }
+  .faixa-camada {
+    height: 46px;
+    top: 23px;
+  }
+  .faixa-item {
+    font-size: 15px;
+    padding: 0 18px;
+  }
+  .faixa-item::after {
+    margin-left: 18px;
+  }
+}
+
+/* Movimento constante na tela inteira incomoda quem pediu menos animacao, e
+   uma faixa que corre sozinha e exatamente o caso. Parada, ela continua
+   cumprindo o papel de separar e anunciar. */
+@media (prefers-reduced-motion: reduce) {
+  .faixa-trilho {
+    animation: none;
+  }
+}
+
+/* --- Formas de ajudar: o titulo mora na grade -------------------------- */
+
+/* Como na referencia: a primeira celula nao e um cartao, e o cabecalho da
+   secao. Ganha uma linha inteira de altura e a secao le como um bloco so, em
+   vez de "faixa de titulo" seguida de "faixa de cartoes". */
+.secao-ajudar .secao-cabeca {
+  display: block;
+}
+.acoes-cabeca {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 22px 6px 0;
+}
+.acoes-cabeca .secao-titulo {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: -0.7px;
+}
+.acoes-cabeca .secao-intro {
+  margin: 0;
+  max-width: none;
+  font-size: 15px;
+}
+.acoes-cabeca .botao {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+
+/* Cartao branco e o padrao de novo. Um so fica macico, e ele que puxa o olho. */
+.acao-tom-claro {
+  background: var(--branco);
+  border: 1px solid var(--linha);
+}
+
+/* Icone e titulo na MESMA linha, como na referencia. Empilhados, cada cartao
+   gastava 60px de altura antes de dizer do que se tratava. */
+.acao-icone {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  margin-bottom: 0;
+}
+.acao-topo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.acao-topo .acao-titulo {
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .acoes-cabeca {
+    padding: 0 0 4px;
+  }
+  .acoes-cabeca .secao-titulo {
+    font-size: 26px;
+  }
 }
