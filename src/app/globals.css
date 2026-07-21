@@ -3503,3 +3503,56 @@ body {
     gap: 14px;
   }
 }
+
+/* --- Botoes de doar mais baixos ---------------------------------------- */
+
+.capa-botoes .botao,
+.fechamento-acoes .botao {
+  padding: 9px 18px;
+  font-size: 14px;
+}
+.capa-botoes .botao-selo::after,
+.fechamento-acoes .botao-selo::after {
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+/* --- Titulos de secao padronizados ------------------------------------- */
+
+/* Estavam sem destaque nenhum: so texto solto acima do conteudo. Agora todos
+   usam a mesma etiqueta, com fundo azul claro e o asterisco da identidade, o
+   que dá um ponto de entrada visual igual em toda secao. */
+.rotulo-secao {
+  padding: 7px 14px 7px 12px;
+  background: rgba(0, 146, 221, 0.12);
+  border: 1px solid rgba(0, 146, 221, 0.22);
+  border-radius: 999px;
+  color: var(--azul);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+}
+.rotulo-secao::before {
+  font-size: 12px;
+  opacity: 0.9;
+}
+.rotulo-claro {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+}
+
+/* A instrucao da grade acompanha o mesmo desenho. */
+.acoes-instrucao {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: var(--teto);
+  color: #062534;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+}

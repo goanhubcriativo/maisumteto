@@ -32,17 +32,17 @@ export default function ChamadaFinal({
           <>
             <p className="fechamento-sobre">Falta pouco</p>
             <h2 className="fechamento-titulo">
-              {formatarBRL(falta)} separam esta família de uma casa.
+              {formatarBRL(falta)} separam uma família de uma casa.
             </h2>
             <p className="fechamento-texto">
               {apoiadores > 0 ? (
                 <>
                   {apoiadores}{" "}
                   {apoiadores === 1
-                    ? "pessoa já colocou dinheiro aqui"
-                    : "pessoas já colocaram dinheiro aqui"}
-                  . Qualquer valor encurta esse número, e ele só anda com gente
-                  entrando.
+                    ? "pessoa já nos ajudou"
+                    : "pessoas já nos ajudaram"}{" "}
+                  com essa meta de alguma forma. Qualquer valor encurta a distância entre
+                  famílias e casas.
                 </>
               ) : (
                 <>
@@ -67,7 +67,6 @@ export default function ChamadaFinal({
           <a href="#ajudar" className="botao botao-acento botao-selo">
             Quero doar
           </a>
-          <span className="fechamento-nota">PIX na hora, sem cadastro e sem senha.</span>
         </div>
       </div>
     </section>

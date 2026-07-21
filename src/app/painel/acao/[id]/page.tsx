@@ -368,8 +368,11 @@ export default async function EditarAcao({
             ajuda="Aparece no alto do cartão desta ação, em preto e branco com um véu azul."
           />
 
-          <button className="botao botao-contorno botao-pequeno" type="submit">
-            Salvar
+          {/* Principal e em tamanho cheio: como secundario pequeno no fim de um
+              formulario longo, ele parecia controle acessorio e o Higor nao o
+              encontrou. */}
+          <button className="botao botao-primario" type="submit">
+            Salvar ação
           </button>
         </form>
       </section>

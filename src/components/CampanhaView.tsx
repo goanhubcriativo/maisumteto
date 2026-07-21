@@ -582,12 +582,14 @@ export default function CampanhaView({
               <div className="acoes">
                 <div className="acoes-cabeca">
                   <p className="rotulo-secao">Formas de ajudar</p>
-                  <h2 className="secao-titulo">Escolha o seu jeito de entrar nessa</h2>
+                  <h2 className="secao-titulo">Escolha o seu jeito de entrar nessa!</h2>
                   <p className="secao-intro">
-                    Cada uma foi organizada pela equipe e paga o próprio custo antes de sobrar
-                    para a casa. Os valores são o que já entrou limpo.
+                    A equipe de arrecadação decidiu realizar algumas ações especiais para dar
+                    mais opções de colaboração além da forma tradicional, que é entrar e doar
+                    um valor. Você pode olhar nos blocos ao lado e escolher a melhor forma
+                    para contribuir com esse projeto.
                   </p>
-                  <p className="acoes-instrucao">Escolha como participar</p>
+                  <p className="acoes-instrucao">Escolha como contribuir</p>
                 </div>
 
                 {vitrine.map((acao, i) => (
