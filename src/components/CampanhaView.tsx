@@ -462,11 +462,6 @@ export default function CampanhaView({
             </div>
 
             <div className="capa-col capa-col-lado">
-              <p className="capa-periodo">
-                Arrecadação para a construção de casas
-                {campanha.periodo ? ` em ${campanha.periodo}` : ""}
-              </p>
-
               {resumo.apoiadores > 0 && (
                 <p className="capa-prova">
                   <span className="prova-bolhas" aria-hidden="true">

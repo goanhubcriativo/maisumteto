@@ -3062,13 +3062,6 @@ body {
 .capa-titulo {
   margin: 0;
 }
-.capa-periodo {
-  margin: 0;
-  max-width: 34ch;
-  font-size: 15px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.78);
-}
 .capa-prova {
   margin: 0;
 }
@@ -3424,10 +3417,6 @@ body {
     margin-bottom: 14px;
     padding: 6px 12px;
     letter-spacing: 0.1em;
-  }
-  .capa-periodo {
-    font-size: 14px;
-    max-width: none;
   }
   .capa-col-lado {
     gap: 14px;
