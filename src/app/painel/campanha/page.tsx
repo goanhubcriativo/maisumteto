@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import {
   adicionarBloco,
   alternarBloco,
-  campanhaAtual,
   listarBlocos,
   moverBloco,
   removerBloco,
@@ -12,7 +11,7 @@ import {
   salvarCampanha,
 } from "@/lib/repositorio";
 import { paraCentavos } from "@/lib/dinheiro";
-import { exigirEdicao } from "@/lib/sessao";
+import { exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import type { TipoBloco } from "@/lib/blocos";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
 import CampoDeImagem from "@/components/CampoDeImagem";
@@ -54,7 +53,7 @@ export default async function EditarCampanha({
   searchParams: Promise<{ salvo?: string }>;
 }) {
   const { salvo } = await searchParams;
-  const campanha = await campanhaAtual();
+  const campanha = await campanhaDoPainel();
   const blocos = await listarBlocos({ tipo: "campanha", id: campanha.id });
   const alvo = { tipo: "campanha" as const, id: campanha.id };
   const campanhaId = campanha.id;

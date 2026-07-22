@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { receitaDe, rotuloEsforco, type CampoDaReceita } from "@/lib/catalogo";
-import { campanhaAtual, criarAcao } from "@/lib/repositorio";
-import { exigirEdicao } from "@/lib/sessao";
+import { criarAcao } from "@/lib/repositorio";
+import { exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { paraCentavos } from "@/lib/dinheiro";
 import { IconeDaAcao } from "@/components/icones";
 
@@ -127,7 +127,7 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
     const estoque = dados.get("estoque") ? Number(dados.get("estoque")) : null;
     const custoUnit = paraCentavos(String(dados.get("custoUnitario") ?? "")) ?? 0;
 
-    const campanha = await campanhaAtual();
+    const campanha = await campanhaDoPainel();
 
     const acao = await criarAcao({
       campanhaId: campanha.id,

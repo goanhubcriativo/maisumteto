@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exigirEdicao } from "@/lib/sessao";
 import { campanhaAtual } from "@/lib/repositorio";
-import { criarAcessoVisitante } from "@/lib/acessos";
+import { criarAcesso } from "@/lib/acessos";
 
 export const runtime = "nodejs";
 
@@ -28,9 +28,13 @@ export async function POST(req: NextRequest) {
   }
 
   const campanha = await campanhaAtual();
-  const r = await criarAcessoVisitante(campanha.equipeId, {
+  // Só os dois níveis conhecidos. Qualquer outra coisa cai em leitura, o mais
+  // restrito: na dúvida, dar menos acesso é o erro mais barato.
+  const nivel = corpo.nivel === "ADMIN" ? "ADMIN" : "LEITURA";
+  const r = await criarAcesso(campanha.equipeId, {
     nome: String(corpo.nome ?? ""),
     email: String(corpo.email ?? ""),
+    nivel,
   });
 
   if (!r.ok) return NextResponse.json({ erro: r.erro }, { status: 400 });

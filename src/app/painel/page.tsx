@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { campanhaAtual, contarApoiadores, listarAcoes, publicarAcao, type AcaoDoPainel } from "@/lib/repositorio";
-import { exigirEdicao } from "@/lib/sessao";
+import { exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { resumoCampanha } from "@/lib/extrato";
 import { formatarBRL, formatarBRLCurto } from "@/lib/dinheiro";
 import { receitaDe } from "@/lib/catalogo";
@@ -15,7 +15,9 @@ export default async function Painel({
   searchParams: Promise<{ somenteLeitura?: string }>;
 }) {
   const { somenteLeitura } = await searchParams;
-  const campanha = await campanhaAtual();
+  const campanha = await campanhaDoPainel();
+  const principal = await campanhaAtual();
+  const ehTeste = campanha.id !== principal.id;
   const [resumo, apoiadores, acoes] = await Promise.all([
     resumoCampanha(campanha.id),
     contarApoiadores(campanha.id),
@@ -41,6 +43,12 @@ export default async function Painel({
       {somenteLeitura && (
         <div className="aviso-bom" style={{ marginBottom: 22 }}>
           Nada foi alterado: este acesso é <strong>somente leitura</strong>.
+        </div>
+      )}
+      {ehTeste && (
+        <div className="aviso-teste" style={{ marginBottom: 22 }}>
+          Você está numa <strong>campanha de teste</strong>. O que mexer aqui não toca na campanha
+          real. Para voltar, use <strong>Campanhas</strong> no menu.
         </div>
       )}
       <div className="painel-cabeca">

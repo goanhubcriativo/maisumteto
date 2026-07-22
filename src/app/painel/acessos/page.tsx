@@ -13,7 +13,7 @@ import NovoAcesso from "@/components/NovoAcesso";
 export const dynamic = "force-dynamic";
 
 const ROTULO_PAPEL: Record<string, string> = {
-  LIDER: "Líder",
+  LIDER: "Administrador",
   MEMBRO: "Equipe",
   VISITANTE: "Só leitura",
 };
@@ -52,10 +52,11 @@ export default async function Acessos() {
         </div>
       ) : (
         <section className="painel-cartao">
-          <h2 className="formulario-secao">Gerar um acesso de leitura</h2>
+          <h2 className="formulario-secao">Gerar um acesso</h2>
           <p className="campo-ajuda" style={{ margin: "-8px 0 18px" }}>
-            Crie um login para alguém acompanhar o sistema sem poder mexer. A senha aparece uma
-            vez, na hora: copie e mande para a pessoa.
+            Crie um login para outra pessoa. Escolha se ela administra o sistema junto com você ou
+            só acompanha sem poder mexer. A senha aparece uma vez, na hora: copie e mande para a
+            pessoa.
           </p>
           <NovoAcesso />
         </section>
@@ -89,7 +90,9 @@ export default async function Acessos() {
                 </td>
                 {!somenteLeitura && (
                   <td className="num">
-                    {a.papel === "VISITANTE" && a.usuarioId !== eu?.id && (
+                    {/* Dá pra revogar qualquer um, menos você mesmo: ninguém se
+                        tranca pra fora sem querer. */}
+                    {a.usuarioId !== eu?.id && (
                       <form action={revogar}>
                         <input type="hidden" name="usuarioId" value={a.usuarioId} />
                         <button className="editor-mini perigo" type="submit">

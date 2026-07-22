@@ -19,6 +19,7 @@ export default function NovoAcesso() {
   const router = useRouter();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [nivel, setNivel] = useState<"ADMIN" | "LEITURA">("LEITURA");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [criada, setCriada] = useState<Credencial | null>(null);
@@ -32,7 +33,7 @@ export default function NovoAcesso() {
       const r = await fetch("/api/acessos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email }),
+        body: JSON.stringify({ nome, email, nivel }),
       });
       const resposta = await r.json();
       if (!r.ok) {
@@ -125,8 +126,37 @@ export default function NovoAcesso() {
           />
         </label>
       </div>
+
+      <fieldset className="campo nivel-acesso">
+        <legend className="campo-rotulo">O que essa pessoa pode fazer</legend>
+        <label className={`nivel-opcao${nivel === "ADMIN" ? " escolhido" : ""}`}>
+          <input
+            type="radio"
+            name="nivel"
+            checked={nivel === "ADMIN"}
+            onChange={() => setNivel("ADMIN")}
+          />
+          <span>
+            <strong>Administrador</strong>
+            <em>Gerencia tudo, como você: cria ações, publica, lança, mexe no sistema inteiro.</em>
+          </span>
+        </label>
+        <label className={`nivel-opcao${nivel === "LEITURA" ? " escolhido" : ""}`}>
+          <input
+            type="radio"
+            name="nivel"
+            checked={nivel === "LEITURA"}
+            onChange={() => setNivel("LEITURA")}
+          />
+          <span>
+            <strong>Só leitura</strong>
+            <em>Vê tudo, inclusive o extrato, e não altera nada.</em>
+          </span>
+        </label>
+      </fieldset>
+
       <button className="botao botao-primario" type="submit" disabled={enviando}>
-        {enviando ? "Gerando..." : "Gerar acesso de leitura"}
+        {enviando ? "Gerando..." : nivel === "ADMIN" ? "Gerar acesso de administrador" : "Gerar acesso de leitura"}
       </button>
     </form>
   );

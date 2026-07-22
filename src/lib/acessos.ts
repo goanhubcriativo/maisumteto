@@ -47,13 +47,24 @@ type Resultado =
   | { ok: false; erro: string };
 
 /**
- * Cria um acesso só de leitura. Devolve a senha UMA vez: ela não fica guardada
- * em texto em lugar nenhum (o banco só tem o hash), então quem cria precisa
- * copiar e mandar para a pessoa na hora.
+ * Só dois níveis por enquanto: quem administra (edita tudo, como o dono) e quem
+ * só lê. "Depois criamos perfis com menos recursos" mora aqui, é só acrescentar.
  */
-export async function criarAcessoVisitante(
+export type NivelDeAcesso = "ADMIN" | "LEITURA";
+
+function papelDoNivel(nivel: NivelDeAcesso): Papel {
+  return nivel === "ADMIN" ? Papel.LIDER : Papel.VISITANTE;
+}
+
+/**
+ * Cria um acesso. Devolve a senha UMA vez: ela não fica guardada em texto em
+ * lugar nenhum (o banco só tem o hash), então quem cria precisa copiar e mandar
+ * para a pessoa na hora. Um acesso ADMIN edita tudo, como o dono; um de LEITURA
+ * vê tudo e não muda nada.
+ */
+export async function criarAcesso(
   equipeId: string,
-  dados: { nome: string; email: string }
+  dados: { nome: string; email: string; nivel: NivelDeAcesso }
 ): Promise<Resultado> {
   const nome = dados.nome.trim();
   const email = normalizarEmail(dados.email);
@@ -69,22 +80,20 @@ export async function criarAcessoVisitante(
     data: { nome, email, senhaHash: criarHashDeSenha(senha) },
   });
   await prisma.membro.create({
-    data: { equipeId, usuarioId: usuario.id, papel: Papel.VISITANTE },
+    data: { equipeId, usuarioId: usuario.id, papel: papelDoNivel(dados.nivel) },
   });
 
   return { ok: true, nome, email, senha };
 }
 
 /**
- * Revoga um acesso de leitura. Só mexe em VISITANTE: os donos da equipe (LIDER,
- * MEMBRO) não são apagáveis por aqui, senão um convidado sumiria com o líder.
- * Apagar o usuário derruba as sessões dele junto (onDelete Cascade).
+ * Revoga um acesso. Apaga o usuário e as sessões dele junto (onDelete Cascade).
+ * Quem chama garante que não é o próprio usuário: ficar sem se revogar sozinho
+ * evita alguém se trancar pra fora sem querer.
  */
 export async function revogarAcesso(equipeId: string, usuarioId: string) {
-  const membro = await prisma.membro.findFirst({
-    where: { equipeId, usuarioId, papel: Papel.VISITANTE },
-  });
-  if (!membro) return { ok: false as const, erro: "Esse acesso não pode ser revogado aqui." };
+  const membro = await prisma.membro.findFirst({ where: { equipeId, usuarioId } });
+  if (!membro) return { ok: false as const, erro: "Esse acesso não existe nesta equipe." };
 
   await prisma.membro.delete({ where: { id: membro.id } });
   await prisma.usuario.delete({ where: { id: usuarioId } }).catch(() => {});

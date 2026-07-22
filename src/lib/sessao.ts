@@ -6,8 +6,46 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Papel } from "@prisma/client";
+import { prisma } from "./db";
 import { COOKIE_SESSAO, hashDoToken, opcoesDoCookie } from "./auth";
-import { abrirSessao, fecharSessao, lerSessao, papelDoUsuario, usuarioPorId } from "./repositorio";
+import {
+  abrirSessao,
+  campanhaAtual,
+  fecharSessao,
+  lerSessao,
+  papelDoUsuario,
+  usuarioPorId,
+} from "./repositorio";
+
+/** O cookie que guarda qual campanha o painel está editando agora. */
+const COOKIE_CAMPANHA = "painel_campanha";
+
+/**
+ * A campanha que o PAINEL está editando. Segue a escolha do líder (cookie), e
+ * cai na principal quando não há escolha ou a escolhida sumiu. Só o painel usa
+ * isto: o público continua no campanhaAtual(), pra uma campanha de teste nunca
+ * vazar pra home.
+ */
+export async function campanhaDoPainel() {
+  const id = (await cookies()).get(COOKIE_CAMPANHA)?.value;
+  if (id) {
+    const c = await prisma.campanha.findUnique({
+      where: { id },
+      include: { equipe: { select: { nome: true, recebedorRotulo: true } } },
+    });
+    if (c) return c;
+  }
+  return campanhaAtual();
+}
+
+export async function definirCampanhaDoPainel(id: string) {
+  (await cookies()).set(COOKIE_CAMPANHA, id, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 30 * 24 * 3600,
+  });
+}
 
 export interface UsuarioLogado {
   id: string;

@@ -283,6 +283,44 @@ textarea.campo-entrada {
   color: var(--azul);
 }
 
+/* Os dois níveis de acesso, como cartões de escolha. */
+.nivel-acesso {
+  display: grid;
+  gap: 10px;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.nivel-opcao {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border: 2px solid var(--linha);
+  border-radius: 12px;
+  padding: 13px 15px;
+  cursor: pointer;
+}
+.nivel-opcao.escolhido {
+  border-color: var(--teto);
+  background: var(--teto-6);
+}
+.nivel-opcao input {
+  margin-top: 3px;
+  accent-color: var(--teto);
+}
+.nivel-opcao strong {
+  display: block;
+  font-size: 14.5px;
+}
+.nivel-opcao em {
+  display: block;
+  font-style: normal;
+  font-size: 12.5px;
+  color: var(--tinta-70);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
 /* A credencial recém-criada: e-mail e senha grandes, fáceis de copiar. */
 .acesso-criado {
   border: 1px solid rgba(18, 112, 74, 0.28);
@@ -1371,6 +1409,92 @@ textarea.campo-entrada {
     grid-column: 1 / -1;
     justify-content: flex-start;
   }
+}
+
+/* Aviso de campanha de teste: um tom âmbar, diferente do verde de "salvo", pra
+   marcar que aqui é um ambiente à parte. */
+.aviso-teste {
+  padding: 13px 16px;
+  border-radius: 10px;
+  background: rgba(138, 90, 19, 0.09);
+  border: 1px solid rgba(138, 90, 19, 0.28);
+  color: #6b4610;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+/* Lista de campanhas: cada uma com título, situação e o botão de editar. */
+.campanhas-lista {
+  display: grid;
+  gap: 12px;
+}
+.campanha-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+.campanha-item.ativa {
+  border-color: var(--teto);
+  box-shadow: 0 0 0 1px var(--teto);
+}
+.campanha-item strong {
+  display: block;
+  font-size: 15.5px;
+}
+.campanha-meta {
+  display: block;
+  font-size: 12.5px;
+  color: var(--tinta-70);
+  margin-top: 3px;
+}
+.campanha-meta a {
+  color: var(--teto);
+}
+.campanha-selo {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--azul);
+  background: var(--teto-6);
+  border: 1px solid var(--teto-12);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+/* Custos fixos lançados: cada um numa linha, com o valor em vermelho porque
+   sai do líquido. */
+.custos-lista {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.custo-linha {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--linha);
+}
+.custo-linha strong {
+  display: block;
+  font-size: 14.5px;
+}
+.custo-meta {
+  display: block;
+  font-size: 12px;
+  color: var(--tinta-70);
+  margin-top: 2px;
+}
+.custo-valor {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--vermelho);
 }
 
 /* O cartão de chamada do lançamento manual: um texto curto e o botão que abre

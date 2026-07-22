@@ -8,7 +8,7 @@
 // equipe contar dinheiro que não entrou.
 
 import { prisma } from "@/lib/db";
-import { exigirLogin } from "@/lib/sessao";
+import { exigirLogin, campanhaDoPainel } from "@/lib/sessao";
 import { formatarBRL } from "@/lib/dinheiro";
 
 export const dynamic = "force-dynamic";
@@ -35,9 +35,12 @@ function quando(d: Date | null): string {
 
 export default async function Extrato() {
   await exigirLogin();
+  // O extrato é da campanha que o painel está editando, não de todas juntas:
+  // com uma campanha de teste aberta, misturar o dinheiro das duas mentiria.
+  const campanha = await campanhaDoPainel();
 
   const pedidos = await prisma.pedido.findMany({
-    where: { status: "PAGO" },
+    where: { status: "PAGO", campanhaId: campanha.id },
     orderBy: { paidAt: "desc" },
     select: {
       id: true,

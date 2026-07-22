@@ -75,7 +75,14 @@ function avaliar(
 // Campanha
 // ---------------------------------------------------------------------------
 
-/** A campanha do piloto. Erro claro se o banco ainda nao foi semeado. */
+/**
+ * A campanha PRINCIPAL: a primeira, a que o público vê na home.
+ *
+ * É de propósito que ela seja fixa (a mais antiga) e não siga a escolha do
+ * painel: quando o líder abre uma campanha de teste pra experimentar, o site
+ * público não pode trocar junto e mostrar o rascunho pra quem doa. Erro claro
+ * se o banco ainda não foi semeado.
+ */
 export async function campanhaAtual() {
   const c = await prisma.campanha.findFirst({
     orderBy: { createdAt: "asc" },
@@ -87,6 +94,116 @@ export async function campanhaAtual() {
     );
   }
   return c;
+}
+
+/** Todas as campanhas da equipe, a principal primeiro. Pro seletor do painel. */
+export async function listarCampanhas() {
+  const principal = await campanhaAtual();
+  return prisma.campanha.findMany({
+    where: { equipeId: principal.equipeId },
+    orderBy: { createdAt: "asc" },
+    select: { id: true, titulo: true, slug: true, status: true, createdAt: true },
+  });
+}
+
+/**
+ * Duplica uma campanha inteira numa cópia de TESTE: a ficha, as ações, as
+ * opções e os blocos, tudo com id novo. NÃO copia dinheiro (pedidos, extrato):
+ * a cópia nasce zerada, que é o ponto de um lugar pra experimentar sem sujar o
+ * real. Nasce como RASCUNHO e num slug próprio, então vive numa URL à parte e
+ * não encosta na campanha principal.
+ */
+export async function duplicarCampanha(campanhaId: string) {
+  const orig = await prisma.campanha.findUniqueOrThrow({
+    where: { id: campanhaId },
+    include: { acoes: { include: { opcoes: true, blocos: true } }, blocos: true },
+  });
+
+  const slug = await slugDeCampanhaLivre(`${orig.slug}-teste`);
+
+  const nova = await prisma.campanha.create({
+    data: {
+      equipeId: orig.equipeId,
+      slug,
+      titulo: `Teste: ${orig.titulo}`,
+      resumo: orig.resumo,
+      historia: orig.historia,
+      capaUrl: orig.capaUrl,
+      capaFoco: orig.capaFoco,
+      capaFocoMobile: orig.capaFocoMobile,
+      periodo: orig.periodo,
+      equipeArrecadacao: orig.equipeArrecadacao,
+      sede: orig.sede,
+      metaCentavos: orig.metaCentavos,
+      prazo: orig.prazo,
+      status: "RASCUNHO",
+      // Os blocos da própria campanha (o microblog institucional).
+      blocos: {
+        create: orig.blocos.map((b) => ({
+          tipo: b.tipo,
+          ordem: b.ordem,
+          visivel: b.visivel,
+          conteudo: (b.conteudo ?? {}) as Prisma.InputJsonValue,
+        })),
+      },
+    },
+  });
+
+  // As ações, uma a uma, com as opções e os blocos de cada.
+  for (const a of orig.acoes) {
+    await prisma.acao.create({
+      data: {
+        campanhaId: nova.id,
+        tipo: a.tipo,
+        slug: a.slug, // slug é único POR campanha, então não conflita na cópia
+        titulo: a.titulo,
+        descricao: a.descricao,
+        capaUrl: a.capaUrl,
+        capaFoco: a.capaFoco,
+        tabelaMedidas: a.tabelaMedidas,
+        status: a.status,
+        precoCentavos: a.precoCentavos,
+        custoUnitarioCentavos: a.custoUnitarioCentavos,
+        estoqueTotal: a.estoqueTotal,
+        limitePorPedido: a.limitePorPedido,
+        metaCentavos: a.metaCentavos,
+        abreEm: a.abreEm,
+        fechaEm: a.fechaEm,
+        cor: a.cor,
+        config: (a.config ?? undefined) as Prisma.InputJsonValue,
+        opcoes: {
+          create: a.opcoes.map((o) => ({
+            nome: o.nome,
+            precoCentavos: o.precoCentavos,
+            custoUnitarioCentavos: o.custoUnitarioCentavos,
+            estoqueTotal: o.estoqueTotal,
+            ordem: o.ordem,
+          })),
+        },
+        blocos: {
+          create: a.blocos.map((b) => ({
+            tipo: b.tipo,
+            ordem: b.ordem,
+            visivel: b.visivel,
+            conteudo: (b.conteudo ?? {}) as Prisma.InputJsonValue,
+          })),
+        },
+      },
+    });
+  }
+
+  return nova;
+}
+
+/** Slug único na tabela de campanhas (o slug de campanha é único no banco todo). */
+async function slugDeCampanhaLivre(base: string): Promise<string> {
+  const usados = new Set(
+    (await prisma.campanha.findMany({ select: { slug: true } })).map((c) => c.slug)
+  );
+  if (!usados.has(base)) return base;
+  let n = 2;
+  while (usados.has(`${base}-${n}`)) n += 1;
+  return `${base}-${n}`;
 }
 
 export async function salvarCampanha(

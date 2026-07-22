@@ -6,7 +6,6 @@ import {
   alternarBloco,
   apagarAcao,
   buscarAcao,
-  campanhaAtual,
   listarAcoes,
   listarBlocos,
   moverBloco,
@@ -19,9 +18,10 @@ import { receitaDe } from "@/lib/catalogo";
 import { definicaoDe, type TipoBloco } from "@/lib/blocos";
 import { PALETA } from "@/lib/paleta";
 import { formatarBRL, formatarBRLCurto, paraCentavos } from "@/lib/dinheiro";
-import { exigirLogin, exigirEdicao } from "@/lib/sessao";
+import { exigirLogin, exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { lerNumeros, registrarLancamentoManual } from "@/lib/manual";
 import { criarOpcao, salvarOpcao, removerOpcao } from "@/lib/opcoes";
+import { registrarCustoFixo, custosFixosDaAcao, apagarCustoFixo } from "@/lib/lancamentos";
 import CampoDeImagem from "@/components/CampoDeImagem";
 import { QUADRO_DA_ACAO } from "@/lib/quadros";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
@@ -86,17 +86,21 @@ export default async function EditarAcao({
     lancado?: string;
     erro?: string;
     erroOpcao?: string;
+    custo?: string;
+    erroCusto?: string;
   }>;
 }) {
   const { id } = await params;
-  const { novo, salvo, lancado, erro, erroOpcao } = await searchParams;
+  const { novo, salvo, lancado, erro, erroOpcao, custo, erroCusto } = await searchParams;
 
   const usuario = await exigirLogin();
   const acao = await buscarAcao(id);
   if (!acao) notFound();
 
+  const custosFixos = await custosFixosDaAcao(acao.id);
+
   const receita = receitaDe(acao.tipo);
-  const campanha = await campanhaAtual();
+  const campanha = await campanhaDoPainel();
   const blocos = await listarBlocos({ tipo: "acao", id: acao.id });
   const alvo = { tipo: "acao" as const, id: acao.id };
   // As server actions abaixo so podem capturar valores simples do escopo. Por
@@ -236,6 +240,39 @@ export default async function EditarAcao({
     await exigirEdicao();
     await removerOpcao(acaoId, String(dados.get("id")));
     recarregar(acaoId);
+  }
+
+  // Custo fixo: o valor cheio que a ação custou pra acontecer, e que some do
+  // líquido na hora (a barra passa a precisar dele a mais pra fechar a meta).
+  async function lancarCustoAction(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    const valor = paraCentavos(String(dados.get("valor") ?? "")) ?? 0;
+    const descricao = String(dados.get("descricao") ?? "").trim();
+    if (valor <= 0 || !descricao) {
+      redirect(
+        `/painel/acao/${acaoId}?erroCusto=${encodeURIComponent("Descreva o custo e o valor.")}`
+      );
+    }
+    await registrarCustoFixo({
+      campanhaId: acao!.campanhaId,
+      acaoId,
+      descricao,
+      valorCentavos: valor,
+      data: daCaixaDeData(String(dados.get("quando") ?? "")) ?? new Date(),
+      criadoPorId: usuarioId,
+    });
+    recarregar(acaoId);
+    revalidatePath("/painel/extrato");
+    redirect(`/painel/acao/${acaoId}?custo=1`);
+  }
+
+  async function apagarCustoAction(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    await apagarCustoFixo(String(dados.get("id")));
+    recarregar(acaoId);
+    revalidatePath("/painel/extrato");
   }
 
   const acoesDoEditor = {
@@ -662,6 +699,78 @@ export default async function EditarAcao({
         erro={erro}
         lancado={Boolean(lancado)}
       />
+
+      {/* Custo fixo da ação: o valor cheio que ela custou pra acontecer e que
+          não dá pra ratear por venda (os R$ 200 do bingo, o aluguel do salão).
+          Sai do líquido na hora, então a barra passa a precisar dele a mais pra
+          fechar a meta. É o que faltava pra quem não sabe o custo por unidade. */}
+      <section className="painel-cartao">
+        <h2 className="formulario-secao">Custo desta ação</h2>
+        <p className="campo-ajuda" style={{ margin: "-8px 0 18px" }}>
+          Para gastos de valor cheio, que não dependem de quanto você vende: o material do bingo,
+          o aluguel do salão, a arte encomendada. Entra como desconto e a meta passa a contar com
+          ele. (O custo por unidade vendida, esse, você define lá em cima, no preço.)
+        </p>
+
+        {erroCusto && (
+          <p className="aviso-ruim" role="alert">
+            {erroCusto}
+          </p>
+        )}
+        {custo && (
+          <p className="aviso-salvo" role="status">
+            Custo lançado. Já saiu do líquido.
+          </p>
+        )}
+
+        {custosFixos.length > 0 && (
+          <div className="custos-lista">
+            {custosFixos.map((c) => (
+              <div key={c.id} className="custo-linha">
+                <div>
+                  <strong>{c.descricao}</strong>
+                  <span className="custo-meta">
+                    {c.data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })}
+                    {c.criadoPor && ` · ${c.criadoPor.nome}`}
+                  </span>
+                </div>
+                <span className="custo-valor">- {formatarBRL(Math.abs(c.valorCentavos))}</span>
+                <form action={apagarCustoAction}>
+                  <input type="hidden" name="id" value={c.id} />
+                  <button className="editor-mini perigo" type="submit" title="Apagar custo">
+                    Apagar
+                  </button>
+                </form>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <form action={lancarCustoAction} className="formulario">
+          <div className="campo-dupla">
+            <label className="campo">
+              <span className="campo-rotulo">O que foi</span>
+              <input className="campo-entrada" name="descricao" placeholder="Material do bingo" />
+            </label>
+            <label className="campo">
+              <span className="campo-rotulo">Valor</span>
+              <input className="campo-entrada" name="valor" inputMode="decimal" placeholder="200,00" />
+            </label>
+          </div>
+          <label className="campo">
+            <span className="campo-rotulo">Quando pagou</span>
+            <input
+              className="campo-entrada"
+              name="quando"
+              type="date"
+              defaultValue={paraCampoData(new Date())}
+            />
+          </label>
+          <button className="botao botao-contorno" type="submit">
+            Lançar custo
+          </button>
+        </form>
+      </section>
 
       <div className="painel-secao-cabeca">
         <h2>A página desta ação</h2>

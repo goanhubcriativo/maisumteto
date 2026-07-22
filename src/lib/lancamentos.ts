@@ -52,6 +52,53 @@ export const lancarTaxa = (db: Tx, l: NovoLancamento) =>
   criar(db, TipoLancamento.TAXA, l);
 
 /**
+ * Registra um custo FIXO, daqueles que não dá pra ratear por venda: o aluguel
+ * do salão, os R$ 200 do bingo, a arte encomendada. Diferente do custo por
+ * unidade (que nasce a cada item vendido), este é um valor cheio, lançado uma
+ * vez, e some do líquido na hora. Como o líquido é o que a barra mede contra a
+ * meta, um custo de R$ 200 significa R$ 200 a mais pra arrecadar até fechar.
+ *
+ * acaoId nulo = custo geral da campanha (material de divulgação, por exemplo).
+ * Abre a própria transação: é chamado direto de uma server action, não de
+ * dentro de outra escrita.
+ */
+export async function registrarCustoFixo(dados: {
+  campanhaId: string;
+  acaoId?: string | null;
+  descricao: string;
+  valorCentavos: number;
+  data?: Date;
+  criadoPorId?: string | null;
+}) {
+  return prisma.$transaction((db) =>
+    lancarCusto(db, {
+      campanhaId: dados.campanhaId,
+      acaoId: dados.acaoId ?? null,
+      descricao: dados.descricao,
+      valorCentavos: dados.valorCentavos,
+      data: dados.data,
+      criadoPorId: dados.criadoPorId,
+    })
+  );
+}
+
+/** Os custos fixos lançados na mão (não os que vieram de venda). Pro extrato. */
+export async function custosFixosDaAcao(acaoId: string) {
+  return prisma.lancamento.findMany({
+    where: { acaoId, tipo: TipoLancamento.CUSTO, pedidoId: null },
+    orderBy: { data: "desc" },
+    include: { criadoPor: { select: { nome: true } } },
+  });
+}
+
+/** Apaga um custo fixo lançado na mão. Só custo sem pedido: o de venda é dono do gateway. */
+export async function apagarCustoFixo(id: string) {
+  return prisma.lancamento.deleteMany({
+    where: { id, tipo: TipoLancamento.CUSTO, pedidoId: null },
+  });
+}
+
+/**
  * Ajuste manual e o unico que aceita valor negativo de proposito
  * (estorno, correcao de digitacao). Por isso nao passa por comSinal().
  */
