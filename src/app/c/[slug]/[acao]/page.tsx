@@ -122,7 +122,9 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
   const pct = meta > 0 ? Math.max(0, Math.min(100, (acao.liquidoCentavos / meta) * 100)) : 0;
 
   return (
-    <div style={estiloDaCor(acao.cor)}>
+    // A classe marca "esta é a página de UMA ação": é o gancho pro rodapé (e o
+    // que mais precise) seguir a cor da ação, sem afetar a página da campanha.
+    <div className="acao-pagina" style={estiloDaCor(acao.cor)}>
       <header className="topo">
         <div className="container topo-linha">
           <Link href="/" className="marca">
@@ -369,8 +371,11 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
 
       <footer className="rodape">
         <div className="container rodape-linha">
+          {/* A marca da plataforma, e não o nome interno da equipe. "Piloti
+              Mestre" era o codinome do bolão, o jargão de obra que já saiu do
+              resto da página. */}
           <span>
-            <strong>{campanha.equipe.nome}</strong> · {campanha.sede ?? "TETO Paraná"}
+            <strong>Casa Amiga</strong> · {campanha.sede ?? "TETO Paraná"}
           </span>
           <span className="rodape-links">
             <Link href="/">Ver a campanha inteira</Link>

@@ -3385,6 +3385,27 @@ body {
 .rodape-entrar:hover {
   background: rgba(255, 255, 255, 0.35);
 }
+
+/* Na página de UMA ação, o rodapé segue a cor dela, como o resto da página:
+   ação verde, rodapé verde; ação ocre, rodapé ocre. O texto vira branco, e ele
+   é legível em qualquer cor: --acao-forte passa 4.5:1 contra o branco, e razão
+   de contraste é simétrica, então branco sobre forte passa igual. */
+.acao-pagina .rodape {
+  background: var(--acao-forte);
+  color: rgba(255, 255, 255, 0.85);
+}
+.acao-pagina .rodape-linha strong,
+.acao-pagina .rodape-links a {
+  color: #fff;
+}
+.acao-pagina .rodape-entrar {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+.acao-pagina .rodape-entrar:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 .barra-equipe {
   display: none;
 }
