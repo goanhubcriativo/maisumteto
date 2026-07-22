@@ -1790,10 +1790,14 @@ a.acao:hover {
    acao e a rifa, o bolao e a camisa ficam todos com o mesmo azul. A cor por
    acao e o que amarra "esse dinheiro veio dali" entre o grafico, o cartao e
    esta pagina. */
+/* Só a cor da ação, sem degradê para o azul da campanha: ação verde, topo
+   verde inteiro; ação ocre, topo ocre. O degradê antigo terminava em azul e,
+   numa ação verde, sujava o canto com uma cor que não é dela. Fica só um brilho
+   branco de leve no alto, pra dar profundidade sem trocar a cor. */
 .acao-hero {
   background:
-    radial-gradient(115% 100% at 82% 0%, rgba(255, 255, 255, 0.18), transparent 60%),
-    linear-gradient(150deg, var(--acao-forte), var(--azul-fundo));
+    radial-gradient(115% 100% at 82% 0%, rgba(255, 255, 255, 0.16), transparent 62%),
+    var(--acao-forte);
 }
 
 /* A malha de planta so faz sentido na capa da campanha, que e a obra. Na
@@ -2119,6 +2123,14 @@ body {
 .acao-tom-cor .acao-desc,
 .acao-tom-cor .acao-pe {
   color: rgba(255, 255, 255, 0.82);
+}
+/* O valor arrecadado e a régua vinham na tinta escura padrão, e sobre o cartão
+   colorido ficavam ilegíveis (preto no azul). No tom de cor, tudo é branco. */
+.acao-tom-cor .acao-rendeu {
+  color: #fff;
+}
+.acao-tom-cor .acao-numeros {
+  color: rgba(255, 255, 255, 0.85);
 }
 .acao-tom-cor .acao-icone {
   background: rgba(255, 255, 255, 0.18);
@@ -3406,6 +3418,16 @@ body {
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* Botão montado num bloco da página da ação (ex.: "Ver a página do bolão").
+   Segue a cor da ação, como o resto: azul fixo aqui destoava do topo e do
+   rodapé, que já são da cor dela. */
+.acao-pagina .bl-botao .botao-primario {
+  background: var(--acao-forte);
+}
+.acao-pagina .bl-botao .botao-primario:hover {
+  filter: brightness(0.92);
+}
+
 .barra-equipe {
   display: none;
 }
@@ -3456,9 +3478,11 @@ body {
 
   /* A capa deixa de ter altura fixa: no telefone ela so precisa caber o texto,
      e 520px de altura empurravam a arrecadacao pra fora da primeira tela. */
+  /* Respiro lateral no telefone: sem ele o título, a etiqueta e os botões
+     encostavam na borda da tela, que é metade da sensação de "atropelado". */
   .capa-corpo {
     min-height: 0;
-    padding: 30px 0 58px;
+    padding: 30px 22px 58px;
   }
   .capa-titulo {
     font-size: 30px;
@@ -3473,12 +3497,19 @@ body {
   .capa-col-lado {
     gap: 14px;
   }
+  /* No telefone o botão e o "ainda faltam" empilham: lado a lado eles somavam
+     os 375px inteiros da tela, colados nas bordas. Botão de largura cheia em
+     cima, o valor que falta como uma linha centrada embaixo. */
   .capa-botoes {
     width: 100%;
-    gap: 14px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
   }
   .capa-botoes .botao {
-    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .capa-aparte {
     justify-content: center;
   }
 
