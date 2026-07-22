@@ -37,6 +37,20 @@ function formatar(centavos: number) {
   return (centavos / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+/** Como chamar "o que a pessoa está levando", pro texto do valor extra. */
+function rotuloDoItem(tipo: string): string {
+  return (
+    {
+      RIFA: "número",
+      BINGO: "cartela",
+      PRODUTO: "pedido",
+      EVENTO: "ingresso",
+      BOLAO: "palpite",
+      LEILAO: "lance",
+    }[tipo] ?? "contribuição"
+  );
+}
+
 /** (41) 99999-9999 enquanto digita. Número formatado dá sensação de campo certo. */
 function mascararTelefone(valor: string) {
   const n = valor.replace(/\D/g, "").slice(0, 11);
@@ -80,9 +94,16 @@ export default function FormularioDeApoio({
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
+  // O chorinho: um extra por cima da rifa, da camisa, do palpite. So aparece
+  // fora da doacao livre, onde somar "um extra" ao valor livre nao faria
+  // sentido. Comeca vazio: e oferta, nao cobranca.
+  const [extra, setExtra] = useState(0);
+  const [extraDigitado, setExtraDigitado] = useState("");
+
   const maximo = restante ?? 50;
   const quantos = ehRifa ? numeros.length : quantidade;
-  const total = valorLivre ? (valor ?? 0) : (precoCentavos ?? 0) * quantos;
+  const totalItens = valorLivre ? (valor ?? 0) : (precoCentavos ?? 0) * quantos;
+  const total = totalItens + (valorLivre ? 0 : extra);
 
   async function enviar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -104,6 +125,7 @@ export default function FormularioDeApoio({
           quantidade: quantos,
           dados: ehRifa ? { numeros } : undefined,
           valorCentavos: valorLivre ? valor : undefined,
+          doacaoExtraCentavos: valorLivre ? undefined : extra,
         }),
       });
 
@@ -267,6 +289,59 @@ export default function FormularioDeApoio({
           divulgar.
         </p>
       </div>
+
+      {/* O chorinho. Só fora da doação livre: uma caixa discreta, opcional, no
+          fim, como era no bolão. Quem quer só a rifa passa reto; quem quer
+          arredondar pra cima acha o campo na hora certa, antes de pagar. */}
+      {!valorLivre && (
+        <div className="ap-bloco ap-extra">
+          <span className="ap-pergunta">Quer somar um valor extra?</span>
+          <span className="ap-dica">
+            Opcional. Vai inteiro para a casa, junto com o seu {rotuloDoItem(tipo)}.
+          </span>
+
+          <div className="ap-valores">
+            {[5, 10, 20].map((v) => {
+              const escolhido = extra === v * 100;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  className={`ap-valor${escolhido ? " escolhido" : ""}`}
+                  style={escolhido ? { borderColor: corForte, color: corForte } : undefined}
+                  onClick={() => {
+                    // Clicar de novo no mesmo tira: o extra é opcional e a
+                    // pessoa precisa conseguir voltar atrás sem recarregar.
+                    const novo = escolhido ? 0 : v * 100;
+                    setExtra(novo);
+                    setExtraDigitado(novo ? String(v).replace(".", ",") : "");
+                  }}
+                >
+                  + {formatar(v * 100)}
+                </button>
+              );
+            })}
+          </div>
+
+          <label className="ap-campo">
+            <span className="ap-nome">Ou outro valor</span>
+            <div className="ap-moeda">
+              <span>R$</span>
+              <input
+                inputMode="decimal"
+                placeholder="0,00"
+                value={extraDigitado}
+                onChange={(e) => {
+                  setExtraDigitado(e.target.value);
+                  const limpo = e.target.value.replace(/[^\d,]/g, "").replace(",", ".");
+                  const n = Number(limpo);
+                  setExtra(Number.isFinite(n) && n > 0 ? Math.round(n * 100) : 0);
+                }}
+              />
+            </div>
+          </label>
+        </div>
+      )}
 
       {erro && (
         <p className="ap-erro" role="alert">

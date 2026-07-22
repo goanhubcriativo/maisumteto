@@ -1095,6 +1095,18 @@ a.acao:hover {
   gap: 12px;
 }
 
+/* O chorinho: um bloco à parte, com um fundo levíssimo e uma linha por cima,
+   pra ler como "e mais isto, se você quiser", e não como outro campo obrigatório
+   do formulário. */
+.ap-extra {
+  border-top: 1px dashed var(--linha-forte);
+  padding-top: 18px;
+  gap: 10px;
+}
+.ap-extra .ap-dica {
+  margin-top: -6px;
+}
+
 .ap-pergunta {
   font-size: 15.5px;
   font-weight: 800;

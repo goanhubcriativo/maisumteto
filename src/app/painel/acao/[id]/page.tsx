@@ -1,7 +1,5 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import CampoDeImagem from "@/components/CampoDeImagem";
-import { QUADRO_DA_ACAO } from "@/lib/quadros";
 import { revalidatePath } from "next/cache";
 import {
   adicionarBloco,
@@ -24,6 +22,7 @@ import { formatarBRL, formatarBRLCurto, paraCentavos } from "@/lib/dinheiro";
 import { exigirLogin } from "@/lib/sessao";
 import { lerNumeros, registrarLancamentoManual } from "@/lib/manual";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
+import LancamentoManual from "@/components/LancamentoManual";
 import { IconeDaAcao } from "@/components/icones";
 
 export const dynamic = "force-dynamic";
@@ -99,6 +98,9 @@ export default async function EditarAcao({
   const ehRifa = acao.tipo === "RIFA" && (acao.estoqueTotal ?? 0) > 0;
   const estoqueDaRifa = acao.estoqueTotal ?? 0;
   const valorLivre = acao.precoCentavos == null;
+  // Publicar uma ação com abertura marcada pro futuro é programar, não publicar:
+  // ela vai pro ar borrada, com o selo "Em breve", e abre sozinha no dia.
+  const vaiAbrirNoFuturo = Boolean(acao.abreEm && acao.abreEm.getTime() > Date.now());
 
   // Quais cores as OUTRAS acoes ja usam.
   //
@@ -125,8 +127,8 @@ export default async function EditarAcao({
       precoCentavos: paraCentavos(String(dados.get("preco") ?? "")),
       metaCentavos: paraCentavos(String(dados.get("meta") ?? "")),
       cor: String(dados.get("cor") ?? "") || undefined,
-      capaUrl: String(dados.get("capa") ?? "").trim() || null,
-      capaFoco: String(dados.get("capaFoco") ?? "").trim() || null,
+      // capaUrl/capaFoco não são mais editados aqui: o cartão da ação não tem
+      // foto. Não sobrescrever preserva o que porventura já esteja gravado.
       abreEm: dataOuNulo("abreEm"),
       fechaEm: dataOuNulo("fechaEm"),
     });
@@ -217,17 +219,41 @@ export default async function EditarAcao({
           Voltar para a campanha
         </Link>
 
-        {/* Ver antes de publicar. Acao em rascunho ou marcada pra abrir no
-            futuro nao e clicavel na pagina publica, entao sem este link a
-            equipe so descobria o erro de texto depois de ja estar no ar. */}
-        <a
-          className="botao botao-contorno botao-pequeno"
-          href={`/c/${campanha.slug}/${acao.slug}?previa=1`}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Ver prévia da página
-        </a>
+        {/* O pacote de comandos, junto e claro. Antes o "Salvar" era um botão
+            secundário perdido no fim de um formulário longo, e ninguém o achava.
+            Agora ele é o primeiro daqui, ao lado da prévia e do publicar. */}
+        <div className="barra-comandos">
+          {/* Salva o formulário "O básico" mesmo estando fora dele, pelo id. */}
+          <button className="botao botao-primario botao-pequeno" type="submit" form="form-acao">
+            Salvar ação
+          </button>
+
+          {/* Ver antes de publicar. Ação em rascunho ou marcada pra abrir no
+              futuro não é clicável na página pública, então sem isto a equipe só
+              descobria o erro de texto depois de já estar no ar. */}
+          <a
+            className="botao botao-contorno botao-pequeno"
+            href={`/c/${campanha.slug}/${acao.slug}?previa=1`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Ver prévia
+          </a>
+
+          {/* Publicar NÃO é o mesmo que estar no ar: uma ação publicada com
+              abertura marcada pro mês que vem já está publicada, só não abriu.
+              Por isso o botão olha `rascunho`, não `disponivel`, e vira
+              "Programar" quando há uma data de abertura no futuro. */}
+          <form action={publicar}>
+            <input type="hidden" name="publicar" value={acao.rascunho ? "1" : "0"} />
+            <button
+              className={`botao botao-pequeno ${acao.rascunho ? "botao-primario" : "botao-contorno"}`}
+              type="submit"
+            >
+              {acao.rascunho ? (vaiAbrirNoFuturo ? "Programar" : "Publicar") : "Voltar para rascunho"}
+            </button>
+          </form>
+        </div>
       </div>
 
       {novo && (
@@ -262,24 +288,11 @@ export default async function EditarAcao({
             </p>
           </div>
         </div>
-
-        {/* Publicado NAO e o mesmo que no ar: uma acao publicada com abertura
-            marcada pro mes que vem ja esta publicada, so nao abriu. Por isso o
-            botao olha `rascunho`, e nao `disponivel`. */}
-        <form action={publicar}>
-          <input type="hidden" name="publicar" value={acao.rascunho ? "1" : "0"} />
-          <button
-            className={`botao ${acao.rascunho ? "botao-primario" : "botao-contorno"}`}
-            type="submit"
-          >
-            {acao.rascunho ? "Publicar ação" : "Voltar para rascunho"}
-          </button>
-        </form>
       </div>
 
       <section className="painel-cartao">
         <h2 className="formulario-secao">O básico</h2>
-        <form action={salvarBasico} className="formulario">
+        <form id="form-acao" action={salvarBasico} className="formulario">
           <label className="campo">
             <span className="campo-rotulo">Nome</span>
             <input className="campo-entrada" name="titulo" defaultValue={acao.titulo} />
@@ -390,17 +403,11 @@ export default async function EditarAcao({
             )}
           </fieldset>
 
-          <CampoDeImagem
-            name="capa"
-            valorInicial={acao.capaUrl}
-            quadros={QUADRO_DA_ACAO.map((q) => ({ ...q, valorInicial: acao.capaFoco }))}
-            rotulo="Foto da ação"
-            ajuda="Aparece no alto do cartão desta ação, em preto e branco com um véu azul."
-          />
+          {/* Sem foto no cartao da acao, de proposito. O cartao por fora fica
+              limpo, so com o icone do tipo; quem quiser imagem coloca dentro da
+              pagina, num bloco de foto do construtor, onde ela tem tamanho e
+              lugar pensados. */}
 
-          {/* Principal e em tamanho cheio: como secundario pequeno no fim de um
-              formulario longo, ele parecia controle acessorio e o Higor nao o
-              encontrou. */}
           <button className="botao botao-primario" type="submit">
             Salvar ação
           </button>
@@ -441,115 +448,18 @@ export default async function EditarAcao({
 
       {/* Lançamento manual.
           Fica na tela da ação, e não numa página só dele, porque quem chega
-          aqui com o caderno na mão já sabe de qual ação está falando. */}
-      <section className="painel-cartao" id="lancar">
-        <h2 className="formulario-secao">Lancei fora do site</h2>
-        <p className="campo-ajuda" style={{ margin: "-8px 0 18px" }}>
-          A rifa vendida na rua, a camisa paga em dinheiro, o PIX que caiu direto na conta de
-          alguém da equipe. Registre aqui em nome de quem contribuiu: entra no extrato, na conta
-          da campanha e na lista de quem contribuiu, marcado como lançamento manual, com o seu
-          nome como quem lançou.
-        </p>
-
-        {erro && (
-          <p className="aviso-ruim" role="alert">
-            {erro}
-          </p>
-        )}
-        {lancado && (
-          <p className="aviso-salvo" role="status">
-            Lançamento registrado. Já está no extrato.
-          </p>
-        )}
-
-        <form action={lancarManual} className="formulario">
-          <label className="campo">
-            <span className="campo-rotulo">Nome de quem contribuiu</span>
-            <input className="campo-entrada" name="nome" required />
-            <span className="campo-ajuda">
-              O nome oficial, como a pessoa é conhecida. É assim que ela vai aparecer no extrato
-              e na lista de quem contribuiu.
-            </span>
-          </label>
-
-          <div className="campo-dupla">
-            <label className="campo">
-              <span className="campo-rotulo">WhatsApp</span>
-              <input className="campo-entrada" name="whatsapp" inputMode="numeric" />
-              <span className="campo-ajuda">Opcional, mas ajuda a achar a pessoa depois.</span>
-            </label>
-
-            <label className="campo">
-              <span className="campo-rotulo">CPF</span>
-              <input className="campo-entrada" name="cpf" inputMode="numeric" />
-              <span className="campo-ajuda">Opcional. Aqui não tem banco exigindo.</span>
-            </label>
-          </div>
-
-          <div className="campo-dupla">
-            {ehRifa ? (
-              <label className="campo">
-                <span className="campo-rotulo">Números vendidos</span>
-                <input className="campo-entrada" name="numeros" placeholder="7, 12, 40" />
-                <span className="campo-ajuda">
-                  Separados por vírgula. A quantidade e o valor saem daqui, e os números ficam
-                  reservados em nome dessa pessoa.
-                </span>
-              </label>
-            ) : valorLivre ? (
-              <label className="campo">
-                <span className="campo-rotulo">Valor recebido</span>
-                <input className="campo-entrada" name="valor" inputMode="decimal" placeholder="50,00" />
-              </label>
-            ) : (
-              <label className="campo">
-                <span className="campo-rotulo">Quantidade</span>
-                <input
-                  className="campo-entrada"
-                  name="quantidade"
-                  inputMode="numeric"
-                  defaultValue="1"
-                />
-                <span className="campo-ajuda">
-                  O valor sai do preço da ação: {formatarBRL(acao.precoCentavos ?? 0)} cada.
-                </span>
-              </label>
-            )}
-
-            <label className="campo">
-              <span className="campo-rotulo">Quando a pessoa pagou</span>
-              <input
-                className="campo-entrada"
-                name="quando"
-                type="date"
-                defaultValue={paraCampoData(new Date())}
-              />
-              <span className="campo-ajuda">
-                A data do pagamento de verdade, e não a de hoje, se forem diferentes.
-              </span>
-            </label>
-          </div>
-
-          <label className="campo">
-            <span className="campo-rotulo">Como o dinheiro chegou</span>
-            <select className="campo-entrada" name="forma" defaultValue="Dinheiro">
-              <option>Dinheiro</option>
-              <option>PIX direto na conta</option>
-              <option>Transferência</option>
-              <option>Outro</option>
-            </select>
-          </label>
-
-          <label className="ap-anonimo" style={{ marginBottom: 16 }}>
-            <input type="checkbox" name="anonimo" />
-            <span>Esta pessoa não quer o nome na lista pública</span>
-          </label>
-
-          <button className="botao botao-primario" type="submit">
-            Registrar lançamento
-          </button>
-        </form>
-      </section>
+          aqui com o caderno na mão já sabe de qual ação está falando. O
+          formulário abre numa caixa por cima, pra não pesar a tela toda. */}
+      <LancamentoManual
+        action={lancarManual}
+        ehRifa={ehRifa}
+        valorLivre={valorLivre}
+        precoCentavos={acao.precoCentavos}
+        precoRotulo={formatarBRL(acao.precoCentavos ?? 0)}
+        hoje={paraCampoData(new Date())}
+        erro={erro}
+        lancado={Boolean(lancado)}
+      />
 
       <div className="painel-secao-cabeca">
         <h2>A página desta ação</h2>

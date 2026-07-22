@@ -193,16 +193,51 @@ textarea.campo-entrada {
 }
 .painel-nav {
   display: flex;
-  gap: 22px;
+  align-items: center;
+  gap: 14px;
   flex: 1;
 }
-.painel-nav a {
+/* Um controle segmentado: as abas moram dentro de uma trilha cinza, e a atual
+   ganha um retângulo branco com sombra, como um botão pressionado. É o que faz
+   ler como menu de navegação, e não como três links avulsos. */
+.painel-nav-grupo {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--cinza);
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+}
+.painel-nav-item {
   font-size: 13.5px;
+  font-weight: 650;
+  color: var(--tinta-70);
+  text-decoration: none;
+  padding: 7px 14px;
+  border-radius: 8px;
+  white-space: nowrap;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.painel-nav-item:hover {
+  color: var(--teto);
+}
+.painel-nav-item.ativo {
+  background: var(--branco);
+  color: var(--teto);
+  box-shadow: 0 1px 3px rgba(18, 48, 63, 0.12);
+}
+/* O link pro site público fica fora da trilha, e com uma seta pra deixar claro
+   que sai do painel. */
+.painel-nav-sair {
+  font-size: 13px;
   font-weight: 600;
   color: var(--tinta-70);
   text-decoration: none;
 }
-.painel-nav a:hover {
+.painel-nav-sair::after {
+  content: " ↗";
+}
+.painel-nav-sair:hover {
   color: var(--teto);
 }
 .painel-sair {
@@ -1209,6 +1244,66 @@ textarea.campo-entrada {
   font-weight: 800;
 }
 
+/* O cartão de chamada do lançamento manual: um texto curto e o botão que abre
+   a caixa, lado a lado. */
+.lancar-chamada {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.lancar-chamada > div {
+  flex: 1;
+  min-width: 240px;
+}
+
+/* A caixa que abre por cima. Native <dialog>: o ::backdrop escurece o fundo e o
+   showModal() prende o foco dentro, sem precisar de biblioteca. */
+.popup {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border: none;
+  border-radius: 16px;
+  padding: 22px 24px 24px;
+  box-shadow: 0 24px 60px rgba(9, 30, 44, 0.28);
+}
+.popup::backdrop {
+  background: rgba(9, 30, 44, 0.5);
+  backdrop-filter: blur(2px);
+}
+.popup-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.popup-fechar {
+  border: none;
+  background: var(--cinza);
+  color: var(--tinta-70);
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.popup-fechar:hover {
+  background: var(--linha);
+  color: var(--tinta);
+}
+/* Os dois botões do pé da caixa: cancelar à esquerda, confirmar à direita. */
+.popup-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
 /* O contrario do aviso-salvo: o lançamento que nao entrou, e por que. */
 .aviso-ruim {
   margin: 0 0 18px;
@@ -1268,6 +1363,20 @@ textarea.campo-entrada {
   gap: 14px;
   flex-wrap: wrap;
   margin-bottom: 6px;
+}
+
+/* O pacote de comandos da ação: Salvar, Ver prévia, Publicar/Programar, lado a
+   lado, agrupados num só bloco pra ler como um conjunto de ações e não como
+   botões soltos espalhados pela tela. */
+.barra-comandos {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.barra-comandos form {
+  display: inline-flex;
+  margin: 0;
 }
 
 /* Os quadros reais da capa, lado a lado. O quadro nao muda de tamanho: quem

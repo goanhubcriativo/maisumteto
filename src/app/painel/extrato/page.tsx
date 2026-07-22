@@ -172,10 +172,11 @@ export default async function Extrato() {
                   <td>{mascararCpf(p.cpf)}</td>
                   <td>{mascararTelefone(p.whatsapp)}</td>
                   <td>
-                    {p.itens.map((i) => i.acao.titulo).join(", ") || "doação"}
-                    {p.itens[0] && p.itens[0].quantidade > 1 && (
-                      <span className="tabela-nota">{p.itens[0].quantidade} unidades</span>
-                    )}
+                    {/* O nome da ação uma vez só. Um pedido pode ter cinco itens
+                        da mesma ação (cinco palpites do bolão), mas para conferir
+                        o dinheiro basta saber que os R$ 50 entraram pelo bolão,
+                        não que foram cinco linhas iguais. */}
+                    {[...new Set(p.itens.map((i) => i.acao.titulo))].join(", ") || "doação"}
                   </td>
                   <td className="num">{formatarBRL(p.valorBrutoCentavos)}</td>
                   <td className="num">

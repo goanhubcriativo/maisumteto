@@ -55,6 +55,11 @@ export async function POST(req: NextRequest) {
   const anonimo = corpo.anonimo === true;
   const quantidade = Math.floor(Number(corpo.quantidade ?? 1));
   const valorLivre = Number(corpo.valorCentavos ?? 0);
+  // O "chorinho": um valor extra que a pessoa soma por cima da rifa, da camisa,
+  // do palpite. Vem separado dos itens de proposito, porque nao pertence a
+  // nenhuma unidade: e doacao pura pendurada no mesmo PIX. So existe fora da
+  // doacao livre, onde somar "um extra" ao valor livre nao faria sentido.
+  const doacaoExtra = Math.max(0, Math.floor(Number(corpo.doacaoExtraCentavos ?? 0)));
   const dados = (corpo.dados ?? {}) as Record<string, unknown>;
 
   if (nome.length < 3) {
@@ -165,6 +170,12 @@ export async function POST(req: NextRequest) {
     valorItens = (precoUnitario ?? 0) * quantos;
   }
 
+  // O chorinho só vale fora da doação livre: lá o valor já é livre, somar um
+  // "extra" seria pedir duas vezes a mesma coisa. Teto de R$ 50 mil, o mesmo da
+  // doação, pra um dígito a mais não virar uma cobrança absurda.
+  const extra = precoUnitario == null ? 0 : Math.min(doacaoExtra, 5_000_000);
+  const totalCentavos = valorItens + extra;
+
   const pedido = await prisma.pedido.create({
     data: {
       campanhaId: acao.campanhaId,
@@ -173,7 +184,8 @@ export async function POST(req: NextRequest) {
       cpf,
       email,
       anonimo,
-      valorBrutoCentavos: valorItens,
+      valorBrutoCentavos: totalCentavos,
+      doacaoExtraCentavos: extra,
       status: "PENDENTE",
       itens: {
         create: {
@@ -215,7 +227,7 @@ export async function POST(req: NextRequest) {
       nome,
       cpf,
       email: email ?? undefined,
-      valorCentavos: valorItens,
+      valorCentavos: totalCentavos,
       descricao: `${acao.titulo} · Casa Amiga`,
       externalReference: pedido.id,
       expiraEmISO: expiracaoISO(24),

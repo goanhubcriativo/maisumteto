@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import "../painel.css";
 import { exigirLogin, encerrarSessao } from "@/lib/sessao";
 import { IconeCasa } from "@/components/icones";
+import PainelNav from "@/components/PainelNav";
 
 export default async function LayoutDoPainel({ children }: { children: React.ReactNode }) {
   const usuario = await exigirLogin();
@@ -27,14 +28,7 @@ export default async function LayoutDoPainel({ children }: { children: React.Rea
             </span>
           </Link>
 
-          <nav className="painel-nav">
-            <Link href="/painel">Campanha</Link>
-            <Link href="/painel/extrato">Extrato</Link>
-            <Link href="/painel/ferramentas">Caixa de ferramentas</Link>
-            <Link href="/" target="_blank">
-              Ver a página
-            </Link>
-          </nav>
+          <PainelNav />
 
           <form action={sair} className="painel-sair">
             <span className="painel-quem">{usuario.nome}</span>

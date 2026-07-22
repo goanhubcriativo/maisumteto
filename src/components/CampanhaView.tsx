@@ -267,30 +267,13 @@ function CartaoAcao({
 
   const conteudo = (
     <>
-
-      {/* A foto da acao, quando existe. Sem foto o cartao NAO fica menor nem
-          esquisito: o icone assume o topo, que e o desenho que ja existia. */}
-      {acao.capaUrl ? (
-        <span
-          className="acao-capa"
-          style={{
-            backgroundImage: `url(${JSON.stringify(acao.capaUrl)})`,
-            backgroundPosition: acao.capaFoco ?? "50% 50%",
-          }}
-          aria-hidden="true"
-        >
-          <span className="acao-icone acao-icone-sobre">
-            <IconeDaAcao tipo={acao.tipo} />
-          </span>
-        </span>
-      ) : null}
-
+      {/* Sem foto no topo do cartao: por fora ele fica limpo, so com o icone do
+          tipo. Imagem, quem quiser, poe dentro da pagina da acao, num bloco de
+          foto do construtor. */}
       <span className="acao-topo">
-        {!acao.capaUrl && (
-          <span className="acao-icone">
-            <IconeDaAcao tipo={acao.tipo} />
-          </span>
-        )}
+        <span className="acao-icone">
+          <IconeDaAcao tipo={acao.tipo} />
+        </span>
         <span className="acao-titulo">{acao.titulo}</span>
       </span>
       <span className="acao-preco">{precoDaAcao(acao)}</span>
