@@ -19,8 +19,11 @@ import { receitaDe } from "@/lib/catalogo";
 import { definicaoDe, type TipoBloco } from "@/lib/blocos";
 import { PALETA } from "@/lib/paleta";
 import { formatarBRL, formatarBRLCurto, paraCentavos } from "@/lib/dinheiro";
-import { exigirLogin } from "@/lib/sessao";
+import { exigirLogin, exigirEdicao } from "@/lib/sessao";
 import { lerNumeros, registrarLancamentoManual } from "@/lib/manual";
+import { criarOpcao, salvarOpcao, removerOpcao } from "@/lib/opcoes";
+import CampoDeImagem from "@/components/CampoDeImagem";
+import { QUADRO_DA_ACAO } from "@/lib/quadros";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
 import LancamentoManual from "@/components/LancamentoManual";
 import { IconeDaAcao } from "@/components/icones";
@@ -77,10 +80,16 @@ export default async function EditarAcao({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ novo?: string; salvo?: string; lancado?: string; erro?: string }>;
+  searchParams: Promise<{
+    novo?: string;
+    salvo?: string;
+    lancado?: string;
+    erro?: string;
+    erroOpcao?: string;
+  }>;
 }) {
   const { id } = await params;
-  const { novo, salvo, lancado, erro } = await searchParams;
+  const { novo, salvo, lancado, erro, erroOpcao } = await searchParams;
 
   const usuario = await exigirLogin();
   const acao = await buscarAcao(id);
@@ -116,6 +125,7 @@ export default async function EditarAcao({
 
   async function salvarBasico(dados: FormData) {
     "use server";
+    await exigirEdicao();
 
     // Campo vazio vira null, e nao Invalid Date: uma data invalida em `abreEm`
     // faria a acao ficar presa em "em breve" pra sempre.
@@ -127,8 +137,12 @@ export default async function EditarAcao({
       precoCentavos: paraCentavos(String(dados.get("preco") ?? "")),
       metaCentavos: paraCentavos(String(dados.get("meta") ?? "")),
       cor: String(dados.get("cor") ?? "") || undefined,
-      // capaUrl/capaFoco não são mais editados aqui: o cartão da ação não tem
-      // foto. Não sobrescrever preserva o que porventura já esteja gravado.
+      // Foto e tabela de tamanhos só existem no formulário do PRODUTO. Para os
+      // outros tipos os campos não vêm, e aí ficam nulos, que é o certo: o
+      // cartão da ação não tem mais foto.
+      capaUrl: String(dados.get("capa") ?? "").trim() || null,
+      capaFoco: String(dados.get("capaFoco") ?? "").trim() || null,
+      tabelaMedidas: String(dados.get("tabelaMedidas") ?? "").trim() || null,
       abreEm: dataOuNulo("abreEm"),
       fechaEm: dataOuNulo("fechaEm"),
     });
@@ -141,6 +155,7 @@ export default async function EditarAcao({
 
   async function lancarManual(dados: FormData) {
     "use server";
+    await exigirEdicao();
 
     const r = await registrarLancamentoManual({
       acaoId: acaoId,
@@ -169,26 +184,70 @@ export default async function EditarAcao({
 
   async function publicar(dados: FormData) {
     "use server";
+    await exigirEdicao();
     await publicarAcao(acaoId, dados.get("publicar") === "1");
     recarregar(acaoId);
   }
 
   async function apagar() {
     "use server";
+    await exigirEdicao();
     await apagarAcao(acaoId);
     revalidatePath("/painel");
     revalidatePath("/");
     redirect("/painel");
   }
 
+  // Opções de venda: o lote do ingresso, o tamanho da camisa. O preço vem em
+  // reais e vira centavos aqui; estoque vazio = ilimitado.
+  async function adicionarOpcao(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    const nome = String(dados.get("nome") ?? "").trim();
+    const preco = paraCentavos(String(dados.get("preco") ?? "")) ?? 0;
+    if (!nome || preco <= 0) {
+      redirect(`/painel/acao/${acaoId}?erroOpcao=${encodeURIComponent("Dê um nome e um preço à opção.")}`);
+    }
+    const estoque = String(dados.get("estoque") ?? "").trim();
+    await criarOpcao(acaoId, {
+      nome,
+      precoCentavos: preco,
+      custoUnitarioCentavos: paraCentavos(String(dados.get("custo") ?? "")) ?? 0,
+      estoqueTotal: estoque ? Math.max(0, Math.floor(Number(estoque))) : null,
+    });
+    recarregar(acaoId);
+  }
+
+  async function salvarOpcaoAction(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    const estoque = String(dados.get("estoque") ?? "").trim();
+    await salvarOpcao(String(dados.get("id")), {
+      nome: String(dados.get("nome") ?? "").trim(),
+      precoCentavos: paraCentavos(String(dados.get("preco") ?? "")) ?? 0,
+      custoUnitarioCentavos: paraCentavos(String(dados.get("custo") ?? "")) ?? 0,
+      estoqueTotal: estoque ? Math.max(0, Math.floor(Number(estoque))) : null,
+    });
+    recarregar(acaoId);
+  }
+
+  async function removerOpcaoAction(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    await removerOpcao(acaoId, String(dados.get("id")));
+    recarregar(acaoId);
+  }
+
   const acoesDoEditor = {
     adicionar: async (dados: FormData) => {
       "use server";
+      await exigirEdicao();
       await adicionarBloco(alvo, String(dados.get("tipo")) as TipoBloco);
       recarregar(acaoId);
     },
     salvar: async (dados: FormData) => {
       "use server";
+      await exigirEdicao();
       const blocoId = String(dados.get("id"));
       const bloco = (await listarBlocos(alvo)).find((b) => b.id === blocoId);
       if (!bloco) return;
@@ -197,16 +256,19 @@ export default async function EditarAcao({
     },
     mover: async (dados: FormData) => {
       "use server";
+      await exigirEdicao();
       await moverBloco(alvo, String(dados.get("id")), String(dados.get("direcao")) as "cima" | "baixo");
       recarregar(acaoId);
     },
     alternar: async (dados: FormData) => {
       "use server";
+      await exigirEdicao();
       await alternarBloco(String(dados.get("id")));
       recarregar(acaoId);
     },
     remover: async (dados: FormData) => {
       "use server";
+      await exigirEdicao();
       await removerBloco(alvo, String(dados.get("id")));
       recarregar(acaoId);
     },
@@ -403,16 +465,156 @@ export default async function EditarAcao({
             )}
           </fieldset>
 
-          {/* Sem foto no cartao da acao, de proposito. O cartao por fora fica
-              limpo, so com o icone do tipo; quem quiser imagem coloca dentro da
-              pagina, num bloco de foto do construtor, onde ela tem tamanho e
-              lugar pensados. */}
+          {/* Foto e tabela de tamanhos só no PRODUTO: é a vitrine da peça, e
+              aparece na página dela (não no cartão, que segue limpo, só ícone).
+              Nos outros tipos, imagem entra num bloco de foto do construtor. */}
+          {acao.tipo === "PRODUTO" && (
+            <>
+              <h2 className="formulario-secao">A peça</h2>
+              <CampoDeImagem
+                name="capa"
+                valorInicial={acao.capaUrl}
+                quadros={QUADRO_DA_ACAO.map((q) => ({ ...q, valorInicial: acao.capaFoco }))}
+                rotulo="Foto do produto"
+                ajuda="Aparece no alto da página desta ação, em tamanho grande."
+              />
+              <label className="campo">
+                <span className="campo-rotulo">Tabela de tamanhos</span>
+                <textarea
+                  className="campo-entrada"
+                  name="tabelaMedidas"
+                  rows={5}
+                  defaultValue={acao.tabelaMedidas ?? ""}
+                  placeholder={"P: 68cm de comprimento, 48cm de largura\nM: 71cm, 52cm\nG: 74cm, 55cm"}
+                />
+                <span className="campo-ajuda">Uma linha por tamanho. Aparece na página, ao lado da foto.</span>
+              </label>
+            </>
+          )}
 
           <button className="botao botao-primario" type="submit">
             Salvar ação
           </button>
         </form>
       </section>
+
+      {/* Opções de venda: os lotes do ingresso, os tamanhos da camisa. Cada uma
+          com preço e estoque próprios. Só evento e produto usam. */}
+      {(acao.tipo === "EVENTO" || acao.tipo === "PRODUTO") && (
+        <section className="painel-cartao">
+          <h2 className="formulario-secao">
+            {acao.tipo === "EVENTO" ? "Tipos de ingresso" : "Opções e tamanhos"}
+          </h2>
+          <p className="campo-ajuda" style={{ margin: "-8px 0 18px" }}>
+            {acao.tipo === "EVENTO"
+              ? "Cada tipo de ingresso (1º lote, 2º lote, VIP) com seu preço e sua quantidade. Quem compra escolhe um."
+              : "Cada variação (P, M, G, sabor, cor) com seu preço e seu estoque. Quem compra escolhe uma."}{" "}
+            Sem nenhuma opção, a ação cobra pelo preço único lá de cima.
+          </p>
+
+          {erroOpcao && (
+            <p className="aviso-ruim" role="alert">
+              {erroOpcao}
+            </p>
+          )}
+
+          {(acao.opcoes ?? []).length > 0 && (
+            <div className="opcoes-lista">
+              {(acao.opcoes ?? []).map((o) => (
+                <form key={o.id} action={salvarOpcaoAction} className="opcao-linha">
+                  <input type="hidden" name="id" value={o.id} />
+                  <label className="campo opcao-nome">
+                    <span className="campo-rotulo">Nome</span>
+                    <input className="campo-entrada" name="nome" defaultValue={o.nome} />
+                  </label>
+                  <label className="campo opcao-preco">
+                    <span className="campo-rotulo">Preço</span>
+                    <input
+                      className="campo-entrada"
+                      name="preco"
+                      inputMode="decimal"
+                      defaultValue={(o.precoCentavos / 100).toFixed(2).replace(".", ",")}
+                    />
+                  </label>
+                  <label className="campo opcao-preco">
+                    <span className="campo-rotulo">Custo</span>
+                    <input
+                      className="campo-entrada"
+                      name="custo"
+                      inputMode="decimal"
+                      defaultValue={
+                        o.custoUnitarioCentavos
+                          ? (o.custoUnitarioCentavos / 100).toFixed(2).replace(".", ",")
+                          : ""
+                      }
+                      placeholder="0,00"
+                    />
+                  </label>
+                  <label className="campo opcao-estoque">
+                    <span className="campo-rotulo">Quantidade</span>
+                    <input
+                      className="campo-entrada"
+                      name="estoque"
+                      inputMode="numeric"
+                      defaultValue={o.estoqueTotal ?? ""}
+                      placeholder="livre"
+                    />
+                  </label>
+                  <div className="opcao-botoes">
+                    <button className="botao botao-contorno botao-pequeno" type="submit">
+                      Salvar
+                    </button>
+                    <button
+                      className="editor-mini perigo"
+                      type="submit"
+                      formAction={removerOpcaoAction}
+                      title="Remover opção"
+                    >
+                      Remover
+                    </button>
+                  </div>
+                  {o.estoqueTotal != null && (
+                    <span className="opcao-resta">
+                      {o.restante ?? 0} de {o.estoqueTotal} ainda disponíveis
+                    </span>
+                  )}
+                </form>
+              ))}
+            </div>
+          )}
+
+          <form action={adicionarOpcao} className="opcao-nova">
+            <h3 className="opcao-nova-titulo">Adicionar {acao.tipo === "EVENTO" ? "ingresso" : "opção"}</h3>
+            <div className="opcao-linha">
+              <label className="campo opcao-nome">
+                <span className="campo-rotulo">Nome</span>
+                <input
+                  className="campo-entrada"
+                  name="nome"
+                  placeholder={acao.tipo === "EVENTO" ? "1º lote" : "Tamanho M"}
+                />
+              </label>
+              <label className="campo opcao-preco">
+                <span className="campo-rotulo">Preço</span>
+                <input className="campo-entrada" name="preco" inputMode="decimal" placeholder="40,00" />
+              </label>
+              <label className="campo opcao-preco">
+                <span className="campo-rotulo">Custo</span>
+                <input className="campo-entrada" name="custo" inputMode="decimal" placeholder="0,00" />
+              </label>
+              <label className="campo opcao-estoque">
+                <span className="campo-rotulo">Quantidade</span>
+                <input className="campo-entrada" name="estoque" inputMode="numeric" placeholder="livre" />
+              </label>
+              <div className="opcao-botoes">
+                <button className="botao botao-primario botao-pequeno" type="submit">
+                  Adicionar
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+      )}
 
       {receita && Object.keys(acao.config).length > 0 && (
         <section className="painel-cartao">

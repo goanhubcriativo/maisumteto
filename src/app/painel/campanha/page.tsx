@@ -12,6 +12,7 @@ import {
   salvarCampanha,
 } from "@/lib/repositorio";
 import { paraCentavos } from "@/lib/dinheiro";
+import { exigirEdicao } from "@/lib/sessao";
 import type { TipoBloco } from "@/lib/blocos";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
 import CampoDeImagem from "@/components/CampoDeImagem";
@@ -60,6 +61,7 @@ export default async function EditarCampanha({
 
   async function salvar(dados: FormData) {
     "use server";
+    await exigirEdicao();
 
     const meta = paraCentavos(String(dados.get("meta") ?? ""));
 
@@ -84,11 +86,13 @@ export default async function EditarCampanha({
   const acoesDoEditor = {
     adicionar: async (dados: FormData) => {
       "use server";
+      await exigirEdicao();
       await adicionarBloco(alvo, String(dados.get("tipo")) as TipoBloco);
       recarregar();
     },
     salvar: async (dados: FormData) => {
       "use server";
+      await exigirEdicao();
       const blocoId = String(dados.get("id"));
       const bloco = (await listarBlocos(alvo)).find((b) => b.id === blocoId);
       if (!bloco) return;
@@ -97,16 +101,19 @@ export default async function EditarCampanha({
     },
     mover: async (dados: FormData) => {
       "use server";
+      await exigirEdicao();
       await moverBloco(alvo, String(dados.get("id")), String(dados.get("direcao")) as "cima" | "baixo");
       recarregar();
     },
     alternar: async (dados: FormData) => {
       "use server";
+      await exigirEdicao();
       await alternarBloco(String(dados.get("id")));
       recarregar();
     },
     remover: async (dados: FormData) => {
       "use server";
+      await exigirEdicao();
       await removerBloco(alvo, String(dados.get("id")));
       recarregar();
     },

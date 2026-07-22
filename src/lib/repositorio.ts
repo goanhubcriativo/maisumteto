@@ -18,11 +18,13 @@ import { novoBloco, type Bloco, type TipoBloco } from "./blocos";
 import { receitaDe } from "./catalogo";
 import { COR_SUGERIDA } from "./paleta";
 import type { AcaoNaVitrine, ApoiadorRecente } from "./vitrine";
+import { opcoesPorAcaoDaCampanha } from "./opcoes";
 
 export interface AcaoDoPainel extends AcaoNaVitrine {
   campanhaId: string;
   config: Record<string, unknown>;
   custoUnitarioCentavos: number;
+  tabelaMedidas: string | null;
   criadaEm: Date;
   rascunho: boolean;
   fechaEm: Date | null;
@@ -128,37 +130,53 @@ async function liquidoPorAcao(campanhaId: string): Promise<Map<string, number>> 
 }
 
 export async function listarAcoes(campanhaId: string): Promise<AcaoDoPainel[]> {
-  const [acoes, vendidos, liquidos] = await Promise.all([
+  const [acoes, vendidos, liquidos, opcoesPorAcao] = await Promise.all([
     prisma.acao.findMany({ where: { campanhaId }, orderBy: { createdAt: "asc" } }),
     vendidosPorAcao(),
     liquidoPorAcao(campanhaId),
+    opcoesPorAcaoDaCampanha(campanhaId),
   ]);
 
   const agora = new Date();
 
-  return acoes.map((a) => ({
-    id: a.id,
-    campanhaId: a.campanhaId,
-    slug: a.slug,
-    tipo: a.tipo,
-    titulo: a.titulo,
-    descricao: a.descricao,
-    precoCentavos: a.precoCentavos,
-    liquidoCentavos: liquidos.get(a.id) ?? 0,
-    metaCentavos: a.metaCentavos,
-    estoqueTotal: a.estoqueTotal,
-    limitePorPedido: a.limitePorPedido,
-    abreEm: a.abreEm,
-    fechaEm: a.fechaEm,
-    cor: a.cor,
-    capaUrl: a.capaUrl,
-    capaFoco: a.capaFoco,
-    config: (a.config as Record<string, unknown>) ?? {},
-    custoUnitarioCentavos: a.custoUnitarioCentavos,
-    criadaEm: a.createdAt,
-    rascunho: a.status === StatusAcao.RASCUNHO,
-    ...avaliar(a, vendidos.get(a.id) ?? 0, agora),
-  }));
+  return acoes.map((a) => {
+    const opcoes = opcoesPorAcao.get(a.id) ?? [];
+    const base = {
+      id: a.id,
+      campanhaId: a.campanhaId,
+      slug: a.slug,
+      tipo: a.tipo,
+      titulo: a.titulo,
+      descricao: a.descricao,
+      precoCentavos: a.precoCentavos,
+      liquidoCentavos: liquidos.get(a.id) ?? 0,
+      metaCentavos: a.metaCentavos,
+      estoqueTotal: a.estoqueTotal,
+      limitePorPedido: a.limitePorPedido,
+      abreEm: a.abreEm,
+      fechaEm: a.fechaEm,
+      cor: a.cor,
+      capaUrl: a.capaUrl,
+      capaFoco: a.capaFoco,
+      opcoes,
+      config: (a.config as Record<string, unknown>) ?? {},
+      custoUnitarioCentavos: a.custoUnitarioCentavos,
+      tabelaMedidas: a.tabelaMedidas,
+      criadaEm: a.createdAt,
+      rascunho: a.status === StatusAcao.RASCUNHO,
+      ...avaliar(a, vendidos.get(a.id) ?? 0, agora),
+    };
+    // Com opções, o estoque e a disponibilidade da AÇÃO passam a ser a soma das
+    // opções: a ação está esgotada só quando toda opção estiver. Sem isso, um
+    // evento com dois lotes fecharia por causa do estoque nulo da ação.
+    if (opcoes.length > 0) {
+      const temVaga = opcoes.some((o) => !o.esgotada);
+      if (!temVaga && base.disponivel) {
+        return { ...base, disponivel: false, motivo: "ESGOTADO" as const };
+      }
+    }
+    return base;
+  });
 }
 
 /** O que a pagina publica mostra: tudo que nao e rascunho, disponivel primeiro. */
@@ -412,6 +430,15 @@ export async function usuarioPorId(id: string) {
     where: { id },
     select: { id: true, nome: true, email: true },
   });
+}
+
+/** O papel do usuário na equipe (o piloto tem uma só). Nulo se não é membro. */
+export async function papelDoUsuario(usuarioId: string) {
+  const m = await prisma.membro.findFirst({
+    where: { usuarioId },
+    select: { papel: true },
+  });
+  return m?.papel ?? null;
 }
 
 export async function abrirSessao(tokenHash: string, usuarioId: string, expiraEm: Date) {

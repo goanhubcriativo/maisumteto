@@ -31,7 +31,10 @@ export default async function LayoutDoPainel({ children }: { children: React.Rea
           <PainelNav />
 
           <form action={sair} className="painel-sair">
-            <span className="painel-quem">{usuario.nome}</span>
+            <span className="painel-quem">
+              {usuario.nome}
+              {!usuario.podeEditar && <em className="painel-leitura-selo">só leitura</em>}
+            </span>
             <button className="botao botao-contorno botao-pequeno" type="submit">
               Sair
             </button>
@@ -39,7 +42,17 @@ export default async function LayoutDoPainel({ children }: { children: React.Rea
         </div>
       </header>
 
-      <main className="painel-corpo">{children}</main>
+      <main className="painel-corpo">
+        {!usuario.podeEditar && (
+          <div className="painel-largura">
+            <div className="aviso-bom" style={{ marginBottom: 24 }}>
+              Este acesso é <strong>somente leitura</strong>. Você vê tudo, inclusive o extrato,
+              mas os botões de mudar as coisas não têm efeito.
+            </div>
+          </div>
+        )}
+        {children}
+      </main>
     </div>
   );
 }

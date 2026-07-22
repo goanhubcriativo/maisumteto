@@ -52,7 +52,14 @@ export default async function Extrato() {
       manual: true,
       formaManual: true,
       registradoPor: { select: { nome: true } },
-      itens: { select: { quantidade: true, acao: { select: { titulo: true } } } },
+      itens: {
+        select: {
+          quantidade: true,
+          dados: true,
+          acao: { select: { titulo: true } },
+          opcao: { select: { nome: true } },
+        },
+      },
     },
   });
 
@@ -177,6 +184,22 @@ export default async function Extrato() {
                         o dinheiro basta saber que os R$ 50 entraram pelo bolão,
                         não que foram cinco linhas iguais. */}
                     {[...new Set(p.itens.map((i) => i.acao.titulo))].join(", ") || "doação"}
+                    {/* A opção vendida (o lote, o tamanho): vem da relação, ou do
+                        que ficou congelado no item se a opção já foi apagada. */}
+                    {(() => {
+                      const ops = [
+                        ...new Set(
+                          p.itens
+                            .map(
+                              (i) =>
+                                i.opcao?.nome ??
+                                (i.dados as { opcaoNome?: string } | null)?.opcaoNome
+                            )
+                            .filter(Boolean)
+                        ),
+                      ];
+                      return ops.length ? <span className="tabela-nota">{ops.join(", ")}</span> : null;
+                    })()}
                   </td>
                   <td className="num">{formatarBRL(p.valorBrutoCentavos)}</td>
                   <td className="num">

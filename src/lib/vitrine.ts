@@ -6,6 +6,7 @@
 import { StatusAcao, StatusPedido } from "@prisma/client";
 import { prisma } from "./db";
 import { resumoCampanha, extratoPorAcao } from "./extrato";
+import { opcoesPorAcaoDaCampanha, type OpcaoView } from "./opcoes";
 
 export interface ApoiadorRecente {
   id: string;
@@ -49,6 +50,8 @@ export interface AcaoNaVitrine {
   capaUrl?: string | null;
   /** Como a foto foi encaixada no quadro do cartao ("50% 30%"). */
   capaFoco?: string | null;
+  /** Opções de venda (lote do ingresso, tamanho da camisa). Vazio se não tem. */
+  opcoes?: OpcaoView[];
 }
 
 /**
@@ -105,7 +108,7 @@ export async function vitrineDaCampanha(slug: string) {
     sede: "TETO Paraná",
   };
 
-  const [resumo, porAcao, acoes, vendas, apoiadores, recentes] = await Promise.all([
+  const [resumo, porAcao, acoes, vendas, apoiadores, recentes, opcoesPorAcao] = await Promise.all([
     resumoCampanha(campanha.id),
     extratoPorAcao(campanha.id),
     prisma.acao.findMany({
@@ -140,25 +143,37 @@ export async function vitrineDaCampanha(slug: string) {
         itens: { select: { acao: { select: { titulo: true } } }, take: 1 },
       },
     }),
+    opcoesPorAcaoDaCampanha(campanha.id),
   ]);
 
   const agora = new Date();
   const vendidosPorAcao = new Map(vendas.map((v) => [v.acaoId, v._sum.quantidade ?? 0]));
   const liquidoPorAcao = new Map(porAcao.map((l) => [l.acaoId, l.liquidoCentavos]));
 
-  const vitrine: AcaoNaVitrine[] = acoes.map((acao) => ({
-    id: acao.id,
-    slug: acao.slug,
-    tipo: acao.tipo,
-    titulo: acao.titulo,
-    descricao: acao.descricao,
-    precoCentavos: acao.precoCentavos,
-    liquidoCentavos: liquidoPorAcao.get(acao.id) ?? 0,
-    metaCentavos: acao.metaCentavos,
-    estoqueTotal: acao.estoqueTotal,
-    limitePorPedido: acao.limitePorPedido,
-    ...avaliar(acao, vendidosPorAcao.get(acao.id) ?? 0, agora),
-  }));
+  const vitrine: AcaoNaVitrine[] = acoes.map((acao) => {
+    const opcoes = opcoesPorAcao.get(acao.id) ?? [];
+    const estado = avaliar(acao, vendidosPorAcao.get(acao.id) ?? 0, agora);
+    // Com opções, a ação só esgota quando toda opção esgotar. Ver listarAcoes.
+    if (opcoes.length > 0 && estado.disponivel && opcoes.every((o) => o.esgotada)) {
+      estado.disponivel = false;
+      estado.motivo = "ESGOTADO";
+    }
+    return {
+      id: acao.id,
+      slug: acao.slug,
+      tipo: acao.tipo,
+      titulo: acao.titulo,
+      descricao: acao.descricao,
+      precoCentavos: acao.precoCentavos,
+      liquidoCentavos: liquidoPorAcao.get(acao.id) ?? 0,
+      metaCentavos: acao.metaCentavos,
+      estoqueTotal: acao.estoqueTotal,
+      limitePorPedido: acao.limitePorPedido,
+      cor: acao.cor,
+      opcoes,
+      ...estado,
+    };
+  });
 
   // Disponivel primeiro: o que da pra fazer agora fica no topo, o que ja passou
   // desce sem sumir (serve de prova de que a equipe se mexeu).

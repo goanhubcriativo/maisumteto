@@ -107,6 +107,11 @@ function primeiraLetra(nome: string): string {
 
 /** Doacao tem valor livre, entao nao carrega etiqueta de preco. */
 function precoDaAcao(acao: AcaoNaVitrine): string {
+  // Com opções de venda, o cartão mostra o menor preço: "a partir de R$40".
+  if (acao.opcoes && acao.opcoes.length > 0) {
+    const menor = Math.min(...acao.opcoes.map((o) => o.precoCentavos));
+    return `A partir de ${formatarBRL(menor)}`;
+  }
   if (acao.precoCentavos == null) return "Você escolhe o valor";
   return formatarBRL(acao.precoCentavos);
 }

@@ -14,6 +14,7 @@ import { prisma } from "@/lib/db";
 import { numerosOcupados, reservarNumeros } from "@/lib/rifa";
 import { criarPagamentoPix, expiracaoISO } from "@/lib/mercadopago";
 import { buscarAcao } from "@/lib/repositorio";
+import { opcoesDaAcao } from "@/lib/opcoes";
 
 export const runtime = "nodejs";
 
@@ -89,7 +90,44 @@ export async function POST(req: NextRequest) {
   let valorItens: number;
   let quantos: number;
 
-  if (precoUnitario == null) {
+  // Opções de venda (lote do ingresso, tamanho da camisa). Quando a ação tem,
+  // o preço, o estoque e o custo saem da OPÇÃO escolhida, nunca do corpo. Uma
+  // ação com opções não usa mais o precoCentavos dela nem o caminho da rifa.
+  const opcoes = await opcoesDaAcao(acao.id);
+  const opcaoEscolhida = opcoes.length
+    ? opcoes.find((o) => o.id === String(corpo.opcaoId ?? ""))
+    : null;
+  let custoUnitarioItem = acao.custoUnitarioCentavos;
+  let dadosDoItem: Record<string, unknown> = dados;
+
+  if (opcoes.length > 0) {
+    if (!opcaoEscolhida) {
+      return NextResponse.json({ erro: "Escolha uma opção." }, { status: 400 });
+    }
+    quantos = Number.isFinite(quantidade) && quantidade > 0 ? quantidade : 1;
+    if (quantos > LIMITE_POR_PEDIDO) {
+      return NextResponse.json(
+        { erro: `Máximo de ${LIMITE_POR_PEDIDO} por pedido.` },
+        { status: 400 }
+      );
+    }
+    if (opcaoEscolhida.restante !== null && quantos > opcaoEscolhida.restante) {
+      return NextResponse.json(
+        {
+          erro:
+            opcaoEscolhida.restante === 0
+              ? `Acabou: ${opcaoEscolhida.nome}.`
+              : `Restam apenas ${opcaoEscolhida.restante} de ${opcaoEscolhida.nome}.`,
+        },
+        { status: 409 }
+      );
+    }
+    valorItens = opcaoEscolhida.precoCentavos * quantos;
+    custoUnitarioItem = opcaoEscolhida.custoUnitarioCentavos;
+    // Guarda o nome vendido junto do item: se a opção for apagada depois, o
+    // extrato ainda mostra "Camisa M" em vez de uma linha órfã.
+    dadosDoItem = { ...dados, opcaoNome: opcaoEscolhida.nome };
+  } else if (precoUnitario == null) {
     // Valor livre (doação): a pessoa escolhe quanto, mas dentro de limites.
     quantos = 1;
     valorItens = Math.floor(valorLivre);
@@ -129,7 +167,8 @@ export async function POST(req: NextRequest) {
   //
   // Nunca confiar na quantidade que o navegador enviou: quem escolheu tres
   // numeros paga tres, e nao o que o corpo da requisicao disser.
-  const ehRifa = acao.tipo === "RIFA" && (acao.estoqueTotal ?? 0) > 0;
+  // Ação com opções não é rifa: o preço já saiu da opção acima.
+  const ehRifa = opcoes.length === 0 && acao.tipo === "RIFA" && (acao.estoqueTotal ?? 0) > 0;
   let numerosEscolhidos: number[] = [];
 
   if (ehRifa) {
@@ -171,9 +210,10 @@ export async function POST(req: NextRequest) {
   }
 
   // O chorinho só vale fora da doação livre: lá o valor já é livre, somar um
-  // "extra" seria pedir duas vezes a mesma coisa. Teto de R$ 50 mil, o mesmo da
-  // doação, pra um dígito a mais não virar uma cobrança absurda.
-  const extra = precoUnitario == null ? 0 : Math.min(doacaoExtra, 5_000_000);
+  // "extra" seria pedir duas vezes a mesma coisa. Ação com opção de venda não é
+  // doação livre, então aceita o extra. Teto de R$ 50 mil, o mesmo da doação.
+  const ehDoacaoLivre = !opcaoEscolhida && precoUnitario == null;
+  const extra = ehDoacaoLivre ? 0 : Math.min(doacaoExtra, 5_000_000);
   const totalCentavos = valorItens + extra;
 
   const pedido = await prisma.pedido.create({
@@ -190,12 +230,15 @@ export async function POST(req: NextRequest) {
       itens: {
         create: {
           acaoId: acao.id,
+          opcaoId: opcaoEscolhida?.id ?? null,
           quantidade: quantos,
-          valorUnitarioCentavos: precoUnitario ?? valorItens,
+          valorUnitarioCentavos: opcaoEscolhida
+            ? opcaoEscolhida.precoCentavos
+            : precoUnitario ?? valorItens,
           // O custo é congelado no momento da venda: se a equipe mudar o custo
           // depois, o que já foi vendido continua com o custo que valia.
-          custoUnitarioCentavos: acao.custoUnitarioCentavos,
-          dados: dados as never,
+          custoUnitarioCentavos: custoUnitarioItem,
+          dados: dadosDoItem as never,
         },
       },
     },

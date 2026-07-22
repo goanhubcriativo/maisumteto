@@ -113,8 +113,9 @@ model Membro {
 }
 
 enum Papel {
-  LIDER  // configura gateway, ve extrato completo, fecha campanha
-  MEMBRO // cria e toca acoes, ve o proprio desempenho
+  LIDER     // configura gateway, ve extrato completo, fecha campanha
+  MEMBRO    // cria e toca acoes, ve o proprio desempenho
+  VISITANTE // so LE: ve tudo, inclusive o extrato, mas nao muda nada
 }
 
 enum Gateway {
@@ -201,6 +202,10 @@ model Acao {
   /// Como a foto foi encaixada no quadro do cartao desta acao ("50% 30%").
   capaFoco  String?
 
+  /// Tabela de tamanhos/medidas do produto, em texto. Uma linha por tamanho.
+  /// So o produto usa; fica nulo no resto.
+  tabelaMedidas String? @db.Text
+
   status StatusAcao @default(RASCUNHO)
 
   // Precificacao. Doacao livre deixa precoCentavos nulo (o doador escolhe).
@@ -243,6 +248,7 @@ model Acao {
   blocos      Bloco[]
   lances      Lance[]
   numerosRifa NumeroRifa[]
+  opcoes      Opcao[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -348,6 +354,11 @@ model Item {
   acaoId   String
   acao     Acao   @relation(fields: [acaoId], references: [id], onDelete: Restrict)
 
+  // Qual opcao de venda foi escolhida (o lote do ingresso, o tamanho da camisa).
+  // Nulo quando a acao nao tem opcoes (rifa, doacao, bolao).
+  opcaoId String?
+  opcao   Opcao?  @relation(fields: [opcaoId], references: [id], onDelete: SetNull)
+
   quantidade          Int @default(1)
   valorUnitarioCentavos Int
   custoUnitarioCentavos Int @default(0) // congelado no momento da venda
@@ -361,6 +372,37 @@ model Item {
 
   @@index([acaoId])
   @@index([pedidoId])
+  @@index([opcaoId])
+}
+
+// ---------------------------------------------------------------------------
+// Opcao de venda: cada jeito de comprar uma mesma acao.
+//
+// O lote do ingresso ("1o lote", "VIP"), o tamanho da camisa ("P", "M"). Cada
+// uma tem preco e estoque proprios. A acao sem opcoes cobra pelo precoCentavos
+// dela e ponto; com opcoes, o preco e o estoque saem da opcao escolhida.
+// ---------------------------------------------------------------------------
+
+model Opcao {
+  id     String @id @default(cuid())
+  acaoId String
+  acao   Acao   @relation(fields: [acaoId], references: [id], onDelete: Cascade)
+
+  nome          String // "1o lote", "VIP", "Camisa P"
+  precoCentavos Int
+  // Custo por unidade desta opcao (a camisa P custa o mesmo que a GG, mas o
+  // jantar "com acompanhante" pode custar mais). Congela no Item ao vender.
+  custoUnitarioCentavos Int @default(0)
+  // Estoque proprio: 40 ingressos do 1o lote, 12 camisas M. Nulo = ilimitado.
+  estoqueTotal Int?
+  ordem        Int @default(0)
+
+  itens Item[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([acaoId])
 }
 
 // ---------------------------------------------------------------------------

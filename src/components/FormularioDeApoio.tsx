@@ -17,6 +17,14 @@ import { useState } from "react";
 import EscolherNumeros from "@/components/EscolherNumeros";
 import { useRouter } from "next/navigation";
 
+export interface OpcaoDoForm {
+  id: string;
+  nome: string;
+  precoCentavos: number;
+  restante: number | null;
+  esgotada: boolean;
+}
+
 interface Props {
   acaoId: string;
   /** Tipo da acao. Muda o que o formulario pergunta. */
@@ -28,6 +36,8 @@ interface Props {
   /** Quantos numeros a rifa tem no total. Liga a grade de escolha. */
   estoqueTotal?: number | null;
   limitePorPedido?: number | null;
+  /** Opções de venda (lote do ingresso, tamanho da camisa). Vazio se não tem. */
+  opcoes?: OpcaoDoForm[];
   /** Botões de atalho para doação, em reais. */
   valoresSugeridos?: number[];
   corForte: string;
@@ -76,11 +86,19 @@ export default function FormularioDeApoio({
   restante,
   estoqueTotal,
   limitePorPedido,
+  opcoes = [],
   valoresSugeridos = [20, 50, 100, 200],
   corForte,
 }: Props) {
   const router = useRouter();
-  const valorLivre = precoCentavos == null;
+  const temOpcoes = opcoes.length > 0;
+  const valorLivre = !temOpcoes && precoCentavos == null;
+
+  // Já começa na primeira opção com vaga: menos um toque pra quem só quer pagar.
+  const [opcaoId, setOpcaoId] = useState<string>(
+    () => opcoes.find((o) => !o.esgotada)?.id ?? ""
+  );
+  const opcaoEscolhida = opcoes.find((o) => o.id === opcaoId) ?? null;
 
   const [valor, setValor] = useState<number | null>(null);
   const [valorDigitado, setValorDigitado] = useState("");
@@ -100,9 +118,11 @@ export default function FormularioDeApoio({
   const [extra, setExtra] = useState(0);
   const [extraDigitado, setExtraDigitado] = useState("");
 
-  const maximo = restante ?? 50;
+  // O teto da quantidade: numa opção, o que resta dela; senão, o estoque da ação.
+  const maximo = temOpcoes ? opcaoEscolhida?.restante ?? 50 : restante ?? 50;
   const quantos = ehRifa ? numeros.length : quantidade;
-  const totalItens = valorLivre ? (valor ?? 0) : (precoCentavos ?? 0) * quantos;
+  const precoUnit = temOpcoes ? opcaoEscolhida?.precoCentavos ?? 0 : precoCentavos ?? 0;
+  const totalItens = valorLivre ? (valor ?? 0) : precoUnit * quantos;
   const total = totalItens + (valorLivre ? 0 : extra);
 
   async function enviar(evento: React.FormEvent<HTMLFormElement>) {
@@ -123,6 +143,7 @@ export default function FormularioDeApoio({
           cpf,
           anonimo: dados.get("anonimo") === "on",
           quantidade: quantos,
+          opcaoId: temOpcoes ? opcaoId : undefined,
           dados: ehRifa ? { numeros } : undefined,
           valorCentavos: valorLivre ? valor : undefined,
           doacaoExtraCentavos: valorLivre ? undefined : extra,
@@ -145,7 +166,69 @@ export default function FormularioDeApoio({
 
   return (
     <form className="ap" onSubmit={enviar}>
-      {valorLivre ? (
+      {temOpcoes ? (
+        <div className="ap-bloco">
+          <span className="ap-pergunta">
+            {tipo === "EVENTO" ? "Escolha o ingresso" : "Escolha a opção"}
+          </span>
+
+          <div className="ap-opcoes">
+            {opcoes.map((o) => {
+              const escolhida = o.id === opcaoId;
+              return (
+                <button
+                  key={o.id}
+                  type="button"
+                  className={`ap-opcao${escolhida ? " escolhida" : ""}${o.esgotada ? " esgotada" : ""}`}
+                  style={escolhida ? { borderColor: corForte } : undefined}
+                  disabled={o.esgotada}
+                  onClick={() => {
+                    setOpcaoId(o.id);
+                    setQuantidade(1);
+                  }}
+                >
+                  <span className="ap-opcao-nome">{o.nome}</span>
+                  <span className="ap-opcao-preco" style={escolhida ? { color: corForte } : undefined}>
+                    {o.esgotada ? "Esgotado" : formatar(o.precoCentavos)}
+                  </span>
+                  {!o.esgotada && o.restante !== null && o.restante <= 10 && (
+                    <span className="ap-opcao-resta">
+                      {o.restante === 1 ? "resta 1" : `restam ${o.restante}`}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {opcaoEscolhida && (
+            <>
+              <span className="ap-pergunta" style={{ marginTop: 6 }}>
+                Quantos?
+              </span>
+              <div className="ap-contador">
+                <button
+                  type="button"
+                  onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
+                  disabled={quantidade <= 1}
+                  aria-label="Diminuir quantidade"
+                >
+                  −
+                </button>
+                <span className="ap-numero">{quantidade}</span>
+                <button
+                  type="button"
+                  onClick={() => setQuantidade((q) => Math.min(maximo, q + 1))}
+                  disabled={quantidade >= maximo}
+                  aria-label="Aumentar quantidade"
+                >
+                  +
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      ) : valorLivre ? (
         <div className="ap-bloco">
           <span className="ap-pergunta">
             Quanto você quer doar?

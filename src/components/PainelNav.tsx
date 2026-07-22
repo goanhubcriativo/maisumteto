@@ -13,6 +13,7 @@ const ITENS = [
   { href: "/painel", rotulo: "Campanha" },
   { href: "/painel/extrato", rotulo: "Extrato" },
   { href: "/painel/ferramentas", rotulo: "Caixa de ferramentas" },
+  { href: "/painel/acessos", rotulo: "Acessos" },
 ];
 
 export default function PainelNav() {

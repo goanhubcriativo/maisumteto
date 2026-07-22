@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { campanhaAtual, contarApoiadores, listarAcoes, publicarAcao, type AcaoDoPainel } from "@/lib/repositorio";
+import { exigirEdicao } from "@/lib/sessao";
 import { resumoCampanha } from "@/lib/extrato";
 import { formatarBRL, formatarBRLCurto } from "@/lib/dinheiro";
 import { receitaDe } from "@/lib/catalogo";
@@ -8,7 +9,12 @@ import { IconeDaAcao } from "@/components/icones";
 
 export const dynamic = "force-dynamic";
 
-export default async function Painel() {
+export default async function Painel({
+  searchParams,
+}: {
+  searchParams: Promise<{ somenteLeitura?: string }>;
+}) {
+  const { somenteLeitura } = await searchParams;
   const campanha = await campanhaAtual();
   const [resumo, apoiadores, acoes] = await Promise.all([
     resumoCampanha(campanha.id),
@@ -23,6 +29,7 @@ export default async function Painel() {
 
   async function alternar(dados: FormData) {
     "use server";
+    await exigirEdicao();
     const id = String(dados.get("id"));
     await publicarAcao(id, dados.get("publicar") === "1");
     revalidatePath("/painel");
@@ -31,6 +38,11 @@ export default async function Painel() {
 
   return (
     <div className="painel-largura">
+      {somenteLeitura && (
+        <div className="aviso-bom" style={{ marginBottom: 22 }}>
+          Nada foi alterado: este acesso é <strong>somente leitura</strong>.
+        </div>
+      )}
       <div className="painel-cabeca">
         <div>
           <span className="painel-sobre">Campanha</span>

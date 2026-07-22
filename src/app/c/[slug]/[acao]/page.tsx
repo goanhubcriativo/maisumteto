@@ -165,6 +165,36 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
 
       <main className="corpo">
         <div className="container">
+          {/* Produto: a foto e a tabela de tamanhos, quando existem. Fica no
+              topo do conteúdo, antes do valor e do formulário, porque é o que a
+              pessoa quer ver antes de decidir comprar. */}
+          {acao.tipo === "PRODUTO" && (acao.capaUrl || acao.tabelaMedidas) && (
+            <section className="produto-media">
+              {acao.capaUrl && (
+                <div
+                  className="produto-foto"
+                  style={{ backgroundImage: `url(${JSON.stringify(acao.capaUrl)})` }}
+                  role="img"
+                  aria-label={`Foto de ${acao.titulo}`}
+                />
+              )}
+              {acao.tabelaMedidas && (
+                <div className="produto-medidas">
+                  <h2 className="cartao-titulo">Tabela de tamanhos</h2>
+                  <div className="texto">
+                    {acao.tabelaMedidas
+                      .split("\n")
+                      .map((l) => l.trim())
+                      .filter(Boolean)
+                      .map((linha, i) => (
+                        <p key={i}>{linha}</p>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
+
           <section className="grande">
             <div className="grande-topo">
               <div>
@@ -313,6 +343,13 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
                   restante={acao.restante}
                   estoqueTotal={acao.estoqueTotal}
                   limitePorPedido={acao.limitePorPedido}
+                  opcoes={(acao.opcoes ?? []).map((o) => ({
+                    id: o.id,
+                    nome: o.nome,
+                    precoCentavos: o.precoCentavos,
+                    restante: o.restante,
+                    esgotada: o.esgotada,
+                  }))}
                   valoresSugeridos={valoresSugeridos}
                   corForte={cor.forte}
                 />

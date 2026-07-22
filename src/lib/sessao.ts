@@ -5,13 +5,18 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { Papel } from "@prisma/client";
 import { COOKIE_SESSAO, hashDoToken, opcoesDoCookie } from "./auth";
-import { abrirSessao, fecharSessao, lerSessao, usuarioPorId } from "./repositorio";
+import { abrirSessao, fecharSessao, lerSessao, papelDoUsuario, usuarioPorId } from "./repositorio";
 
 export interface UsuarioLogado {
   id: string;
   nome: string;
   email: string;
+  /** O papel na equipe. VISITANTE só lê; os outros editam. */
+  papel: Papel;
+  /** Atalho: pode mudar as coisas? Falso para o acesso só de leitura. */
+  podeEditar: boolean;
 }
 
 /** Quem esta logado agora, ou null. Nao redireciona. */
@@ -25,7 +30,27 @@ export async function usuarioAtual(): Promise<UsuarioLogado | null> {
   const u = await usuarioPorId(sessao.usuarioId);
   if (!u) return null;
 
-  return { id: u.id, nome: u.nome, email: u.email };
+  const papel = (await papelDoUsuario(u.id)) ?? Papel.MEMBRO;
+  return { id: u.id, nome: u.nome, email: u.email, papel, podeEditar: papel !== Papel.VISITANTE };
+}
+
+/**
+ * Exige um usuário que pode EDITAR. Chamar no topo de toda server action que
+ * muda algo: é a barreira de verdade do acesso só de leitura, porque proteger
+ * só na tela deixaria a rota aberta pra quem monta a requisição na mão.
+ *
+ * Para o visitante, redireciona com um aviso em vez de estourar um erro: o
+ * combinado é que os botões "não têm efeito", e uma tela de erro 500 seria pior
+ * do que simplesmente não fazer nada. Em rota de API, o redirect é apanhado
+ * pelo try/catch de lá e vira um 403.
+ */
+export async function exigirEdicao(): Promise<UsuarioLogado> {
+  const u = await usuarioAtual();
+  if (!u) redirect("/entrar");
+  if (!u.podeEditar) {
+    redirect("/painel?somenteLeitura=1");
+  }
+  return u;
 }
 
 /**

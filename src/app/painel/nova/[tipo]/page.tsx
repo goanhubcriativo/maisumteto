@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { receitaDe, rotuloEsforco, type CampoDaReceita } from "@/lib/catalogo";
 import { campanhaAtual, criarAcao } from "@/lib/repositorio";
+import { exigirEdicao } from "@/lib/sessao";
 import { paraCentavos } from "@/lib/dinheiro";
 import { IconeDaAcao } from "@/components/icones";
 
@@ -96,6 +97,7 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
 
   async function criar(dados: FormData) {
     "use server";
+    await exigirEdicao();
 
     const r = receitaDe(tipo)!;
 

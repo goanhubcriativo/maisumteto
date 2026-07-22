@@ -249,6 +249,76 @@ textarea.campo-entrada {
   font-size: 13px;
   font-weight: 600;
   color: var(--tinta-70);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.painel-leitura-selo {
+  font-style: normal;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--azul);
+  background: var(--teto-6);
+  border: 1px solid var(--teto-12);
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+
+/* Etiqueta de papel na lista de acessos. */
+.papel-tag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--cinza);
+  border: 1px solid var(--linha);
+  color: var(--tinta-70);
+}
+.papel-tag.leitura {
+  background: var(--teto-6);
+  border-color: var(--teto-12);
+  color: var(--azul);
+}
+
+/* A credencial recém-criada: e-mail e senha grandes, fáceis de copiar. */
+.acesso-criado {
+  border: 1px solid rgba(18, 112, 74, 0.28);
+  background: rgba(18, 112, 74, 0.06);
+  border-radius: 12px;
+  padding: 20px 22px;
+}
+.acesso-criado h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+.acesso-credencial {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+}
+.acesso-credencial dt {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tinta-50);
+}
+.acesso-credencial dd {
+  margin: 2px 0 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+.acesso-senha {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.06em;
+}
+.acesso-criado-botoes {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .painel-corpo {
@@ -1242,6 +1312,65 @@ textarea.campo-entrada {
 .aviso-salvo::before {
   content: "✓";
   font-weight: 800;
+}
+
+/* Opções de venda: cada linha é nome, preço, custo, quantidade e os botões,
+   numa grade que vira uma coluna no telefone. */
+.opcoes-lista {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.opcao-linha {
+  display: grid;
+  grid-template-columns: 1.6fr 0.9fr 0.9fr 0.9fr auto;
+  gap: 10px;
+  align-items: end;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--linha);
+}
+.opcao-linha .campo {
+  margin: 0;
+}
+.opcao-botoes {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.opcao-resta {
+  grid-column: 1 / -1;
+  font-size: 12.5px;
+  color: var(--tinta-70);
+}
+.opcao-nova {
+  background: var(--cinza);
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  padding: 16px;
+}
+.opcao-nova-titulo {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tinta-70);
+  margin: 0 0 12px;
+}
+.opcao-nova .opcao-linha {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+@media (max-width: 760px) {
+  .opcao-linha {
+    grid-template-columns: 1fr 1fr;
+  }
+  .opcao-linha .opcao-nome {
+    grid-column: 1 / -1;
+  }
+  .opcao-botoes {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
 }
 
 /* O cartão de chamada do lançamento manual: um texto curto e o botão que abre
