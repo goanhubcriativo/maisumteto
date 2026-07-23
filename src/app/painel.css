@@ -1741,3 +1741,267 @@ textarea.campo-entrada {
   font-size: 12px;
   color: rgba(18, 48, 63, 0.5);
 }
+
+/* ---------------------------------------------------------------------------
+   Cadastro de produto (NovoProduto).
+
+   Tela propria: layout de duas colunas, controles segmentados, grade de
+   estoque por variante. So esta pagina usa.
+   --------------------------------------------------------------------------- */
+
+.painel-produto {
+  max-width: 900px;
+}
+
+.produto-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 22px;
+  align-items: start;
+}
+/* Blocos que ocupam a largura inteira: fotos, historia, custo, variacoes,
+   grade, e as duas faixas de apoio. Preco/meta e entrega/prazo ficam pareados. */
+.produto-largo {
+  grid-column: 1 / -1;
+}
+.produto-bloco {
+  min-width: 0;
+}
+.produto-sub {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--tinta-70);
+}
+
+/* Fotos */
+.produto-fotos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+.produto-foto-item {
+  position: relative;
+  width: 120px;
+}
+.produto-foto-quadro {
+  width: 120px;
+  height: 120px;
+  border-radius: 10px;
+  border: 1px solid var(--linha);
+  background-size: cover;
+  background-position: center;
+}
+.produto-foto-selo {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--branco);
+  background: var(--azul);
+  padding: 3px 7px;
+  border-radius: 999px;
+}
+.produto-foto-tira {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vermelho);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.produto-foto-add {
+  width: 120px;
+  height: 120px;
+  border: 1.5px dashed var(--linha-forte);
+  border-radius: 10px;
+  background: var(--teto-6);
+  color: var(--azul);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  padding: 8px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.produto-foto-add:hover:not(:disabled) {
+  border-color: var(--teto);
+}
+.produto-foto-add:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Controle segmentado (modo, custo, entrega) */
+.segmento {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+.segmento-opcao {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 9px 15px;
+  border: 1.5px solid var(--linha);
+  border-radius: 8px;
+  background: var(--branco);
+  color: var(--tinta-70);
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.segmento-opcao:hover {
+  border-color: var(--linha-forte);
+}
+.segmento-opcao.ativo {
+  border-color: var(--teto);
+  background: var(--teto-6);
+  color: var(--azul);
+}
+
+/* Bloco de custo */
+.produto-custo {
+  background: var(--teto-6);
+  border: 1px solid var(--teto-12);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.produto-custo-titulo {
+  font-size: 15px;
+  margin: 0 0 2px;
+}
+.produto-alerta {
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(179, 64, 44, 0.06);
+  border: 1px solid rgba(179, 64, 44, 0.22);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--tinta);
+}
+.produto-equilibrio {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--branco);
+  border: 1px solid var(--teto-12);
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+/* Variacoes */
+.produto-dims {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 18px;
+}
+.produto-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.produto-chip {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  padding: 8px 14px;
+  border: 1.5px solid var(--linha);
+  border-radius: 999px;
+  background: var(--branco);
+  color: var(--tinta-70);
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, color 0.12s ease;
+}
+.produto-chip.ativo {
+  border-color: var(--teto);
+  background: var(--teto-6);
+  color: var(--azul);
+}
+.produto-variacoes-resumo {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--tinta-70);
+}
+
+/* Grade de estoque */
+.produto-grade-bloco {
+  margin-top: 14px;
+}
+.produto-grade-titulo {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--azul);
+}
+.produto-grade-rolagem {
+  overflow-x: auto;
+}
+.produto-grade {
+  border-collapse: collapse;
+}
+.produto-grade th {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--tinta-70);
+  padding: 4px 8px;
+  text-align: center;
+}
+.produto-grade th[scope="row"] {
+  text-align: right;
+  white-space: nowrap;
+}
+.produto-grade td {
+  padding: 3px;
+}
+.produto-grade-celula {
+  width: 68px;
+  text-align: center;
+  font: inherit;
+  font-size: 14px;
+  color: var(--tinta);
+  background: var(--branco);
+  border: 1.5px solid var(--linha);
+  border-radius: 8px;
+  padding: 9px 8px;
+}
+.produto-grade-celula:focus {
+  outline: none;
+  border-color: var(--teto);
+  box-shadow: 0 0 0 3px var(--teto-12);
+}
+.produto-grade-total {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+/* Rodape */
+.produto-pe {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 26px;
+  padding-top: 20px;
+  border-top: 1px solid var(--linha);
+}
+
+@media (max-width: 720px) {
+  .produto-form,
+  .produto-dims {
+    grid-template-columns: 1fr;
+  }
+}

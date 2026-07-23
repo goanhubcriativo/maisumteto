@@ -314,21 +314,20 @@ export const RECEITAS: Receita[] = [
     pedeEntrega: true,
     rendeTipico: { de: reais(300), ate: reais(2500) },
     esforco: 3,
+    // O produto tem tela propria de cadastro (NovoProduto), com fotos, custo,
+    // variacoes e grade de estoque. Estes campos existem so pra pagina de
+    // edicao mostrar, num resumo, o que ficou definido. As variacoes viram
+    // opcoes de venda, e o custo por unidade e uma coluna da acao.
     campos: [
       {
-        chave: "variacoes",
-        rotulo: "Variações",
-        tipo: "opcoes",
-        ajuda: "Tamanhos, sabores, cores. Quem compra escolhe uma.",
-        exemplo: "P, M, G, GG",
-      },
-      {
-        chave: "custoUnitario",
-        rotulo: "Custo de cada unidade",
-        tipo: "dinheiro",
-        obrigatorio: true,
-        ajuda:
-          "Quanto custa produzir UMA unidade. Só vira custo quando vende, então estoque parado não conta como prejuízo.",
+        chave: "modoProducao",
+        rotulo: "Modo de produção",
+        tipo: "escolha",
+        escolhas: [
+          { valor: "ENCOMENDA", rotulo: "Sob encomenda" },
+          { valor: "PRONTO", rotulo: "Já tenho pronto" },
+        ],
+        padrao: "ENCOMENDA",
       },
       {
         chave: "comoEntrega",
@@ -336,8 +335,7 @@ export const RECEITAS: Receita[] = [
         tipo: "escolha",
         escolhas: [
           { valor: "RETIRADA", rotulo: "Retirada combinada" },
-          { valor: "EVENTO", rotulo: "Entrega no dia do mutirão ou evento" },
-          { valor: "CORREIO", rotulo: "Envio pelos Correios" },
+          { valor: "CORREIO", rotulo: "Envio" },
         ],
         padrao: "RETIRADA",
       },

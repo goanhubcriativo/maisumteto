@@ -1,12 +1,33 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { receitaDe, rotuloEsforco, type CampoDaReceita } from "@/lib/catalogo";
-import { criarAcao } from "@/lib/repositorio";
+import { criarAcao, salvarAcao, listarBlocos, salvarBloco } from "@/lib/repositorio";
+import { criarOpcao } from "@/lib/opcoes";
+import { registrarCustoFixo } from "@/lib/lancamentos";
 import { exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { paraCentavos } from "@/lib/dinheiro";
 import { IconeDaAcao } from "@/components/icones";
+import NovoProduto from "@/components/NovoProduto";
 
 export const dynamic = "force-dynamic";
+
+/** "AAAA-MM-DD" -> meia-noite LOCAL. Vazio ou invalido vira null. */
+function daCaixaDeData(texto: string): Date | null {
+  const t = texto.trim();
+  if (!t) return null;
+  const d = new Date(`${t}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/** Le um campo escondido que veio como JSON. Qualquer defeito volta ao padrao. */
+function lerJson<T>(bruto: FormDataEntryValue | null, padrao: T): T {
+  try {
+    const v = JSON.parse(String(bruto ?? ""));
+    return v as T;
+  } catch {
+    return padrao;
+  }
+}
 
 /** Desenha um campo da receita. O tipo do campo decide o controle. */
 function Campo({ campo }: { campo: CampoDaReceita }) {
@@ -90,6 +111,144 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
   const { tipo } = await params;
   const receita = receitaDe(tipo);
   if (!receita) notFound();
+
+  // O produto tem tela propria (ver NovoProduto): as decisoes conversam entre
+  // si e nao cabem num campo atras do outro. O resto dos tipos segue no
+  // formulario generico logo abaixo.
+  if (tipo === "PRODUTO") {
+    async function criarProduto(dados: FormData) {
+      "use server";
+      const usuario = await exigirEdicao();
+
+      const nome = String(dados.get("nome") ?? "").trim();
+      const descricao = String(dados.get("descricao") ?? "").trim();
+      const historia = String(dados.get("historia") ?? "").trim();
+      const preco = paraCentavos(String(dados.get("preco") ?? ""));
+      const meta = paraCentavos(String(dados.get("meta") ?? ""));
+      const prazo = String(dados.get("prazo") ?? "").trim();
+      const modo = String(dados.get("modoProducao") ?? "ENCOMENDA");
+      const custoQuando = String(dados.get("custoQuando") ?? "AGORA");
+      const custoComo = String(dados.get("custoComo") ?? "PRODUTO");
+      const custoValor = paraCentavos(String(dados.get("custoValor") ?? "")) ?? 0;
+      const entrega = String(dados.get("entrega") ?? "RETIRADA");
+      const capa = String(dados.get("capa") ?? "").trim();
+
+      const fotos = lerJson<string[]>(dados.get("fotos"), []);
+      const variantes = lerJson<{ nome: string; quantidade: number | null }[]>(
+        dados.get("variantes"),
+        []
+      );
+      const estoqueSimplesRaw = String(dados.get("estoqueSimples") ?? "").trim();
+
+      // O custo so entra agora se a pessoa escolheu "cadastrar agora" e pos um
+      // valor. Por produto vira custo unitario (anda com a venda); total vira um
+      // lancamento de custo fixo, que sai do liquido na hora.
+      const cadastrarAgora = custoQuando === "AGORA" && custoValor > 0;
+      const custoUnitario = cadastrarAgora && custoComo === "PRODUTO" ? custoValor : 0;
+
+      // Estoque na propria acao so quando nao ha variacao e o lote ja existe.
+      // Com variacao, o estoque mora em cada opcao.
+      const estoqueTotal =
+        variantes.length === 0 && modo === "PRONTO" && estoqueSimplesRaw
+          ? Math.max(0, Math.floor(Number(estoqueSimplesRaw)))
+          : null;
+
+      const campanha = await campanhaDoPainel();
+
+      const acao = await criarAcao({
+        campanhaId: campanha.id,
+        tipo: "PRODUTO",
+        titulo: nome || "Produto",
+        descricao,
+        precoCentavos: preco,
+        custoUnitarioCentavos: custoUnitario,
+        metaCentavos: meta,
+        estoqueTotal,
+        config: { modoProducao: modo, comoEntrega: entrega, prazoProducao: prazo },
+      });
+
+      // Periodo e capa nao entram no criarAcao: seguem por salvarAcao.
+      await salvarAcao(acao.id, {
+        capaUrl: capa || null,
+        capaFoco: capa ? "50% 50%" : null,
+        abreEm: daCaixaDeData(String(dados.get("abreEm") ?? "")),
+        fechaEm: daCaixaDeData(String(dados.get("fechaEm") ?? "")),
+      });
+
+      // Cada variante vira uma opcao de venda: mesmo preco do produto, o custo
+      // por unidade quando e esse o modelo, e o estoque da celula (nulo = livre).
+      for (const v of variantes) {
+        await criarOpcao(acao.id, {
+          nome: v.nome,
+          precoCentavos: preco ?? 0,
+          custoUnitarioCentavos: custoComo === "PRODUTO" ? custoUnitario : 0,
+          estoqueTotal: v.quantidade,
+        });
+      }
+
+      if (cadastrarAgora && custoComo === "TOTAL") {
+        await registrarCustoFixo({
+          campanhaId: campanha.id,
+          acaoId: acao.id,
+          descricao: "Custo do lote",
+          valorCentavos: custoValor,
+          criadoPorId: usuario.id,
+        });
+      }
+
+      // A historia da causa e as fotos extras entram nos blocos com que a
+      // pagina do produto ja nasce (TEXTO e GALERIA vem na receita).
+      const blocos = await listarBlocos({ tipo: "acao", id: acao.id });
+      if (historia) {
+        const texto = blocos.find((b) => b.tipo === "TEXTO");
+        if (texto) await salvarBloco(texto.id, { ...texto.conteudo, texto: historia });
+      }
+      const extras = fotos.slice(1);
+      if (extras.length > 0) {
+        const galeria = blocos.find((b) => b.tipo === "GALERIA");
+        if (galeria) await salvarBloco(galeria.id, { ...galeria.conteudo, imagens: extras });
+      }
+
+      redirect(`/painel/acao/${acao.id}?novo=1`);
+    }
+
+    return (
+      <div className="painel-estreito painel-produto">
+        <Link href="/painel/ferramentas" className="painel-voltar">
+          Voltar para a caixa de ferramentas
+        </Link>
+
+        <div className="receita-cabeca">
+          <span className="receita-icone">
+            <IconeDaAcao tipo="PRODUTO" />
+          </span>
+          <div>
+            <h1>Vender um produto pela causa</h1>
+            <p>
+              Voce monta um produto pra vender e reverter pra arrecadacao. O sistema desconta o
+              custo sozinho, entao o numero que aparece e lucro de verdade, nao faturamento.
+            </p>
+          </div>
+        </div>
+
+        <section className="receita-como">
+          <h2>Como funciona</h2>
+          <ol>
+            <li>Voce cadastra o produto: foto, preco e quanto custa cada peca pra produzir.</li>
+            <li>Quem compra escolhe a variacao que quer e paga no PIX.</li>
+            <li>
+              O custo so e descontado das pecas que venderam. O que sobra no estoque nao conta como
+              prejuizo.
+            </li>
+            <li>Voce recebe a lista de quem comprou o que, pra entregar tudo certo sem se perder.</li>
+          </ol>
+          <p className="receita-esforco">Da um trabalhinho, mas o retorno e real.</p>
+        </section>
+
+        <NovoProduto action={criarProduto} />
+      </div>
+    );
+  }
 
   const pedePreco = receita.precificacao === "FIXO" || receita.precificacao === "FAIXAS";
   const pedeCustoUnitario =
