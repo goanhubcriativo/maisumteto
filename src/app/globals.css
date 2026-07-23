@@ -3735,3 +3735,35 @@ body {
   font-size: 12px;
   letter-spacing: 0.1em;
 }
+
+/* ---------- Texto com formatacao (ver src/lib/textoRico.ts) ----------
+   A cor e um NOME, e vira valor aqui. "acao" segue a cor da acao, entao trocar
+   a cor no painel muda o texto junto. */
+.tx-preto {
+  color: var(--tinta);
+}
+.tx-azul {
+  color: var(--teto);
+}
+.tx-acao {
+  color: var(--acao-forte, var(--teto));
+}
+/* Linha em branco entre paragrafos: vira respiro, e nao um paragrafo vazio
+   colado no de cima. */
+.texto-respiro {
+  height: 0.7em;
+  margin: 0;
+}
+
+/* O texto do alto da acao agora e um bloco com paragrafos (texto rico), e nao
+   um <p> solto: zera as margens pra nao abrir buraco dentro do heroi. */
+.acao-hero-desc p {
+  margin: 0 0 8px;
+}
+.acao-hero-desc p:last-child {
+  margin-bottom: 0;
+}
+/* A descricao do produto, ao lado da foto. */
+.produto-medidas .texto p {
+  line-height: 1.55;
+}

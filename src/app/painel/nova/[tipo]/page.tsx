@@ -8,6 +8,7 @@ import { paraCentavos } from "@/lib/dinheiro";
 import { IconeDaAcao } from "@/components/icones";
 import NovoProduto from "@/components/NovoProduto";
 import { CampoDeEscolha, CampoDeLista, CampoDeChave } from "@/components/ControlesDeForm";
+import { deTextoSimples } from "@/lib/textoRico";
 
 export const dynamic = "force-dynamic";
 
@@ -190,6 +191,10 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
           custoQuando,
           custoComo,
           custoTotalCentavos: custoTotalGuardado,
+          // Os dois textos guardados no formato rico. Nascem sem formatação e a
+          // pessoa refina depois, na tela de gerência, com negrito e cor.
+          historia: deTextoSimples(historia),
+          descricaoRica: deTextoSimples(descricao),
         },
       });
 
@@ -213,13 +218,11 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
         });
       }
 
-      // A historia da causa e as fotos extras entram nos blocos com que a
-      // pagina do produto ja nasce (TEXTO e GALERIA vem na receita).
+      // As fotos extras entram na galeria com que a pagina do produto ja nasce.
+      // A historia NAO entra em bloco: ela e a descricao da acao e aparece no
+      // alto da pagina, entao repetir num bloco de texto seria dizer duas vezes
+      // a mesma coisa na mesma pagina.
       const blocos = await listarBlocos({ tipo: "acao", id: acao.id });
-      if (historia) {
-        const texto = blocos.find((b) => b.tipo === "TEXTO");
-        if (texto) await salvarBloco(texto.id, { ...texto.conteudo, texto: historia });
-      }
       const extras = fotos.slice(1);
       if (extras.length > 0) {
         const galeria = blocos.find((b) => b.tipo === "GALERIA");

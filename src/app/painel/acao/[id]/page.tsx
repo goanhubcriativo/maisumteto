@@ -23,8 +23,9 @@ import { exigirLogin, exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { lerNumeros, registrarLancamentoManual } from "@/lib/manual";
 import { criarOpcao, salvarOpcao, removerOpcao } from "@/lib/opcoes";
 import { registrarCustoFixo, custosFixosDaAcao, apagarCustoFixo } from "@/lib/lancamentos";
-import CampoDeImagem from "@/components/CampoDeImagem";
-import { QUADRO_DA_ACAO } from "@/lib/quadros";
+import GerenciaDoProduto from "@/components/GerenciaDoProduto";
+import { lerTextoRico, textoSimples, deTextoSimples } from "@/lib/textoRico";
+import { lerEntregas } from "@/lib/produto";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
 import LancamentoManual from "@/components/LancamentoManual";
 import { IconeDaAcao } from "@/components/icones";
@@ -133,6 +134,11 @@ export default async function EditarAcao({
       Boolean(acao.fechaEm && acao.fechaEm.getTime() <= Date.now()));
   const pedirCustoNoFim = custoPendente && acaoFechou;
 
+  // O produto tem tela de gerência própria, com a mesma estrutura do cadastro.
+  const ehProduto = acao.tipo === "PRODUTO";
+  const emReais = (centavos: number | null | undefined) =>
+    centavos != null ? (centavos / 100).toFixed(2).replace(".", ",") : "";
+
   // Quais cores as OUTRAS acoes ja usam.
   //
   // Guarda so o conjunto, e nao mais de quem e cada uma: dizer "ja usada por
@@ -171,6 +177,51 @@ export default async function EditarAcao({
 
     // Nao precisa recalcular nada aqui: o repositorio deriva o estado ("no ar",
     // "em breve", "esgotada") na leitura, a partir das datas e do estoque.
+    recarregar(acaoId);
+    redirect(`/painel/acao/${acaoId}?salvo=1`);
+  }
+
+  /**
+   * Salvar do produto. Os textos chegam como JSON do editor (ver textoRico):
+   * a versão rica vai pra config, e a simples fica na coluna `descricao`, que é
+   * o que o cartão e o resumo leem.
+   */
+  async function salvarProduto(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+
+    const comoJson = (bruto: FormDataEntryValue | null) => {
+      try {
+        return JSON.parse(String(bruto ?? ""));
+      } catch {
+        return null;
+      }
+    };
+
+    const historia = lerTextoRico(comoJson(dados.get("historia")));
+    const descricao = lerTextoRico(comoJson(dados.get("descricao")));
+
+    await salvarAcao(acaoId, {
+      titulo: String(dados.get("titulo") ?? "").trim() || tituloAtual,
+      descricao: textoSimples(descricao) || null,
+      precoCentavos: paraCentavos(String(dados.get("preco") ?? "")),
+      metaCentavos: paraCentavos(String(dados.get("meta") ?? "")),
+      cor: String(dados.get("cor") ?? "") || undefined,
+      capaUrl: String(dados.get("capa") ?? "").trim() || null,
+      capaFoco: String(dados.get("capaFoco") ?? "").trim() || null,
+      abreEm: daCaixaDeData(String(dados.get("abreEm") ?? "")),
+      fechaEm: daCaixaDeData(String(dados.get("fechaEm") ?? "")),
+    });
+
+    await atualizarConfig(acaoId, {
+      historia,
+      descricaoRica: descricao,
+      palavraChave: String(dados.get("palavraChave") ?? "").trim().slice(0, 30),
+      modoProducao: String(dados.get("modoProducao") ?? "ENCOMENDA"),
+      prazoProducao: String(dados.get("prazo") ?? "").trim(),
+      entregas: comoJson(dados.get("entregas")) ?? [],
+    });
+
     recarregar(acaoId);
     redirect(`/painel/acao/${acaoId}?salvo=1`);
   }
@@ -464,6 +515,32 @@ export default async function EditarAcao({
       </div>
 
       <section className="painel-cartao">
+        {ehProduto ? (
+          <GerenciaDoProduto
+            action={salvarProduto}
+            coresOcupadas={[...coresOcupadas]}
+            dados={{
+              titulo: acao.titulo,
+              historia: lerTextoRico(cfg.historia),
+              descricao:
+                lerTextoRico(cfg.descricaoRica) ?? deTextoSimples(acao.descricao ?? ""),
+              capaUrl: acao.capaUrl ?? null,
+              capaFoco: acao.capaFoco ?? null,
+              precoReais: emReais(acao.precoCentavos),
+              metaReais: emReais(acao.metaCentavos),
+              abreEm: acao.abreEm ? paraCampoData(acao.abreEm) : "",
+              fechaEm: acao.fechaEm ? paraCampoData(acao.fechaEm) : "",
+              cor: acao.cor ?? "roxo",
+              palavraChave: typeof cfg.palavraChave === "string" ? cfg.palavraChave : "",
+              modoProducao: cfg.modoProducao === "PRONTO" ? "PRONTO" : "ENCOMENDA",
+              prazo: typeof cfg.prazoProducao === "string" ? cfg.prazoProducao : "",
+              entregas: lerEntregas(cfg.entregas),
+              corForte:
+                PALETA.find((c) => c.id === (acao.cor ?? "roxo"))?.forte ?? "#0092dd",
+            }}
+          />
+        ) : (
+          <>
         <h2 className="formulario-secao">O básico</h2>
         <form id="form-acao" action={salvarBasico} className="formulario">
           <label className="campo">
@@ -576,37 +653,12 @@ export default async function EditarAcao({
             )}
           </fieldset>
 
-          {/* Foto e tabela de tamanhos só no PRODUTO: é a vitrine da peça, e
-              aparece na página dela (não no cartão, que segue limpo, só ícone).
-              Nos outros tipos, imagem entra num bloco de foto do construtor. */}
-          {acao.tipo === "PRODUTO" && (
-            <>
-              <h2 className="formulario-secao">A peça</h2>
-              <CampoDeImagem
-                name="capa"
-                valorInicial={acao.capaUrl}
-                quadros={QUADRO_DA_ACAO.map((q) => ({ ...q, valorInicial: acao.capaFoco }))}
-                rotulo="Foto do produto"
-                ajuda="Aparece no alto da página desta ação, em tamanho grande."
-              />
-              <label className="campo">
-                <span className="campo-rotulo">Tabela de tamanhos</span>
-                <textarea
-                  className="campo-entrada"
-                  name="tabelaMedidas"
-                  rows={5}
-                  defaultValue={acao.tabelaMedidas ?? ""}
-                  placeholder={"P: 68cm de comprimento, 48cm de largura\nM: 71cm, 52cm\nG: 74cm, 55cm"}
-                />
-                <span className="campo-ajuda">Uma linha por tamanho. Aparece na página, ao lado da foto.</span>
-              </label>
-            </>
-          )}
-
           <button className="botao botao-primario" type="submit">
             Salvar ação
           </button>
         </form>
+          </>
+        )}
       </section>
 
       {/* Opções de venda: os lotes do ingresso, os tamanhos da camisa. Cada uma

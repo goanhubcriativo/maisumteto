@@ -23,6 +23,8 @@ import { receitaDe } from "@/lib/catalogo";
 import { formatarBRL, formatarBRLCurto } from "@/lib/dinheiro";
 import { corDe, estiloDaCor } from "@/lib/paleta";
 import { IconeCasa, IconeDaAcao, rotuloDoTipo } from "@/components/icones";
+import TextoRicoView from "@/components/TextoRicoView";
+import { lerTextoRico, deTextoSimples, textoRicoVazio } from "@/lib/textoRico";
 import Blocos from "@/components/Blocos";
 import FormularioDeApoio from "@/components/FormularioDeApoio";
 
@@ -88,7 +90,13 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
   // convite e vira prestacao de contas: quanto rendeu, quanta gente entrou,
   // como foi. E o que as pessoas procuram depois, e o que ensina quem vai
   // organizar a proxima.
-  const acabou = acao.motivo === "ENCERRADA" || acao.motivo === "ESGOTADO";
+  //
+  // Rascunho fica FORA dessa conta. Internamente ele nasce com motivo
+  // "ENCERRADA" (e o que o mantem fora do ar), e sem esta ressalva a previa
+  // mostrava a acao como finalizada, com a prestacao de contas no lugar do
+  // convite. Quem esta revisando antes de publicar precisa ver a pagina ATIVA,
+  // que e como ela vai nascer.
+  const acabou = !acao.rascunho && (acao.motivo === "ENCERRADA" || acao.motivo === "ESGOTADO");
 
   const [campanha, blocos, resultado, quemEntrou] = await Promise.all([
     campanhaAtual(),
@@ -102,6 +110,16 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
   const resumo = await resumoCampanha(campanha.id);
   const receita = receitaDe(acao.tipo);
   const cor = corDe(acao.cor);
+
+  // No produto, o alto da página é a CAUSA (por que a ação existe) e a peça
+  // aparece mais abaixo, com a foto e a descrição dela. São dois textos com
+  // papéis diferentes: um convence, o outro descreve o que a pessoa leva.
+  const ehProduto = acao.tipo === "PRODUTO";
+  const textoDoHero = ehProduto
+    ? lerTextoRico(acao.config?.historia)
+    : deTextoSimples(acao.descricao ?? "");
+  const descricaoDoProduto =
+    lerTextoRico(acao.config?.descricaoRica) ?? deTextoSimples(acao.descricao ?? "");
   const falta = Math.max(0, resumo.metaCentavos - Math.max(0, resumo.liquidoCentavos));
 
   // Mesma regua do cartao: meta propria, senao o que falta no contrato.
@@ -162,12 +180,12 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
               rotuloDoTipo[acao.tipo] ||
               "Ação"}
           </span>
-          {acao.descricao ? (
-            // Titulo e descricao lado a lado: o titulo sozinho ocupava so
-            // metade da faixa, e a descricao aproveita o espaco que sobrava.
+          {textoDoHero ? (
+            // Titulo e texto lado a lado: o titulo sozinho ocupava so metade da
+            // faixa, e a explicacao aproveita o espaco que sobrava.
             <div className="acao-hero-grade">
               <h1 className="hero-titulo">{acao.titulo}</h1>
-              <p className="acao-hero-desc">{acao.descricao}</p>
+              <TextoRicoView valor={textoDoHero} className="acao-hero-desc" />
             </div>
           ) : (
             <h1 className="hero-titulo">{acao.titulo}</h1>
@@ -177,36 +195,6 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
 
       <main className="corpo">
         <div className="container">
-          {/* Produto: a foto e a tabela de tamanhos, quando existem. Fica no
-              topo do conteúdo, antes do valor e do formulário, porque é o que a
-              pessoa quer ver antes de decidir comprar. */}
-          {acao.tipo === "PRODUTO" && (acao.capaUrl || acao.tabelaMedidas) && (
-            <section className="produto-media">
-              {acao.capaUrl && (
-                <div
-                  className="produto-foto"
-                  style={{ backgroundImage: `url(${JSON.stringify(acao.capaUrl)})` }}
-                  role="img"
-                  aria-label={`Foto de ${acao.titulo}`}
-                />
-              )}
-              {acao.tabelaMedidas && (
-                <div className="produto-medidas">
-                  <h2 className="cartao-titulo">Tabela de tamanhos</h2>
-                  <div className="texto">
-                    {acao.tabelaMedidas
-                      .split("\n")
-                      .map((l) => l.trim())
-                      .filter(Boolean)
-                      .map((linha, i) => (
-                        <p key={i}>{linha}</p>
-                      ))}
-                  </div>
-                </div>
-              )}
-            </section>
-          )}
-
           <section className="grande">
             <div className="grande-topo">
               <div>
@@ -263,6 +251,48 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
               </>
             )}
           </section>
+
+          {/* O produto: a foto e a descrição da peça.
+              Vem DEPOIS da meta, e não antes: em cima fica a causa (por que a
+              ação existe) e o quanto já andou, que é o que convence; aqui vem o
+              que a pessoa leva; e logo abaixo o formulário, que é a decisão. */}
+          {ehProduto &&
+            (acao.capaUrl || !textoRicoVazio(descricaoDoProduto) || acao.tabelaMedidas) && (
+              <section className="produto-media">
+                {acao.capaUrl && (
+                  <div
+                    className="produto-foto"
+                    style={{ backgroundImage: `url(${JSON.stringify(acao.capaUrl)})` }}
+                    role="img"
+                    aria-label={`Foto de ${acao.titulo}`}
+                  />
+                )}
+
+                <div className="produto-medidas">
+                  {!textoRicoVazio(descricaoDoProduto) && (
+                    <>
+                      <h2 className="cartao-titulo">O produto</h2>
+                      <TextoRicoView valor={descricaoDoProduto} className="texto" />
+                    </>
+                  )}
+
+                  {acao.tabelaMedidas && (
+                    <>
+                      <h2 className="cartao-titulo">Tabela de tamanhos</h2>
+                      <div className="texto">
+                        {acao.tabelaMedidas
+                          .split("\n")
+                          .map((l) => l.trim())
+                          .filter(Boolean)
+                          .map((linha, i) => (
+                            <p key={i}>{linha}</p>
+                          ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </section>
+            )}
 
           {/* O fechamento da acao, so quando ela ja acabou. */}
           {acabou && resultado && (

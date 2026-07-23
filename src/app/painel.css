@@ -2189,3 +2189,101 @@ textarea.campo-entrada {
 .faixa-custo-campos .campo-entrada {
   width: 120px;
 }
+
+/* ---------- Editor de texto (negrito, italico, cor) ---------- */
+
+.editor-texto {
+  margin-bottom: 18px;
+}
+.editor-barra {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.editor-botao {
+  min-width: 34px;
+  height: 32px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--tinta);
+  background: var(--branco);
+  border: 1.5px solid var(--linha);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.editor-botao:hover {
+  border-color: var(--teto);
+  color: var(--azul);
+}
+.editor-separador {
+  width: 1px;
+  height: 20px;
+  background: var(--linha);
+  margin: 0 2px;
+}
+.editor-cor {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--tinta-70);
+  background: var(--branco);
+  border: 1.5px solid var(--linha);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.editor-cor:hover {
+  border-color: var(--teto);
+  color: var(--tinta);
+}
+.editor-cor-bolha {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1px solid rgba(18, 48, 63, 0.15);
+}
+.tx-fundo-preto {
+  background: var(--tinta);
+}
+.tx-fundo-azul {
+  background: var(--teto);
+}
+.tx-fundo-acao {
+  background: var(--acao-forte, var(--teto));
+}
+
+/* A caixa editavel. O placeholder e um texto por cima, porque contenteditable
+   nao tem placeholder de verdade. */
+.editor-caixa-fora {
+  position: relative;
+}
+.editor-caixa {
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.editor-caixa:focus {
+  outline: none;
+  border-color: var(--teto);
+  box-shadow: 0 0 0 3px var(--teto-12);
+}
+.editor-caixa p,
+.editor-caixa div {
+  margin: 0;
+}
+.editor-placeholder {
+  position: absolute;
+  top: 11px;
+  left: 13px;
+  right: 13px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--tinta-50);
+  pointer-events: none;
+}
