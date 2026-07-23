@@ -47,6 +47,11 @@ export async function definirCampanhaDoPainel(id: string) {
   });
 }
 
+/** Volta o painel para a campanha principal (some o cookie da escolha). */
+export async function limparCampanhaDoPainel() {
+  (await cookies()).delete(COOKIE_CAMPANHA);
+}
+
 export interface UsuarioLogado {
   id: string;
   nome: string;

@@ -107,6 +107,31 @@ export async function listarCampanhas() {
 }
 
 /**
+ * Cria uma cópia de teste, com trava contra repetição.
+ *
+ * O envio de formulário pode disparar duas vezes (React em dev, clique rápido,
+ * reenvio), e foi o que encheu a tela de cópias iguais. Aqui, se uma cópia
+ * acabou de nascer para esta equipe (últimos segundos), reusa em vez de criar
+ * outra. Idempotente na janela: dois disparos quase juntos viram uma campanha.
+ */
+export async function criarCopiaDeTeste(campanhaId: string) {
+  const base = await prisma.campanha.findUniqueOrThrow({
+    where: { id: campanhaId },
+    select: { equipeId: true },
+  });
+  const recente = await prisma.campanha.findFirst({
+    where: {
+      equipeId: base.equipeId,
+      titulo: { startsWith: "Teste:" },
+      createdAt: { gt: new Date(Date.now() - 10_000) },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  if (recente) return recente;
+  return duplicarCampanha(campanhaId);
+}
+
+/**
  * Duplica uma campanha inteira numa cópia de TESTE: a ficha, as ações, as
  * opções e os blocos, tudo com id novo. NÃO copia dinheiro (pedidos, extrato):
  * a cópia nasce zerada, que é o ponto de um lugar pra experimentar sem sujar o
@@ -121,7 +146,11 @@ export async function duplicarCampanha(campanhaId: string) {
 
   const slug = await slugDeCampanhaLivre(`${orig.slug}-teste`);
 
-  const nova = await prisma.campanha.create({
+  // Uma escrita só, aninhada: a campanha com as ações, e cada ação com suas
+  // opções e blocos, tudo de uma vez. Antes eram N idas ao banco (uma por
+  // ação), a operação demorava, e o botão sem trava fazia a pessoa clicar de
+  // novo e criar cópia repetida. Aninhado, é rápido e atômico: dá tudo ou nada.
+  return prisma.campanha.create({
     data: {
       equipeId: orig.equipeId,
       slug,
@@ -137,7 +166,6 @@ export async function duplicarCampanha(campanhaId: string) {
       metaCentavos: orig.metaCentavos,
       prazo: orig.prazo,
       status: "RASCUNHO",
-      // Os blocos da própria campanha (o microblog institucional).
       blocos: {
         create: orig.blocos.map((b) => ({
           tipo: b.tipo,
@@ -146,53 +174,63 @@ export async function duplicarCampanha(campanhaId: string) {
           conteudo: (b.conteudo ?? {}) as Prisma.InputJsonValue,
         })),
       },
+      acoes: {
+        create: orig.acoes.map((a) => ({
+          tipo: a.tipo,
+          slug: a.slug, // único POR campanha, então não conflita na cópia
+          titulo: a.titulo,
+          descricao: a.descricao,
+          capaUrl: a.capaUrl,
+          capaFoco: a.capaFoco,
+          tabelaMedidas: a.tabelaMedidas,
+          status: a.status,
+          precoCentavos: a.precoCentavos,
+          custoUnitarioCentavos: a.custoUnitarioCentavos,
+          estoqueTotal: a.estoqueTotal,
+          limitePorPedido: a.limitePorPedido,
+          metaCentavos: a.metaCentavos,
+          abreEm: a.abreEm,
+          fechaEm: a.fechaEm,
+          cor: a.cor,
+          config: (a.config ?? undefined) as Prisma.InputJsonValue,
+          opcoes: {
+            create: a.opcoes.map((o) => ({
+              nome: o.nome,
+              precoCentavos: o.precoCentavos,
+              custoUnitarioCentavos: o.custoUnitarioCentavos,
+              estoqueTotal: o.estoqueTotal,
+              ordem: o.ordem,
+            })),
+          },
+          blocos: {
+            create: a.blocos.map((b) => ({
+              tipo: b.tipo,
+              ordem: b.ordem,
+              visivel: b.visivel,
+              conteudo: (b.conteudo ?? {}) as Prisma.InputJsonValue,
+            })),
+          },
+        })),
+      },
     },
   });
+}
 
-  // As ações, uma a uma, com as opções e os blocos de cada.
-  for (const a of orig.acoes) {
-    await prisma.acao.create({
-      data: {
-        campanhaId: nova.id,
-        tipo: a.tipo,
-        slug: a.slug, // slug é único POR campanha, então não conflita na cópia
-        titulo: a.titulo,
-        descricao: a.descricao,
-        capaUrl: a.capaUrl,
-        capaFoco: a.capaFoco,
-        tabelaMedidas: a.tabelaMedidas,
-        status: a.status,
-        precoCentavos: a.precoCentavos,
-        custoUnitarioCentavos: a.custoUnitarioCentavos,
-        estoqueTotal: a.estoqueTotal,
-        limitePorPedido: a.limitePorPedido,
-        metaCentavos: a.metaCentavos,
-        abreEm: a.abreEm,
-        fechaEm: a.fechaEm,
-        cor: a.cor,
-        config: (a.config ?? undefined) as Prisma.InputJsonValue,
-        opcoes: {
-          create: a.opcoes.map((o) => ({
-            nome: o.nome,
-            precoCentavos: o.precoCentavos,
-            custoUnitarioCentavos: o.custoUnitarioCentavos,
-            estoqueTotal: o.estoqueTotal,
-            ordem: o.ordem,
-          })),
-        },
-        blocos: {
-          create: a.blocos.map((b) => ({
-            tipo: b.tipo,
-            ordem: b.ordem,
-            visivel: b.visivel,
-            conteudo: (b.conteudo ?? {}) as Prisma.InputJsonValue,
-          })),
-        },
-      },
-    });
+/**
+ * Apaga uma campanha de teste. NUNCA a principal (a mais antiga, a do público):
+ * a barreira mora aqui, não só na tela. Apagar leva junto ações, opções, blocos
+ * e pedidos por cascata. Devolve ok/erro pra tela decidir o que dizer.
+ */
+export async function apagarCampanha(id: string) {
+  const principal = await campanhaAtual();
+  if (id === principal.id) {
+    return { ok: false as const, erro: "A campanha principal não pode ser apagada." };
   }
+  const c = await prisma.campanha.findFirst({ where: { id, equipeId: principal.equipeId } });
+  if (!c) return { ok: false as const, erro: "Campanha não encontrada." };
 
-  return nova;
+  await prisma.campanha.delete({ where: { id } });
+  return { ok: true as const };
 }
 
 /** Slug único na tabela de campanhas (o slug de campanha é único no banco todo). */

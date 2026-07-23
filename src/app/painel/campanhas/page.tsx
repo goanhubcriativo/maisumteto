@@ -7,8 +7,14 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { duplicarCampanha, listarCampanhas } from "@/lib/repositorio";
-import { campanhaDoPainel, definirCampanhaDoPainel, exigirEdicao } from "@/lib/sessao";
+import { apagarCampanha, criarCopiaDeTeste, listarCampanhas } from "@/lib/repositorio";
+import {
+  campanhaDoPainel,
+  definirCampanhaDoPainel,
+  exigirEdicao,
+  limparCampanhaDoPainel,
+} from "@/lib/sessao";
+import BotaoPendente from "@/components/BotaoPendente";
 
 export const dynamic = "force-dynamic";
 
@@ -27,8 +33,9 @@ export default async function Campanhas() {
     "use server";
     await exigirEdicao();
     // Duplica a campanha que o painel está editando agora e já entra nela.
+    // criarCopiaDeTeste trava contra o disparo em dobro do formulário.
     const base = await campanhaDoPainel();
-    const nova = await duplicarCampanha(base.id);
+    const nova = await criarCopiaDeTeste(base.id);
     await definirCampanhaDoPainel(nova.id);
     revalidatePath("/painel", "layout");
     redirect("/painel");
@@ -40,6 +47,18 @@ export default async function Campanhas() {
     await definirCampanhaDoPainel(String(dados.get("id")));
     revalidatePath("/painel", "layout");
     redirect("/painel");
+  }
+
+  async function apagar(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    const id = String(dados.get("id"));
+    const r = await apagarCampanha(id);
+    // Se apagou a que o painel estava editando, volta pra principal, senão o
+    // cookie apontaria pra uma campanha que não existe mais.
+    if (r.ok && id === atual.id) await limparCampanhaDoPainel();
+    revalidatePath("/painel", "layout");
+    redirect("/painel/campanhas");
   }
 
   return (
@@ -54,9 +73,7 @@ export default async function Campanhas() {
           </p>
         </div>
         <form action={criarTeste}>
-          <button className="botao botao-primario" type="submit">
-            Criar campanha de teste
-          </button>
+          <BotaoPendente pendente="Criando cópia...">Criar campanha de teste</BotaoPendente>
         </form>
       </div>
 
@@ -76,16 +93,32 @@ export default async function Campanhas() {
                   </a>
                 </span>
               </div>
-              {ativa ? (
-                <span className="campanha-selo">Editando agora</span>
-              ) : (
-                <form action={trocar}>
-                  <input type="hidden" name="id" value={c.id} />
-                  <button className="botao botao-contorno botao-pequeno" type="submit">
-                    Editar esta
-                  </button>
-                </form>
-              )}
+              <div className="campanha-acoes">
+                {ativa ? (
+                  <span className="campanha-selo">Editando agora</span>
+                ) : (
+                  <form action={trocar}>
+                    <input type="hidden" name="id" value={c.id} />
+                    <button className="botao botao-contorno botao-pequeno" type="submit">
+                      Editar esta
+                    </button>
+                  </form>
+                )}
+
+                {/* Apagar só as de teste. A principal nunca (a barreira também
+                    está no servidor, em apagarCampanha). */}
+                {!principal && (
+                  <form action={apagar}>
+                    <input type="hidden" name="id" value={c.id} />
+                    <BotaoPendente
+                      pendente="Apagando..."
+                      className="botao botao-perigo botao-pequeno"
+                    >
+                      Apagar
+                    </BotaoPendente>
+                  </form>
+                )}
+              </div>
             </div>
           );
         })}

@@ -1465,6 +1465,16 @@ textarea.campo-entrada {
   border-radius: 999px;
   padding: 6px 14px;
 }
+.campanha-acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.campanha-acoes form {
+  display: inline-flex;
+  margin: 0;
+}
 
 /* Custos fixos lançados: cada um numa linha, com o valor em vermelho porque
    sai do líquido. */
