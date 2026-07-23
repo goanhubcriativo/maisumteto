@@ -7,7 +7,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { apagarCampanha, criarCopiaDeTeste, listarCampanhas } from "@/lib/repositorio";
+import { apagarCampanha, criarCampanhaDeTeste, listarCampanhas } from "@/lib/repositorio";
 import {
   campanhaDoPainel,
   definirCampanhaDoPainel,
@@ -24,7 +24,12 @@ const STATUS: Record<string, string> = {
   ENCERRADA: "Encerrada",
 };
 
-export default async function Campanhas() {
+export default async function Campanhas({
+  searchParams,
+}: {
+  searchParams: Promise<{ criada?: string }>;
+}) {
+  const { criada } = await searchParams;
   const campanhas = await listarCampanhas();
   const atual = await campanhaDoPainel();
   const principalId = campanhas[0]?.id;
@@ -32,13 +37,15 @@ export default async function Campanhas() {
   async function criarTeste() {
     "use server";
     await exigirEdicao();
-    // Duplica a campanha que o painel está editando agora e já entra nela.
-    // criarCopiaDeTeste trava contra o disparo em dobro do formulário.
+    // Uma campanha de teste EM BRANCO (sem ações, tudo a preencher) e já entra
+    // nela. criarCampanhaDeTeste trava contra o disparo em dobro do formulário.
     const base = await campanhaDoPainel();
-    const nova = await criarCopiaDeTeste(base.id);
+    const nova = await criarCampanhaDeTeste(base.equipeId);
     await definirCampanhaDoPainel(nova.id);
     revalidatePath("/painel", "layout");
-    redirect("/painel");
+    // Volta pra esta mesma tela com aviso: a nova aparece na lista na hora e o
+    // "criada" confirma que deu certo, em vez de parecer que nada aconteceu.
+    redirect("/painel/campanhas?criada=1");
   }
 
   async function trocar(dados: FormData) {
@@ -63,17 +70,24 @@ export default async function Campanhas() {
 
   return (
     <div className="painel-largura">
+      {criada && (
+        <p className="aviso-salvo" role="status" style={{ marginBottom: 22 }}>
+          Campanha de teste criada, em branco, e já selecionada. Vá em{" "}
+          <strong>Campanha</strong> no menu para começar a preenchê-la.
+        </p>
+      )}
+
       <div className="painel-cabeca">
         <div>
           <span className="painel-sobre">Equipe</span>
           <h1>Campanhas</h1>
           <p className="painel-intro">
-            Crie uma cópia de teste para experimentar sem sujar a campanha real. Escolha qual o
-            painel edita. A página pública continua sempre na principal.
+            Crie uma campanha de teste em branco para experimentar sem sujar a real. Escolha qual
+            o painel edita. A página pública continua sempre na principal.
           </p>
         </div>
         <form action={criarTeste}>
-          <BotaoPendente pendente="Criando cópia...">Criar campanha de teste</BotaoPendente>
+          <BotaoPendente pendente="Criando...">Criar campanha de teste</BotaoPendente>
         </form>
       </div>
 

@@ -107,111 +107,40 @@ export async function listarCampanhas() {
 }
 
 /**
- * Cria uma cópia de teste, com trava contra repetição.
+ * Cria uma campanha de teste EM BRANCO, com trava contra repetição.
  *
- * O envio de formulário pode disparar duas vezes (React em dev, clique rápido,
- * reenvio), e foi o que encheu a tela de cópias iguais. Aqui, se uma cópia
- * acabou de nascer para esta equipe (últimos segundos), reusa em vez de criar
- * outra. Idempotente na janela: dois disparos quase juntos viram uma campanha.
+ * Em branco de propósito: sem ação nenhuma, campos vazios, tudo a preencher. É
+ * um lugar limpo pra experimentar do zero, não uma cópia da real. Antes ela
+ * nascia como cópia, e como ficava idêntica à principal dava a impressão de que
+ * "nada aconteceu".
+ *
+ * A trava: se uma campanha de teste acabou de nascer para esta equipe (últimos
+ * segundos), reusa em vez de criar outra. O envio de formulário pode disparar
+ * duas vezes (React em dev, clique rápido, reenvio); aqui dois disparos quase
+ * juntos viram uma campanha só.
  */
-export async function criarCopiaDeTeste(campanhaId: string) {
-  const base = await prisma.campanha.findUniqueOrThrow({
-    where: { id: campanhaId },
-    select: { equipeId: true },
-  });
+export async function criarCampanhaDeTeste(equipeId: string) {
   const recente = await prisma.campanha.findFirst({
     where: {
-      equipeId: base.equipeId,
-      titulo: { startsWith: "Teste:" },
+      equipeId,
+      status: "RASCUNHO",
+      titulo: { startsWith: "Campanha de teste" },
       createdAt: { gt: new Date(Date.now() - 10_000) },
     },
     orderBy: { createdAt: "desc" },
   });
   if (recente) return recente;
-  return duplicarCampanha(campanhaId);
-}
 
-/**
- * Duplica uma campanha inteira numa cópia de TESTE: a ficha, as ações, as
- * opções e os blocos, tudo com id novo. NÃO copia dinheiro (pedidos, extrato):
- * a cópia nasce zerada, que é o ponto de um lugar pra experimentar sem sujar o
- * real. Nasce como RASCUNHO e num slug próprio, então vive numa URL à parte e
- * não encosta na campanha principal.
- */
-export async function duplicarCampanha(campanhaId: string) {
-  const orig = await prisma.campanha.findUniqueOrThrow({
-    where: { id: campanhaId },
-    include: { acoes: { include: { opcoes: true, blocos: true } }, blocos: true },
-  });
-
-  const slug = await slugDeCampanhaLivre(`${orig.slug}-teste`);
-
-  // Uma escrita só, aninhada: a campanha com as ações, e cada ação com suas
-  // opções e blocos, tudo de uma vez. Antes eram N idas ao banco (uma por
-  // ação), a operação demorava, e o botão sem trava fazia a pessoa clicar de
-  // novo e criar cópia repetida. Aninhado, é rápido e atômico: dá tudo ou nada.
+  const slug = await slugDeCampanhaLivre("campanha-de-teste");
+  // Nasce vazia: sem ações, meta zero, nome de rascunho. O que existe é só a
+  // casca; o resto a pessoa preenche em Campanha e vai criando as ações.
   return prisma.campanha.create({
     data: {
-      equipeId: orig.equipeId,
+      equipeId,
       slug,
-      titulo: `Teste: ${orig.titulo}`,
-      resumo: orig.resumo,
-      historia: orig.historia,
-      capaUrl: orig.capaUrl,
-      capaFoco: orig.capaFoco,
-      capaFocoMobile: orig.capaFocoMobile,
-      periodo: orig.periodo,
-      equipeArrecadacao: orig.equipeArrecadacao,
-      sede: orig.sede,
-      metaCentavos: orig.metaCentavos,
-      prazo: orig.prazo,
+      titulo: "Campanha de teste",
+      metaCentavos: 0,
       status: "RASCUNHO",
-      blocos: {
-        create: orig.blocos.map((b) => ({
-          tipo: b.tipo,
-          ordem: b.ordem,
-          visivel: b.visivel,
-          conteudo: (b.conteudo ?? {}) as Prisma.InputJsonValue,
-        })),
-      },
-      acoes: {
-        create: orig.acoes.map((a) => ({
-          tipo: a.tipo,
-          slug: a.slug, // único POR campanha, então não conflita na cópia
-          titulo: a.titulo,
-          descricao: a.descricao,
-          capaUrl: a.capaUrl,
-          capaFoco: a.capaFoco,
-          tabelaMedidas: a.tabelaMedidas,
-          status: a.status,
-          precoCentavos: a.precoCentavos,
-          custoUnitarioCentavos: a.custoUnitarioCentavos,
-          estoqueTotal: a.estoqueTotal,
-          limitePorPedido: a.limitePorPedido,
-          metaCentavos: a.metaCentavos,
-          abreEm: a.abreEm,
-          fechaEm: a.fechaEm,
-          cor: a.cor,
-          config: (a.config ?? undefined) as Prisma.InputJsonValue,
-          opcoes: {
-            create: a.opcoes.map((o) => ({
-              nome: o.nome,
-              precoCentavos: o.precoCentavos,
-              custoUnitarioCentavos: o.custoUnitarioCentavos,
-              estoqueTotal: o.estoqueTotal,
-              ordem: o.ordem,
-            })),
-          },
-          blocos: {
-            create: a.blocos.map((b) => ({
-              tipo: b.tipo,
-              ordem: b.ordem,
-              visivel: b.visivel,
-              conteudo: (b.conteudo ?? {}) as Prisma.InputJsonValue,
-            })),
-          },
-        })),
-      },
     },
   });
 }
