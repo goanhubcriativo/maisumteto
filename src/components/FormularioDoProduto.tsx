@@ -1,17 +1,24 @@
 "use client";
 
-// A tela de cadastro de "Venda de produtos".
+// O formulário do produto. UM só, usado nas duas horas: quando a pessoa cria e
+// quando volta pra gerenciar.
 //
-// Duas etapas: primeiro "Sobre a acao" (a motivacao, o periodo, a meta), depois
-// "O produto" (fotos, preco, custo, variacoes, entrega). Sao dois momentos
-// diferentes: um convence, o outro descreve a peca. Separar tira o peso de uma
-// tela unica gigante e deixa cada parte respirar.
+// Ter dois formulários parecidos foi um erro: quem preencheu variações, custo e
+// grade no cadastro voltava pra gerenciar e encontrava outra tela, com menos
+// campos e outros nomes, sem saber onde mexer no que tinha acabado de escrever.
+// Aqui os campos, os controles e a ordem são exatamente os mesmos; o que muda é
+// só se ele vem vazio (criar) ou preenchido (gerenciar).
 //
-// O que sai daqui alimenta os dados de sempre: uma acao com preco, capa e
-// opcoes de venda por variante. A tela e propria, os dados sao os da plataforma.
+// A diferença entre os dois modos é uma só: criar caminha em duas etapas, pra
+// não despejar a tela inteira de uma vez em quem nunca fez; gerenciar mostra
+// tudo aberto, porque quem volta quer ir direto no campo que precisa mudar.
 
 import { useRef, useState } from "react";
 import { PALETA } from "@/lib/paleta";
+import { ENTREGAS } from "@/lib/produto";
+import type { TextoRico } from "@/lib/textoRico";
+import EditorDeTexto from "@/components/EditorDeTexto";
+import { Segmento, Interruptor, EditorDeChips } from "@/components/ControlesDeForm";
 
 /** Mesma conta de paraCentavos, so pro calculo ao vivo do ponto de equilibrio. */
 function emCentavos(entrada: string): number | null {
@@ -22,225 +29,126 @@ function emCentavos(entrada: string): number | null {
   return Math.round(n * 100);
 }
 
-type ModoProducao = "ENCOMENDA" | "PRONTO";
-type CustoQuando = "AGORA" | "FINAL";
-type CustoComo = "PRODUTO" | "TOTAL";
+export type ModoProducao = "ENCOMENDA" | "PRONTO";
+export type CustoQuando = "AGORA" | "FINAL";
+export type CustoComo = "PRODUTO" | "TOTAL";
 
 const MODELAGENS = ["Feminina", "Masculina", "Unissex"];
 const ORDEM = ["tamanho", "modelagem", "cor", "modelo"] as const;
 type Dim = (typeof ORDEM)[number];
 
-const ENTREGAS: { tipo: string; rotulo: string; ajuda: string }[] = [
-  {
-    tipo: "LOCAL",
-    rotulo: "Retirada em local",
-    ajuda: "Coloque aqui o endereço, os dias e os horários de retirada.",
-  },
-  {
-    tipo: "ENVIO",
-    rotulo: "Retirada no envio",
-    ajuda: "Envio de qual CC? Se já souber o local e a data, inclua também.",
-  },
-  {
-    tipo: "ALOJAMENTO",
-    rotulo: "Retirar no alojamento",
-    ajuda: "Qual CC? Como as pessoas te encontram lá?",
-  },
-  {
-    tipo: "PESSOA",
-    rotulo: "Posso enviar para a pessoa",
-    ajuda:
-      "Dê os detalhes. Informe, por exemplo, que você vai entrar em contato, e que o frete não está incluso.",
-  },
-  {
-    tipo: "COMBINADA",
-    rotulo: "Retirada combinada",
-    ajuda: "Explique aqui como vai funcionar.",
-  },
-];
-
-/** Controle de duas ou tres opcoes, no lugar de um <select> escondido. */
-function Segmento<T extends string>({
-  valor,
-  aoTrocar,
-  opcoes,
-}: {
-  valor: T;
-  aoTrocar: (v: T) => void;
-  opcoes: { valor: T; rotulo: string }[];
-}) {
-  return (
-    <div className="segmento" role="group">
-      {opcoes.map((o) => (
-        <button
-          key={o.valor}
-          type="button"
-          className={`segmento-opcao${valor === o.valor ? " ativo" : ""}`}
-          aria-pressed={valor === o.valor}
-          onClick={() => aoTrocar(o.valor)}
-        >
-          {o.rotulo}
-        </button>
-      ))}
-    </div>
-  );
+/** Tudo que a tela precisa pra nascer preenchida. */
+export interface ValoresDoProduto {
+  historia: TextoRico | null;
+  descricao: TextoRico | null;
+  titulo: string;
+  fotos: string[];
+  precoReais: string;
+  metaReais: string;
+  abreEm: string;
+  fechaEm: string;
+  cor: string;
+  palavraChave: string;
+  modoProducao: ModoProducao;
+  custoQuando: CustoQuando;
+  custoComo: CustoComo;
+  custoValorReais: string;
+  dimAtiva: Record<Dim, boolean>;
+  tamanhos: string[];
+  modelagens: string[];
+  cores: string[];
+  modelos: string[];
+  grade: Record<string, string>;
+  estoqueSimples: string;
+  entregas: { tipo: string; texto: string }[];
+  prazo: string;
 }
 
-/** Uma chavinha liga/desliga. */
-function Interruptor({ ligado, aoTrocar }: { ligado: boolean; aoTrocar: (v: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={ligado}
-      className={`interruptor${ligado ? " ligado" : ""}`}
-      onClick={() => aoTrocar(!ligado)}
-    >
-      <span className="interruptor-bolha" />
-    </button>
-  );
+/** O produto em branco, pra tela de criar. */
+export function produtoEmBranco(): ValoresDoProduto {
+  return {
+    historia: null,
+    descricao: null,
+    titulo: "",
+    fotos: [],
+    precoReais: "",
+    metaReais: "",
+    abreEm: "",
+    fechaEm: "",
+    cor: "roxo",
+    palavraChave: "",
+    modoProducao: "ENCOMENDA",
+    custoQuando: "AGORA",
+    custoComo: "PRODUTO",
+    custoValorReais: "",
+    dimAtiva: { tamanho: false, modelagem: false, cor: false, modelo: false },
+    tamanhos: [],
+    modelagens: [],
+    cores: [],
+    modelos: [],
+    grade: {},
+    estoqueSimples: "",
+    entregas: [],
+    prazo: "",
+  };
 }
 
-/**
- * Editor de valores em fichinhas. Digitar e apertar Adicionar (ou Enter) cria
- * uma ficha; clicar no X remove. Some com o campo de texto separado por
- * virgula, que enganava: quem escrevia "P M G" sem virgula virava um valor so.
- */
-function EditorDeChips({
+export default function FormularioDoProduto({
+  action,
+  modo,
   valores,
-  aoTrocar,
-  placeholder,
-  sugestoes,
+  coresOcupadas = [],
 }: {
-  valores: string[];
-  aoTrocar: (v: string[]) => void;
-  placeholder: string;
-  sugestoes?: string[];
+  action: (dados: FormData) => void;
+  modo: "criar" | "editar";
+  valores: ValoresDoProduto;
+  coresOcupadas?: string[];
 }) {
-  const [rascunho, setRascunho] = useState("");
-
-  function adicionar(bruto: string) {
-    const t = bruto.trim();
-    if (!t) return;
-    if (!valores.some((x) => x.toLowerCase() === t.toLowerCase())) {
-      aoTrocar([...valores, t]);
-    }
-    setRascunho("");
-  }
-
-  const livres = (sugestoes ?? []).filter(
-    (s) => !valores.some((v) => v.toLowerCase() === s.toLowerCase())
-  );
-
-  return (
-    <div className="chips">
-      {valores.length > 0 && (
-        <div className="chips-lista">
-          {valores.map((v) => (
-            <span key={v} className="chip">
-              <span>{v}</span>
-              <button
-                type="button"
-                className="chip-x"
-                onClick={() => aoTrocar(valores.filter((x) => x !== v))}
-                aria-label={`Remover ${v}`}
-              >
-                ×
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
-      {livres.length > 0 && (
-        <div className="chips-sugestoes">
-          {livres.map((s) => (
-            <button
-              key={s}
-              type="button"
-              className="chip-sugestao"
-              onClick={() => adicionar(s)}
-            >
-              + {s}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="chip-nova">
-        <input
-          className="campo-entrada"
-          value={rascunho}
-          onChange={(e) => setRascunho(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              adicionar(rascunho);
-            }
-          }}
-          placeholder={placeholder}
-        />
-        <button
-          type="button"
-          className="botao botao-contorno botao-pequeno"
-          onClick={() => adicionar(rascunho)}
-        >
-          Adicionar
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export default function NovoProduto({ action }: { action: (dados: FormData) => void }) {
+  const criando = modo === "criar";
   const [etapa, setEtapa] = useState<1 | 2>(1);
   const [erroEtapa1, setErroEtapa1] = useState<string | null>(null);
+  const [temHistoria, setTemHistoria] = useState(Boolean(valores.historia));
 
-  // Etapa 1 (Sobre a acao). Controlados: continuam no formulario mesmo quando a
-  // etapa some da tela, entao o envio final leva tudo junto.
-  const [historia, setHistoria] = useState("");
-  const [meta, setMeta] = useState("");
-  const [corAcao, setCorAcao] = useState("roxo");
-  const [palavraChave, setPalavraChave] = useState("");
-  const [abreEm, setAbreEm] = useState("");
-  const [fechaEm, setFechaEm] = useState("");
+  const [meta, setMeta] = useState(valores.metaReais);
+  const [corAcao, setCorAcao] = useState(valores.cor);
+  const [palavraChave, setPalavraChave] = useState(valores.palavraChave);
+  const [abreEm, setAbreEm] = useState(valores.abreEm);
+  const [fechaEm, setFechaEm] = useState(valores.fechaEm);
 
   // Fotos: a primeira e a capa da acao, as outras entram na galeria da pagina.
-  const [fotos, setFotos] = useState<string[]>([]);
+  const [fotos, setFotos] = useState<string[]>(valores.fotos);
   const [enviando, setEnviando] = useState(false);
   const [erroFoto, setErroFoto] = useState<string | null>(null);
   const entradaFoto = useRef<HTMLInputElement>(null);
 
-  const [preco, setPreco] = useState("");
+  const [preco, setPreco] = useState(valores.precoReais);
+  const [producao, setProducao] = useState<ModoProducao>(valores.modoProducao);
+  const [custoQuando, setCustoQuando] = useState<CustoQuando>(valores.custoQuando);
+  const [custoComo, setCustoComo] = useState<CustoComo>(valores.custoComo);
+  const [custoComoTocado, setCustoComoTocado] = useState(!criando);
+  const [custoValor, setCustoValor] = useState(valores.custoValorReais);
 
-  const [modo, setModo] = useState<ModoProducao>("ENCOMENDA");
-  const [custoQuando, setCustoQuando] = useState<CustoQuando>("AGORA");
-  const [custoComo, setCustoComo] = useState<CustoComo>("PRODUTO");
-  const [custoComoTocado, setCustoComoTocado] = useState(false);
-  const [custoValor, setCustoValor] = useState("");
+  const [dimAtiva, setDimAtiva] = useState<Record<Dim, boolean>>(valores.dimAtiva);
+  const [tamanhos, setTamanhos] = useState<string[]>(valores.tamanhos);
+  const [modelagens, setModelagens] = useState<string[]>(valores.modelagens);
+  const [cores, setCores] = useState<string[]>(valores.cores);
+  const [modelos, setModelos] = useState<string[]>(valores.modelos);
+  const [grade, setGrade] = useState<Record<string, string>>(valores.grade);
+  const [estoqueSimples, setEstoqueSimples] = useState(valores.estoqueSimples);
 
-  // Variacoes: cada dimensao tem uma chavinha antes do campo, pra nada aparecer
-  // vazio na tela.
-  const [dimAtiva, setDimAtiva] = useState<Record<Dim, boolean>>({
-    tamanho: false,
-    modelagem: false,
-    cor: false,
-    modelo: false,
-  });
-  const [tamanhos, setTamanhos] = useState<string[]>([]);
-  const [modelagens, setModelagens] = useState<string[]>([]);
-  const [cores, setCores] = useState<string[]>([]);
-  const [modelos, setModelos] = useState<string[]>([]);
-  const [grade, setGrade] = useState<Record<string, string>>({});
-  const [estoqueSimples, setEstoqueSimples] = useState("");
-
-  // Entrega: varias formas, cada uma com sua chavinha e seu campo de detalhe.
-  const [entregas, setEntregas] = useState<Record<string, { ativo: boolean; texto: string }>>(
-    Object.fromEntries(ENTREGAS.map((e) => [e.tipo, { ativo: false, texto: "" }]))
+  const [entregas, setEntregas] = useState<Record<string, { ativo: boolean; texto: string }>>(() =>
+    Object.fromEntries(
+      ENTREGAS.map((e) => {
+        const salva = valores.entregas.find((x) => x.tipo === e.tipo);
+        return [e.tipo, { ativo: Boolean(salva), texto: salva?.texto ?? "" }];
+      })
+    )
   );
 
-  function trocarModo(novo: ModoProducao) {
-    setModo(novo);
+  const corForte = PALETA.find((c) => c.id === corAcao)?.forte ?? "#0092dd";
+
+  function trocarProducao(novo: ModoProducao) {
+    setProducao(novo);
     if (!custoComoTocado) setCustoComo(novo === "PRONTO" ? "TOTAL" : "PRODUTO");
   }
   function trocarCustoComo(novo: CustoComo) {
@@ -249,7 +157,7 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
   }
 
   function avancar() {
-    if (!historia.trim()) {
+    if (!temHistoria) {
       setErroEtapa1("Escreva a explicação da ação antes de seguir.");
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -308,16 +216,15 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
     ? combinacoes
         .map((c) => {
           const nome = rotuloVariante(c);
-          if (modo === "ENCOMENDA") return { nome, quantidade: null as number | null };
+          if (producao === "ENCOMENDA") return { nome, quantidade: null as number | null };
           const q = Math.max(0, Math.floor(Number(grade[assinatura(c)] || 0)));
           return { nome, quantidade: q };
         })
-        .filter((v) => modo === "ENCOMENDA" || (v.quantidade ?? 0) > 0)
+        .filter((v) => producao === "ENCOMENDA" || (v.quantidade ?? 0) > 0)
     : [];
 
   const totalEmEstoque = variantesPayload.reduce((s, v) => s + (v.quantidade ?? 0), 0);
 
-  // Ponto de equilibrio do custo total: quantas pecas cobrem o gasto do lote.
   const precoC = emCentavos(preco);
   const custoC = emCentavos(custoValor);
   const pontoEquilibrio =
@@ -325,7 +232,6 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
       ? Math.ceil(custoC / precoC)
       : null;
 
-  // Grade: tamanho nas linhas, modelagem nas colunas, cor e modelo em blocos.
   const linhaKey = ligadas.includes("tamanho") ? "tamanho" : null;
   const colunaKey = ligadas.includes("modelagem") ? "modelagem" : null;
   const blocoKeys = ligadas.filter((d) => d === "cor" || d === "modelo");
@@ -341,31 +247,42 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
 
   const custoDiferido = custoComo === "TOTAL" || custoQuando === "FINAL";
 
+  // A estrutura das variacoes vai junto pro servidor. E o que permite a tela de
+  // gerenciar renascer igualzinha: sem isso, so sobrariam os nomes das variantes
+  // ja combinados ("P Feminina"), e nao daria pra saber que dimensoes existiam.
+  const estruturaVariacoes = {
+    dimAtiva,
+    tamanhos,
+    modelagens,
+    cores,
+    modelos,
+    grade,
+    estoqueSimples,
+  };
+
   return (
-    <form action={action} className="produto-form">
-      {/* Campos que espelham o estado. Ficam no formulario mesmo com a etapa
-          escondida, pra tudo ir junto no envio final. */}
-      <input type="hidden" name="historia" value={historia} />
+    <form id="form-acao" action={action} className="produto-form">
       <input type="hidden" name="meta" value={meta} />
       <input type="hidden" name="cor" value={corAcao} />
       <input type="hidden" name="palavraChave" value={palavraChave} />
       <input type="hidden" name="abreEm" value={abreEm} />
       <input type="hidden" name="fechaEm" value={fechaEm} />
-      <input type="hidden" name="modoProducao" value={modo} />
+      <input type="hidden" name="modoProducao" value={producao} />
       <input type="hidden" name="custoQuando" value={custoQuando} />
       <input type="hidden" name="custoComo" value={custoComo} />
       <input type="hidden" name="capa" value={fotos[0] ?? ""} />
       <input type="hidden" name="fotos" value={JSON.stringify(fotos)} />
       <input type="hidden" name="variantes" value={JSON.stringify(variantesPayload)} />
       <input type="hidden" name="entregas" value={JSON.stringify(entregasPayload)} />
+      <input type="hidden" name="variacoes" value={JSON.stringify(estruturaVariacoes)} />
       <input
         type="hidden"
         name="estoqueSimples"
-        value={modo === "PRONTO" && !temVariacao ? estoqueSimples : ""}
+        value={producao === "PRONTO" && !temVariacao ? estoqueSimples : ""}
       />
 
-      {/* ======================= ETAPA 1: SOBRE A AÇÃO ======================= */}
-      <div className="produto-etapa" hidden={etapa !== 1}>
+      {/* ======================= SOBRE A AÇÃO ======================= */}
+      <div className="produto-etapa" hidden={criando && etapa !== 1}>
         <div className="produto-largo">
           <h2 className="formulario-secao">Sobre a ação</h2>
           <p className="produto-sub">
@@ -381,17 +298,18 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
           </p>
         )}
 
-        <label className="campo produto-largo">
+        <div className="campo produto-largo">
           <span className="campo-rotulo">
             Explique a ação<em className="campo-obrigatorio">obrigatório</em>
           </span>
-          <textarea
-            className="campo-entrada"
+          <EditorDeTexto
+            nome="historia"
+            valorInicial={valores.historia}
+            corDaAcao={corForte}
             rows={5}
-            value={historia}
-            onChange={(e) => setHistoria(e.target.value)}
+            aoMudar={setTemHistoria}
           />
-        </label>
+        </div>
 
         <div className="campo-dupla produto-largo">
           <label className="campo">
@@ -436,6 +354,12 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
               </label>
             ))}
           </div>
+          {coresOcupadas.includes(corAcao) && (
+            <p className="cor-aviso">
+              Outra ação já usa esta cor. No gráfico da campanha as duas ficam com a mesma fatia, e
+              aí a cor deixa de dizer de onde veio o dinheiro.
+            </p>
+          )}
         </fieldset>
 
         <label className="campo produto-largo">
@@ -469,27 +393,31 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
           </span>
         </label>
 
-        <div className="produto-pe produto-largo">
-          <button type="button" className="botao botao-primario" onClick={avancar}>
-            Cadastrar produto
-          </button>
-          <span className="formulario-nota">Agora vem o produto em si: fotos, preço e entrega.</span>
-        </div>
+        {criando && (
+          <div className="produto-pe produto-largo">
+            <button type="button" className="botao botao-primario" onClick={avancar}>
+              Cadastrar produto
+            </button>
+            <span className="formulario-nota">
+              Agora vem o produto em si: fotos, preço e entrega.
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* ========================= ETAPA 2: O PRODUTO ======================== */}
-      <div className="produto-etapa" hidden={etapa !== 2}>
+      {/* ========================= O PRODUTO ======================== */}
+      <div className="produto-etapa" hidden={criando && etapa !== 2}>
         <div className="produto-largo">
           <h2 className="formulario-secao">O produto</h2>
         </div>
 
-        {/* Fotos */}
         <div className="produto-largo">
           <span className="campo-rotulo">
             Fotos do produto<em className="campo-obrigatorio">obrigatório</em>
           </span>
           <span className="campo-ajuda" style={{ marginBottom: 12 }}>
-            Foto boa vende. Use luz natural, fundo limpo e mostre a peça de perto. A primeira é a capa.
+            Foto boa vende. Use luz natural, fundo limpo e mostre a peça de perto. A primeira é a
+            capa.
           </span>
 
           <div className="produto-fotos">
@@ -534,7 +462,6 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
           {erroFoto && <span className="campo-erro">{erroFoto}</span>}
         </div>
 
-        {/* Nome */}
         <label className="campo produto-largo">
           <span className="campo-rotulo">
             Nome do produto<em className="campo-obrigatorio">obrigatório</em>
@@ -542,7 +469,8 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
           <input
             className="campo-entrada"
             name="nome"
-            required={etapa === 2}
+            required={!criando || etapa === 2}
+            defaultValue={valores.titulo}
             placeholder="Camiseta da campanha do agasalho"
           />
           <span className="campo-ajuda">
@@ -550,18 +478,17 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
           </span>
         </label>
 
-        {/* Descrição */}
-        <label className="campo produto-largo">
+        <div className="campo produto-largo">
           <span className="campo-rotulo">Descrição</span>
-          <textarea
-            className="campo-entrada"
-            name="descricao"
+          <EditorDeTexto
+            nome="descricao"
+            valorInicial={valores.descricao}
+            corDaAcao={corForte}
             rows={4}
             placeholder="Momento vendedor: explique a peça para quem vai comprar, dê detalhes, fale sobre os diferenciais."
           />
-        </label>
+        </div>
 
-        {/* Preço e modo de produção, pareados. */}
         <label className="campo">
           <span className="campo-rotulo">Preço de venda</span>
           <input
@@ -582,20 +509,19 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
             Modo de produção<em className="campo-obrigatorio">obrigatório</em>
           </span>
           <Segmento
-            valor={modo}
-            aoTrocar={trocarModo}
+            valor={producao}
+            aoTrocar={trocarProducao}
             opcoes={[
-              { valor: "ENCOMENDA", rotulo: "Sob encomenda" },
-              { valor: "PRONTO", rotulo: "Já tenho pronto" },
+              { valor: "ENCOMENDA" as ModoProducao, rotulo: "Sob encomenda" },
+              { valor: "PRONTO" as ModoProducao, rotulo: "Já tenho pronto" },
             ]}
           />
           <span className="campo-ajuda">
-            Sob encomenda você só produz o que vender: rende menos por peça, mas ninguém fica com 20
-            camisas encalhadas. "Já tenho pronto" é pra quando o estoque já existe.
+            Sob encomenda você só produz o que vender: rende menos por peça, mas ninguém fica com
+            20 camisas encalhadas. "Já tenho pronto" é pra quando o estoque já existe.
           </span>
         </div>
 
-        {/* Custo */}
         <div className="produto-largo produto-custo">
           <h3 className="produto-custo-titulo">Custo</h3>
           <p className="produto-sub">
@@ -610,8 +536,8 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
             valor={custoQuando}
             aoTrocar={setCustoQuando}
             opcoes={[
-              { valor: "AGORA", rotulo: "Vou cadastrar agora" },
-              { valor: "FINAL", rotulo: "Vou cadastrar no final" },
+              { valor: "AGORA" as CustoQuando, rotulo: "Vou cadastrar agora" },
+              { valor: "FINAL" as CustoQuando, rotulo: "Vou cadastrar no final" },
             ]}
           />
           {custoQuando === "AGORA" ? (
@@ -634,8 +560,8 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
                 valor={custoComo}
                 aoTrocar={trocarCustoComo}
                 opcoes={[
-                  { valor: "PRODUTO", rotulo: "Custo por produto" },
-                  { valor: "TOTAL", rotulo: "Custo total da ação" },
+                  { valor: "PRODUTO" as CustoComo, rotulo: "Custo por produto" },
+                  { valor: "TOTAL" as CustoComo, rotulo: "Custo total da ação" },
                 ]}
               />
               <span className="campo-ajuda">
@@ -677,7 +603,6 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
           )}
         </div>
 
-        {/* Variações */}
         <div className="produto-largo">
           <span className="campo-rotulo">Variações</span>
           <span className="campo-ajuda" style={{ marginBottom: 14 }}>
@@ -772,7 +697,7 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
             </div>
           </div>
 
-          {temVariacao && modo === "ENCOMENDA" && (
+          {temVariacao && producao === "ENCOMENDA" && (
             <p className="produto-variacoes-resumo">
               {combinacoes.length === 1
                 ? "1 variação a produzir sob encomenda: "
@@ -782,8 +707,7 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
           )}
         </div>
 
-        {/* Grade de estoque, só quando já tenho pronto. */}
-        {modo === "PRONTO" && (
+        {producao === "PRONTO" && (
           <div className="produto-largo">
             <span className="campo-rotulo">Grade de estoque</span>
             <span className="campo-ajuda" style={{ marginBottom: 14 }}>
@@ -859,7 +783,6 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
           </div>
         )}
 
-        {/* Entrega: cada forma com sua chavinha e seu campo. */}
         <div className="produto-largo">
           <span className="campo-rotulo">Como a peça chega em quem comprou</span>
           <span className="campo-ajuda" style={{ marginBottom: 14 }}>
@@ -903,12 +826,12 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
           </div>
         </div>
 
-        {/* Prazo */}
         <label className="campo produto-largo">
           <span className="campo-rotulo">Prazo de produção ou entrega</span>
           <input
             className="campo-entrada"
             name="prazo"
+            defaultValue={valores.prazo}
             placeholder="Até 15 dias após o fechamento das vendas"
           />
           <span className="campo-ajuda">
@@ -926,15 +849,19 @@ export default function NovoProduto({ action }: { action: (dados: FormData) => v
         </aside>
 
         <div className="produto-pe produto-largo">
-          <button type="button" className="botao botao-contorno" onClick={() => setEtapa(1)}>
-            Voltar
-          </button>
+          {criando && (
+            <button type="button" className="botao botao-contorno" onClick={() => setEtapa(1)}>
+              Voltar
+            </button>
+          )}
           <button className="botao botao-primario" type="submit">
-            Criar produto
+            {criando ? "Criar produto" : "Salvar ação"}
           </button>
-          <span className="formulario-nota">
-            Nasce como rascunho. Só aparece na página quando você publicar.
-          </span>
+          {criando && (
+            <span className="formulario-nota">
+              Nasce como rascunho. Só aparece na página quando você publicar.
+            </span>
+          )}
         </div>
       </div>
     </form>

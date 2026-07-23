@@ -6,9 +6,9 @@ import { criarOpcao } from "@/lib/opcoes";
 import { exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { paraCentavos } from "@/lib/dinheiro";
 import { IconeDaAcao } from "@/components/icones";
-import NovoProduto from "@/components/NovoProduto";
+import FormularioDoProduto, { produtoEmBranco } from "@/components/FormularioDoProduto";
 import { CampoDeEscolha, CampoDeLista, CampoDeChave } from "@/components/ControlesDeForm";
-import { deTextoSimples } from "@/lib/textoRico";
+import { lerTextoRico, textoSimples } from "@/lib/textoRico";
 
 export const dynamic = "force-dynamic";
 
@@ -127,8 +127,9 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
       await exigirEdicao();
 
       const nome = String(dados.get("nome") ?? "").trim();
-      const descricao = String(dados.get("descricao") ?? "").trim();
-      const historia = String(dados.get("historia") ?? "").trim();
+      // Os dois textos chegam como JSON do editor (negrito, itálico, cor).
+      const descricaoRica = lerTextoRico(lerJson(dados.get("descricao"), null));
+      const historia = lerTextoRico(lerJson(dados.get("historia"), null));
       const preco = paraCentavos(String(dados.get("preco") ?? ""));
       const meta = paraCentavos(String(dados.get("meta") ?? ""));
       const prazo = String(dados.get("prazo") ?? "").trim();
@@ -178,7 +179,7 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
         campanhaId: campanha.id,
         tipo: "PRODUTO",
         titulo: nome || "Produto",
-        descricao,
+        descricao: textoSimples(descricaoRica),
         precoCentavos: preco,
         custoUnitarioCentavos: custoUnitario,
         metaCentavos: meta,
@@ -191,10 +192,12 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
           custoQuando,
           custoComo,
           custoTotalCentavos: custoTotalGuardado,
-          // Os dois textos guardados no formato rico. Nascem sem formatação e a
-          // pessoa refina depois, na tela de gerência, com negrito e cor.
-          historia: deTextoSimples(historia),
-          descricaoRica: deTextoSimples(descricao),
+          historia,
+          descricaoRica,
+          // A estrutura das variacoes (quais dimensoes, com que valores, e a
+          // grade). E o que deixa a tela de gerenciar renascer identica: so os
+          // nomes das variantes ja combinados nao diriam que dimensoes existiam.
+          variacoes: lerJson(dados.get("variacoes"), null),
         },
       });
 
@@ -262,7 +265,11 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
           <p className="receita-esforco">Dá um trabalhinho, mas o retorno é real.</p>
         </section>
 
-        <NovoProduto action={criarProduto} />
+        <FormularioDoProduto
+          action={criarProduto}
+          modo="criar"
+          valores={produtoEmBranco()}
+        />
       </div>
     );
   }

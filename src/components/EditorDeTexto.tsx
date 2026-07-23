@@ -129,6 +129,7 @@ export default function EditorDeTexto({
   placeholder,
   corDaAcao,
   rows = 5,
+  aoMudar,
 }: {
   /** Nome do campo escondido que leva o JSON pro servidor. */
   nome: string;
@@ -137,6 +138,8 @@ export default function EditorDeTexto({
   /** A cor forte da ação, pra "Cor da ação" mostrar a cor certa aqui dentro. */
   corDaAcao?: string;
   rows?: number;
+  /** Avisa quem está de fora (pra validar "escreveu alguma coisa?"). */
+  aoMudar?: (temTexto: boolean) => void;
 }) {
   const caixa = useRef<HTMLDivElement>(null);
   const [rico, setRico] = useState<TextoRico>(() => ({ linhas: valorInicial?.linhas ?? [] }));
@@ -162,7 +165,9 @@ export default function EditorDeTexto({
     const el = caixa.current;
     if (!el) return;
     setRico({ linhas: emLinhas(coletar(el)) });
-    setVazio((el.textContent ?? "").trim().length === 0);
+    const semTexto = (el.textContent ?? "").trim().length === 0;
+    setVazio(semTexto);
+    aoMudar?.(!semTexto);
   }
 
   function comando(nomeDoComando: "bold" | "italic") {

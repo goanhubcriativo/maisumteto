@@ -21,9 +21,9 @@ import { PALETA } from "@/lib/paleta";
 import { formatarBRL, formatarBRLCurto, paraCentavos } from "@/lib/dinheiro";
 import { exigirLogin, exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { lerNumeros, registrarLancamentoManual } from "@/lib/manual";
-import { criarOpcao, salvarOpcao, removerOpcao } from "@/lib/opcoes";
+import { criarOpcao, salvarOpcao, removerOpcao, sincronizarOpcoes } from "@/lib/opcoes";
 import { registrarCustoFixo, custosFixosDaAcao, apagarCustoFixo } from "@/lib/lancamentos";
-import GerenciaDoProduto from "@/components/GerenciaDoProduto";
+import FormularioDoProduto from "@/components/FormularioDoProduto";
 import { lerTextoRico, textoSimples, deTextoSimples } from "@/lib/textoRico";
 import { lerEntregas } from "@/lib/produto";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
@@ -134,10 +134,44 @@ export default async function EditarAcao({
       Boolean(acao.fechaEm && acao.fechaEm.getTime() <= Date.now()));
   const pedirCustoNoFim = custoPendente && acaoFechou;
 
-  // O produto tem tela de gerência própria, com a mesma estrutura do cadastro.
+  // O produto usa o MESMO formulário do cadastro, preenchido. Por isso a tela
+  // precisa reconstruir tudo que foi preenchido lá: as fotos (capa mais as da
+  // galeria) e a estrutura das variações (quais dimensões, com que valores).
   const ehProduto = acao.tipo === "PRODUTO";
   const emReais = (centavos: number | null | undefined) =>
-    centavos != null ? (centavos / 100).toFixed(2).replace(".", ",") : "";
+    centavos != null && centavos > 0 ? (centavos / 100).toFixed(2).replace(".", ",") : "";
+
+  const fotosDaGaleria: string[] = (() => {
+    const galeria = blocos.find((b) => b.tipo === "GALERIA");
+    const imagens = galeria?.conteudo?.imagens;
+    return Array.isArray(imagens) ? imagens.filter((x): x is string => typeof x === "string") : [];
+  })();
+
+  const variacoesSalvas = (() => {
+    const v = (cfg.variacoes ?? {}) as Record<string, unknown>;
+    const lista = (chave: string) =>
+      Array.isArray(v[chave]) ? (v[chave] as unknown[]).filter((x): x is string => typeof x === "string") : [];
+    const dim = (v.dimAtiva ?? {}) as Record<string, unknown>;
+    return {
+      dimAtiva: {
+        tamanho: dim.tamanho === true,
+        modelagem: dim.modelagem === true,
+        cor: dim.cor === true,
+        modelo: dim.modelo === true,
+      },
+      tamanhos: lista("tamanhos"),
+      modelagens: lista("modelagens"),
+      cores: lista("cores"),
+      modelos: lista("modelos"),
+      grade:
+        v.grade && typeof v.grade === "object"
+          ? (Object.fromEntries(
+              Object.entries(v.grade as Record<string, unknown>).map(([k, val]) => [k, String(val ?? "")])
+            ) as Record<string, string>)
+          : {},
+      estoqueSimples: typeof v.estoqueSimples === "string" ? v.estoqueSimples : "",
+    };
+  })();
 
   // Quais cores as OUTRAS acoes ja usam.
   //
@@ -182,45 +216,100 @@ export default async function EditarAcao({
   }
 
   /**
-   * Salvar do produto. Os textos chegam como JSON do editor (ver textoRico):
-   * a versão rica vai pra config, e a simples fica na coluna `descricao`, que é
-   * o que o cartão e o resumo leem.
+   * Salvar do produto. É o mesmo formulário do cadastro, então lê exatamente os
+   * mesmos campos: textos ricos, fotos, custo, variações, grade e entrega.
    */
   async function salvarProduto(dados: FormData) {
     "use server";
     await exigirEdicao();
 
-    const comoJson = (bruto: FormDataEntryValue | null) => {
+    const comoJson = <T,>(bruto: FormDataEntryValue | null, padrao: T): T => {
       try {
-        return JSON.parse(String(bruto ?? ""));
+        const v = JSON.parse(String(bruto ?? ""));
+        return (v ?? padrao) as T;
       } catch {
-        return null;
+        return padrao;
       }
     };
 
-    const historia = lerTextoRico(comoJson(dados.get("historia")));
-    const descricao = lerTextoRico(comoJson(dados.get("descricao")));
+    const historia = lerTextoRico(comoJson(dados.get("historia"), null));
+    const descricaoRica = lerTextoRico(comoJson(dados.get("descricao"), null));
+
+    const preco = paraCentavos(String(dados.get("preco") ?? ""));
+    const modo = String(dados.get("modoProducao") ?? "ENCOMENDA");
+    const custoQuandoNovo = String(dados.get("custoQuando") ?? "AGORA");
+    const custoComoNovo = String(dados.get("custoComo") ?? "PRODUTO");
+    const custoValor = paraCentavos(String(dados.get("custoValor") ?? "")) ?? 0;
+    const capa = String(dados.get("capa") ?? "").trim();
+
+    const fotos = comoJson<string[]>(dados.get("fotos"), []);
+    const variantes = comoJson<{ nome: string; quantidade: number | null }[]>(
+      dados.get("variantes"),
+      []
+    );
+    const estoqueSimplesRaw = String(dados.get("estoqueSimples") ?? "").trim();
+
+    // Mesma regra do cadastro: por produto anda com a venda; total do lote fica
+    // guardado e só é descontado no fechamento.
+    const custoUnitario =
+      custoQuandoNovo === "AGORA" && custoComoNovo === "PRODUTO" && custoValor > 0
+        ? custoValor
+        : 0;
+    const custoTotalGuardado =
+      custoValor > 0 && (custoComoNovo === "TOTAL" || custoQuandoNovo === "FINAL")
+        ? custoValor
+        : 0;
+
+    const estoqueTotal =
+      variantes.length === 0 && modo === "PRONTO" && estoqueSimplesRaw
+        ? Math.max(0, Math.floor(Number(estoqueSimplesRaw)))
+        : null;
 
     await salvarAcao(acaoId, {
-      titulo: String(dados.get("titulo") ?? "").trim() || tituloAtual,
-      descricao: textoSimples(descricao) || null,
-      precoCentavos: paraCentavos(String(dados.get("preco") ?? "")),
+      titulo: String(dados.get("nome") ?? "").trim() || tituloAtual,
+      descricao: textoSimples(descricaoRica) || null,
+      precoCentavos: preco,
+      custoUnitarioCentavos: custoUnitario,
       metaCentavos: paraCentavos(String(dados.get("meta") ?? "")),
+      estoqueTotal,
       cor: String(dados.get("cor") ?? "") || undefined,
-      capaUrl: String(dados.get("capa") ?? "").trim() || null,
-      capaFoco: String(dados.get("capaFoco") ?? "").trim() || null,
+      capaUrl: capa || null,
+      capaFoco: capa ? "50% 50%" : null,
       abreEm: daCaixaDeData(String(dados.get("abreEm") ?? "")),
       fechaEm: daCaixaDeData(String(dados.get("fechaEm") ?? "")),
     });
 
     await atualizarConfig(acaoId, {
       historia,
-      descricaoRica: descricao,
+      descricaoRica,
       palavraChave: String(dados.get("palavraChave") ?? "").trim().slice(0, 30),
-      modoProducao: String(dados.get("modoProducao") ?? "ENCOMENDA"),
+      modoProducao: modo,
       prazoProducao: String(dados.get("prazo") ?? "").trim(),
-      entregas: comoJson(dados.get("entregas")) ?? [],
+      entregas: comoJson(dados.get("entregas"), []),
+      custoQuando: custoQuandoNovo,
+      custoComo: custoComoNovo,
+      custoTotalCentavos: custoTotalGuardado,
+      variacoes: comoJson(dados.get("variacoes"), null),
     });
+
+    // As variações viram opções de venda. Quem já vendeu não é apagado.
+    await sincronizarOpcoes(
+      acaoId,
+      variantes.map((v) => ({
+        nome: v.nome,
+        precoCentavos: preco ?? 0,
+        custoUnitarioCentavos: custoUnitario,
+        estoqueTotal: v.quantidade,
+      }))
+    );
+
+    // As fotos além da capa vivem na galeria da página.
+    const galeria = (await listarBlocos({ tipo: "acao", id: acaoId })).find(
+      (b) => b.tipo === "GALERIA"
+    );
+    if (galeria) {
+      await salvarBloco(galeria.id, { ...galeria.conteudo, imagens: fotos.slice(1) });
+    }
 
     recarregar(acaoId);
     redirect(`/painel/acao/${acaoId}?salvo=1`);
@@ -516,16 +605,18 @@ export default async function EditarAcao({
 
       <section className="painel-cartao">
         {ehProduto ? (
-          <GerenciaDoProduto
+          <FormularioDoProduto
             action={salvarProduto}
+            modo="editar"
             coresOcupadas={[...coresOcupadas]}
-            dados={{
+            valores={{
               titulo: acao.titulo,
               historia: lerTextoRico(cfg.historia),
               descricao:
                 lerTextoRico(cfg.descricaoRica) ?? deTextoSimples(acao.descricao ?? ""),
-              capaUrl: acao.capaUrl ?? null,
-              capaFoco: acao.capaFoco ?? null,
+              fotos: [acao.capaUrl, ...fotosDaGaleria].filter(
+                (u): u is string => typeof u === "string" && u.length > 0
+              ),
               precoReais: emReais(acao.precoCentavos),
               metaReais: emReais(acao.metaCentavos),
               abreEm: acao.abreEm ? paraCampoData(acao.abreEm) : "",
@@ -533,10 +624,25 @@ export default async function EditarAcao({
               cor: acao.cor ?? "roxo",
               palavraChave: typeof cfg.palavraChave === "string" ? cfg.palavraChave : "",
               modoProducao: cfg.modoProducao === "PRONTO" ? "PRONTO" : "ENCOMENDA",
-              prazo: typeof cfg.prazoProducao === "string" ? cfg.prazoProducao : "",
+              custoQuando: cfg.custoQuando === "FINAL" ? "FINAL" : "AGORA",
+              custoComo: cfg.custoComo === "TOTAL" ? "TOTAL" : "PRODUTO",
+              custoValorReais: emReais(
+                cfg.custoComo === "TOTAL" || cfg.custoQuando === "FINAL"
+                  ? custoGuardado
+                  : acao.custoUnitarioCentavos
+              ),
+              dimAtiva: variacoesSalvas.dimAtiva,
+              tamanhos: variacoesSalvas.tamanhos,
+              modelagens: variacoesSalvas.modelagens,
+              cores: variacoesSalvas.cores,
+              modelos: variacoesSalvas.modelos,
+              grade: variacoesSalvas.grade,
+              estoqueSimples:
+                acao.estoqueTotal != null
+                  ? String(acao.estoqueTotal)
+                  : variacoesSalvas.estoqueSimples,
               entregas: lerEntregas(cfg.entregas),
-              corForte:
-                PALETA.find((c) => c.id === (acao.cor ?? "roxo"))?.forte ?? "#0092dd",
+              prazo: typeof cfg.prazoProducao === "string" ? cfg.prazoProducao : "",
             }}
           />
         ) : (
@@ -663,7 +769,10 @@ export default async function EditarAcao({
 
       {/* Opções de venda: os lotes do ingresso, os tamanhos da camisa. Cada uma
           com preço e estoque próprios. Só evento e produto usam. */}
-      {(acao.tipo === "EVENTO" || acao.tipo === "PRODUTO") && (
+      {/* O produto NÃO entra aqui: as variações dele são montadas na grade do
+          próprio formulário, e um segundo editor das mesmas opções brigaria com
+          ela (salvar num lugar desfaria o outro). */}
+      {acao.tipo === "EVENTO" && (
         <section className="painel-cartao">
           <h2 className="formulario-secao">
             {acao.tipo === "EVENTO" ? "Tipos de ingresso" : "Opções e tamanhos"}
@@ -779,7 +888,9 @@ export default async function EditarAcao({
         </section>
       )}
 
-      {receita && Object.keys(acao.config).length > 0 && (
+      {/* O resumo da config também fica fora do produto: tudo que estaria aqui
+          já é campo editável no formulário de cima. */}
+      {!ehProduto && receita && Object.keys(acao.config).length > 0 && (
         <section className="painel-cartao">
           <h2 className="formulario-secao">Detalhes de {receita.nome.toLowerCase()}</h2>
           <dl className="config-lista">

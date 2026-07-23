@@ -142,6 +142,69 @@ export async function salvarOpcao(id: string, dados: NovaOpcao) {
 }
 
 /**
+ * Deixa as opções da ação iguais à lista que veio da tela, sem perder venda.
+ *
+ * O que existe e continua na lista é atualizado (preço, custo, estoque). O que
+ * é novo entra. O que sumiu da lista só é apagado se NUNCA vendeu: se alguém já
+ * comprou aquele tamanho, a opção fica, porque apagar levaria junto o vínculo
+ * do que foi vendido e o extrato passaria a mentir.
+ */
+export async function sincronizarOpcoes(
+  acaoId: string,
+  lista: {
+    nome: string;
+    precoCentavos: number;
+    custoUnitarioCentavos: number;
+    estoqueTotal: number | null;
+  }[]
+): Promise<{ mantidasComVenda: string[] }> {
+  const [atuais, vendidas] = await Promise.all([
+    prisma.opcao.findMany({ where: { acaoId }, orderBy: { ordem: "asc" } }),
+    vendidasPorOpcao(acaoId),
+  ]);
+
+  const sobrando = new Map(atuais.map((o) => [o.nome, o]));
+
+  for (const [i, nova] of lista.entries()) {
+    const existente = sobrando.get(nova.nome);
+    if (existente) {
+      await prisma.opcao.update({
+        where: { id: existente.id },
+        data: {
+          precoCentavos: nova.precoCentavos,
+          custoUnitarioCentavos: nova.custoUnitarioCentavos,
+          estoqueTotal: nova.estoqueTotal,
+          ordem: i,
+        },
+      });
+      sobrando.delete(nova.nome);
+    } else {
+      await prisma.opcao.create({
+        data: {
+          acaoId,
+          nome: nova.nome.trim() || "Opção",
+          precoCentavos: nova.precoCentavos,
+          custoUnitarioCentavos: nova.custoUnitarioCentavos,
+          estoqueTotal: nova.estoqueTotal,
+          ordem: i,
+        },
+      });
+    }
+  }
+
+  const mantidasComVenda: string[] = [];
+  for (const [nome, o] of sobrando) {
+    if ((vendidas.get(o.id) ?? 0) > 0) {
+      mantidasComVenda.push(nome);
+      continue;
+    }
+    await prisma.opcao.delete({ where: { id: o.id } });
+  }
+
+  return { mantidasComVenda };
+}
+
+/**
  * Apaga uma opção. Os itens já vendidos por ela não somem: opcaoId vira nulo
  * (onDelete: SetNull) e o nome vendido continua guardado no Item.dados, então o
  * extrato não perde o histórico do que foi vendido antes de a opção sair.
