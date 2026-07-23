@@ -162,8 +162,16 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
               rotuloDoTipo[acao.tipo] ||
               "Ação"}
           </span>
-          <h1 className="hero-titulo">{acao.titulo}</h1>
-          {acao.descricao && <p className="acao-hero-desc">{acao.descricao}</p>}
+          {acao.descricao ? (
+            // Titulo e descricao lado a lado: o titulo sozinho ocupava so
+            // metade da faixa, e a descricao aproveita o espaco que sobrava.
+            <div className="acao-hero-grade">
+              <h1 className="hero-titulo">{acao.titulo}</h1>
+              <p className="acao-hero-desc">{acao.descricao}</p>
+            </div>
+          ) : (
+            <h1 className="hero-titulo">{acao.titulo}</h1>
+          )}
         </div>
       </section>
 

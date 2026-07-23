@@ -7,6 +7,7 @@ import { exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { paraCentavos } from "@/lib/dinheiro";
 import { IconeDaAcao } from "@/components/icones";
 import NovoProduto from "@/components/NovoProduto";
+import { CampoDeEscolha, CampoDeLista, CampoDeChave } from "@/components/ControlesDeForm";
 
 export const dynamic = "force-dynamic";
 
@@ -28,13 +29,30 @@ function lerJson<T>(bruto: FormDataEntryValue | null, padrao: T): T {
   }
 }
 
-/** Desenha um campo da receita. O tipo do campo decide o controle. */
+/** "P, M, G" ou uma por linha viram ["P","M","G"]. Pro padrão das listas. */
+function emLista(texto: string): string[] {
+  return texto
+    .split(/[\n,]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Desenha um campo da receita. O tipo do campo decide o controle.
+ *
+ * Escolha, lista e sim/não usam os controles novos (segmentado, fichinhas,
+ * chavinha) que nasceram na tela de produto. Como são interativos, viram
+ * <div> em vez de <label>: <label> em volta de botões confunde o clique.
+ */
 function Campo({ campo }: { campo: CampoDaReceita }) {
   const nome = `cfg_${campo.chave}`;
   const padrao = campo.padrao;
+  const interativo =
+    campo.tipo === "escolha" || campo.tipo === "opcoes" || campo.tipo === "booleano";
+  const Moldura = interativo ? "div" : "label";
 
   return (
-    <label className="campo">
+    <Moldura className="campo">
       <span className="campo-rotulo">
         {campo.rotulo}
         {campo.obrigatorio && <em className="campo-obrigatorio">obrigatório</em>}
@@ -50,31 +68,19 @@ function Campo({ campo }: { campo: CampoDaReceita }) {
           defaultValue={typeof padrao === "string" ? padrao : undefined}
         />
       ) : campo.tipo === "opcoes" ? (
-        <textarea
-          className="campo-entrada"
-          name={nome}
-          rows={3}
+        <CampoDeLista
+          nome={nome}
           placeholder={campo.exemplo}
-          required={campo.obrigatorio}
-          defaultValue={typeof padrao === "string" ? padrao : undefined}
+          padrao={typeof padrao === "string" ? emLista(padrao) : []}
         />
       ) : campo.tipo === "escolha" ? (
-        <select
-          className="campo-entrada"
-          name={nome}
-          defaultValue={typeof padrao === "string" ? padrao : undefined}
-        >
-          {(campo.escolhas ?? []).map((e) => (
-            <option key={e.valor} value={e.valor}>
-              {e.rotulo}
-            </option>
-          ))}
-        </select>
+        <CampoDeEscolha
+          nome={nome}
+          escolhas={campo.escolhas ?? []}
+          padrao={typeof padrao === "string" ? padrao : undefined}
+        />
       ) : campo.tipo === "booleano" ? (
-        <span className="campo-chave">
-          <input type="checkbox" name={nome} value="1" defaultChecked={padrao === true} />
-          <span>Sim</span>
-        </span>
+        <CampoDeChave nome={nome} padrao={padrao === true} />
       ) : (
         <input
           className="campo-entrada"
@@ -102,7 +108,7 @@ function Campo({ campo }: { campo: CampoDaReceita }) {
       )}
 
       {campo.ajuda && <span className="campo-ajuda">{campo.ajuda}</span>}
-    </label>
+    </Moldura>
   );
 }
 

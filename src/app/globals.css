@@ -954,6 +954,26 @@ a.acao:hover {
   margin: 12px 0 0;
   max-width: 62ch;
 }
+/* Titulo a esquerda, descricao a direita. O titulo raramente enche a faixa
+   toda, e a descricao ocupa o vao que sobrava do lado. */
+.acao-hero-grade {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 44px;
+  align-items: end;
+}
+.acao-hero-grade .acao-hero-desc {
+  margin: 0 0 6px;
+}
+@media (max-width: 760px) {
+  .acao-hero-grade {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .acao-hero-grade .acao-hero-desc {
+    margin: 0;
+  }
+}
 
 /* Entrada discreta do painel, no rodapé. */
 .rodape-links {

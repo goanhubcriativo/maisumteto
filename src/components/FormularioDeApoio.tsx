@@ -383,6 +383,9 @@ export default function FormularioDeApoio({
             Opcional. Vai inteiro para a casa, junto com o seu {rotuloDoItem(tipo)}.
           </span>
 
+          {/* Dois valores em cima, e embaixo o terceiro atalho ao lado do campo
+              de outro valor: fecha um quadro 2x2, sem uma linha solta pra
+              "outro valor" pulando embaixo. */}
           <div className="ap-valores">
             {[5, 10, 20].map((v) => {
               const escolhido = extra === v * 100;
@@ -404,15 +407,13 @@ export default function FormularioDeApoio({
                 </button>
               );
             })}
-          </div>
 
-          <label className="ap-campo">
-            <span className="ap-nome">Ou outro valor</span>
-            <div className="ap-moeda">
+            <div className="ap-moeda ap-extra-outro">
               <span>R$</span>
               <input
                 inputMode="decimal"
-                placeholder="0,00"
+                placeholder="Outro"
+                aria-label="Outro valor extra"
                 value={extraDigitado}
                 onChange={(e) => {
                   setExtraDigitado(e.target.value);
@@ -422,7 +423,7 @@ export default function FormularioDeApoio({
                 }}
               />
             </div>
-          </label>
+          </div>
         </div>
       )}
 
