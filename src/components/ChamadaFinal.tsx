@@ -23,12 +23,24 @@ export default function ChamadaFinal({
   metaCentavos,
   apoiadores,
 }: Props) {
+  // Meta zero não é meta batida, é meta não definida (campanha ainda em branco).
+  // Sem essa distinção, uma campanha recém-criada anunciava "a casa está paga".
+  const metaDefinida = metaCentavos > 0;
   const falta = Math.max(0, metaCentavos - arrecadadoCentavos);
 
   return (
     <section className="fechamento">
       <div className="container fechamento-corpo">
-        {falta > 0 ? (
+        {!metaDefinida ? (
+          <>
+            <p className="fechamento-sobre">Falta tudo</p>
+            <h2 className="fechamento-titulo">Ainda falta 100% da meta.</h2>
+            <p className="fechamento-texto">
+              A equipe ainda não definiu o custo da casa. Assim que a meta for cadastrada, o
+              quanto falta aparece aqui.
+            </p>
+          </>
+        ) : falta > 0 ? (
           <>
             <p className="fechamento-sobre">Falta pouco</p>
             <h2 className="fechamento-titulo">

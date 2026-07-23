@@ -372,6 +372,7 @@ export default function CampanhaView({
   blocos?: Bloco[];
 }) {
   const arrecadado = Math.max(0, resumo.liquidoCentavos);
+  const metaDefinida = resumo.metaCentavos > 0;
   const falta = Math.max(0, resumo.metaCentavos - arrecadado);
   const dias = diasRestantes(campanha.prazo);
   const fatias = fatiasDoGrafico(vitrine, arrecadado);
@@ -474,8 +475,17 @@ export default function CampanhaView({
                 </a>
                 <span className="capa-aparte">
                   <span className="capa-aparte-texto">
-                    <em>Ainda faltam</em>
-                    <strong>{formatarBRL(falta)}</strong>
+                    {metaDefinida ? (
+                      <>
+                        <em>Ainda faltam</em>
+                        <strong>{formatarBRL(falta)}</strong>
+                      </>
+                    ) : (
+                      <>
+                        <em>Meta</em>
+                        <strong>a definir</strong>
+                      </>
+                    )}
                   </span>
                 </span>
               </div>
@@ -493,7 +503,9 @@ export default function CampanhaView({
             <div className="placar-forte">
               <Numero className="placar-valor" valor={arrecadado} formato="brl" />
               <span className="placar-de">
-                de {formatarBRL(resumo.metaCentavos)}, o custo da casa
+                {metaDefinida
+                  ? `de ${formatarBRL(resumo.metaCentavos)}, o custo da casa`
+                  : "a meta ainda não foi definida"}
               </span>
             </div>
             <span className="placar-pct">{Math.floor(resumo.percentual)}%</span>
@@ -547,7 +559,13 @@ export default function CampanhaView({
               </span>
             )}
             <span className="placar-falta">
-              faltam <strong>{formatarBRL(falta)}</strong>
+              {metaDefinida ? (
+                <>
+                  faltam <strong>{formatarBRL(falta)}</strong>
+                </>
+              ) : (
+                <strong>meta a definir</strong>
+              )}
             </span>
           </div>
         </div>
@@ -674,7 +692,7 @@ export default function CampanhaView({
           <span className="rodape-equipe">
             <em className="rodape-rotulo">Equipe de arrecadação</em>
             <strong>
-              {campanha.equipeArrecadacao ?? campanha.sede ?? "TETO Paraná"}
+              {campanha.equipeArrecadacao || "Equipe ainda não cadastrada"}
             </strong>
           </span>
 

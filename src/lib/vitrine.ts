@@ -81,30 +81,21 @@ export async function vitrineDaCampanha(slug: string) {
   const registro = await prisma.campanha.findUnique({
     where: { slug },
     include: {
-      equipe: {
-        select: {
-          nome: true,
-          recebedorRotulo: true,
-          // Quem toca a arrecadacao, pra linha do alto da pagina.
-          membros: {
-            where: { papel: "LIDER" },
-            select: { usuario: { select: { nome: true } } },
-          },
-        },
-      },
+      equipe: { select: { nome: true, recebedorRotulo: true } },
     },
   });
   if (!registro) return null;
 
-  // TODO: periodo e sede viram campos de verdade no schema. Enquanto o piloto
-  // tem uma equipe so, derivar do que ja existe evita migracao a cada ajuste.
-  // Os textos institucionais nao entram aqui: sao do sistema (src/lib/textos.ts).
+  // A equipe de arrecadacao e o que a pessoa CADASTROU na campanha, nao os
+  // membros do login. Antes derivava dos membros LIDER, e ai numa campanha em
+  // branco aparecia o nome de quem administra (o dono, os acessos de admin) em
+  // vez de "ainda nao cadastrada".
   const campanha = {
     ...registro,
     periodo: registro.prazo
       ? registro.prazo.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
       : null,
-    equipeArrecadacao: registro.equipe.membros.map((m) => m.usuario.nome).join(" - ") || null,
+    equipeArrecadacao: registro.equipeArrecadacao,
     sede: "TETO Paraná",
   };
 

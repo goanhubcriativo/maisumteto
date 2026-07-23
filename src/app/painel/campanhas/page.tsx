@@ -5,6 +5,7 @@
 // qual campanha o painel edita. O público nunca segue essa escolha: a home é
 // sempre a campanha principal (ver campanhaAtual vs campanhaDoPainel).
 
+import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { apagarCampanha, criarCampanhaDeTeste, listarCampanhas } from "@/lib/repositorio";
@@ -109,7 +110,15 @@ export default async function Campanhas({
               </div>
               <div className="campanha-acoes">
                 {ativa ? (
-                  <span className="campanha-selo">Editando agora</span>
+                  <>
+                    <span className="campanha-selo">Editando agora</span>
+                    {/* O "Editando agora" só dizia o estado, e não levava a lugar
+                        nenhum. Este link é o caminho de fato pra mexer na
+                        campanha: leva pra tela de dados dela. */}
+                    <Link href="/painel/campanha" className="botao botao-primario botao-pequeno">
+                      Editar dados
+                    </Link>
+                  </>
                 ) : (
                   <form action={trocar}>
                     <input type="hidden" name="id" value={c.id} />
