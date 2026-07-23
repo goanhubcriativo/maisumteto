@@ -157,7 +157,11 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
             Voltar para a campanha
           </Link>
 
-          <span className="selo-acao">{rotuloDoTipo[acao.tipo] ?? "Ação"}</span>
+          <span className="selo-acao">
+            {(typeof acao.config?.palavraChave === "string" && acao.config.palavraChave.trim()) ||
+              rotuloDoTipo[acao.tipo] ||
+              "Ação"}
+          </span>
           <h1 className="hero-titulo">{acao.titulo}</h1>
           {acao.descricao && <p className="acao-hero-desc">{acao.descricao}</p>}
         </div>

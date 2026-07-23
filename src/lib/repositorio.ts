@@ -356,6 +356,20 @@ export async function salvarAcao(id: string, campos: Prisma.AcaoUpdateInput) {
   return prisma.acao.update({ where: { id }, data: campos });
 }
 
+/**
+ * Mescla chaves na config sem apagar o resto. A config guarda coisas de tipos
+ * diferentes na mesma coluna JSON (valores sugeridos, entregas, custo diferido),
+ * entao sobrescrever tudo pra mudar uma chave perderia as outras.
+ */
+export async function atualizarConfig(id: string, patch: Record<string, unknown>) {
+  const atual = await prisma.acao.findUnique({ where: { id }, select: { config: true } });
+  const base = (atual?.config as Record<string, unknown>) ?? {};
+  return prisma.acao.update({
+    where: { id },
+    data: { config: { ...base, ...patch } as Prisma.InputJsonValue },
+  });
+}
+
 export async function publicarAcao(id: string, publicar: boolean) {
   return prisma.acao.update({
     where: { id },

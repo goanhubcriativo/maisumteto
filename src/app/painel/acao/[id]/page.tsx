@@ -13,6 +13,7 @@ import {
   removerBloco,
   salvarAcao,
   salvarBloco,
+  atualizarConfig,
 } from "@/lib/repositorio";
 import { receitaDe } from "@/lib/catalogo";
 import { definicaoDe, type TipoBloco } from "@/lib/blocos";
@@ -114,6 +115,23 @@ export default async function EditarAcao({
   // Publicar uma ação com abertura marcada pro futuro é programar, não publicar:
   // ela vai pro ar borrada, com o selo "Em breve", e abre sozinha no dia.
   const vaiAbrirNoFuturo = Boolean(acao.abreEm && acao.abreEm.getTime() > Date.now());
+
+  // Custo diferido pro fechamento. Produto com custo total do lote (ou com o
+  // custo deixado pra depois) não desconta durante a campanha: a ação não pode
+  // começar no vermelho e cada venda tem que fazer a barra subir. Quando a ação
+  // fecha, uma faixa vermelha pede pra CONFIRMAR (quem já pôs um valor) ou
+  // ADICIONAR (quem deixou em branco) o custo, pra ele entrar certo na meta.
+  const cfg = acao.config as Record<string, unknown>;
+  const custoPendente =
+    (cfg.custoComo === "TOTAL" || cfg.custoQuando === "FINAL") && cfg.custoConfirmado !== true;
+  const custoGuardado = typeof cfg.custoTotalCentavos === "number" ? cfg.custoTotalCentavos : 0;
+  const custoJaPreenchido = custoGuardado > 0;
+  const acaoFechou =
+    !acao.rascunho &&
+    (acao.motivo === "ENCERRADA" ||
+      acao.motivo === "ESGOTADO" ||
+      Boolean(acao.fechaEm && acao.fechaEm.getTime() <= Date.now()));
+  const pedirCustoNoFim = custoPendente && acaoFechou;
 
   // Quais cores as OUTRAS acoes ja usam.
   //
@@ -267,6 +285,30 @@ export default async function EditarAcao({
     redirect(`/painel/acao/${acaoId}?custo=1`);
   }
 
+  // A faixa vermelha do fechamento: confirma (ou adiciona) o custo total do lote
+  // e o desconta agora, no fim, sobre a arrecadação já feita. Marca a config
+  // como confirmada pra faixa sumir, mesmo se o custo for zero (a pessoa pode
+  // confirmar que não teve custo nenhum).
+  async function confirmarCustoNoFim(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    const valor = paraCentavos(String(dados.get("valor") ?? "")) ?? 0;
+    if (valor > 0) {
+      await registrarCustoFixo({
+        campanhaId: acao!.campanhaId,
+        acaoId,
+        descricao: "Custo da ação",
+        valorCentavos: valor,
+        data: new Date(),
+        criadoPorId: usuarioId,
+      });
+    }
+    await atualizarConfig(acaoId, { custoConfirmado: true, custoTotalCentavos: valor });
+    recarregar(acaoId);
+    revalidatePath("/painel/extrato");
+    redirect(`/painel/acao/${acaoId}?custo=1`);
+  }
+
   async function apagarCustoAction(dados: FormData) {
     "use server";
     await exigirEdicao();
@@ -366,6 +408,38 @@ export default async function EditarAcao({
         <p className="aviso-salvo" role="status">
           Alterações salvas.
         </p>
+      )}
+
+      {pedirCustoNoFim && (
+        <form action={confirmarCustoNoFim} className="faixa-custo-fim">
+          <div className="faixa-custo-texto">
+            <strong>
+              {custoJaPreenchido ? "Confirme" : "Adicione"} o valor do custo desta ação
+            </strong>
+            <span>
+              A ação fechou.{" "}
+              {custoJaPreenchido
+                ? "Confira o valor e corrija se mudou"
+                : "Informe quanto essa ação custou"}{" "}
+              para calcular corretamente a entrada na meta. Assim que você{" "}
+              {custoJaPreenchido ? "confirmar" : "informar"}, o custo é descontado e a barra ajusta.
+            </span>
+          </div>
+          <div className="faixa-custo-campos">
+            <input
+              className="campo-entrada"
+              name="valor"
+              inputMode="decimal"
+              placeholder="0,00"
+              defaultValue={
+                custoJaPreenchido ? (custoGuardado / 100).toFixed(2).replace(".", ",") : ""
+              }
+            />
+            <button className="botao botao-perigo botao-pequeno" type="submit">
+              {custoJaPreenchido ? "Confirmar custo" : "Adicionar custo"}
+            </button>
+          </div>
+        </form>
       )}
 
       <div className="painel-cabeca">

@@ -3,7 +3,6 @@ import Link from "next/link";
 import { receitaDe, rotuloEsforco, type CampoDaReceita } from "@/lib/catalogo";
 import { criarAcao, salvarAcao, listarBlocos, salvarBloco } from "@/lib/repositorio";
 import { criarOpcao } from "@/lib/opcoes";
-import { registrarCustoFixo } from "@/lib/lancamentos";
 import { exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { paraCentavos } from "@/lib/dinheiro";
 import { IconeDaAcao } from "@/components/icones";
@@ -118,7 +117,7 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
   if (tipo === "PRODUTO") {
     async function criarProduto(dados: FormData) {
       "use server";
-      const usuario = await exigirEdicao();
+      await exigirEdicao();
 
       const nome = String(dados.get("nome") ?? "").trim();
       const descricao = String(dados.get("descricao") ?? "").trim();
@@ -126,11 +125,14 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
       const preco = paraCentavos(String(dados.get("preco") ?? ""));
       const meta = paraCentavos(String(dados.get("meta") ?? ""));
       const prazo = String(dados.get("prazo") ?? "").trim();
+      const cor = String(dados.get("cor") ?? "").trim();
+      const palavraChave = String(dados.get("palavraChave") ?? "")
+        .trim()
+        .slice(0, 30);
       const modo = String(dados.get("modoProducao") ?? "ENCOMENDA");
       const custoQuando = String(dados.get("custoQuando") ?? "AGORA");
       const custoComo = String(dados.get("custoComo") ?? "PRODUTO");
       const custoValor = paraCentavos(String(dados.get("custoValor") ?? "")) ?? 0;
-      const entrega = String(dados.get("entrega") ?? "RETIRADA");
       const capa = String(dados.get("capa") ?? "").trim();
 
       const fotos = lerJson<string[]>(dados.get("fotos"), []);
@@ -138,13 +140,23 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
         dados.get("variantes"),
         []
       );
+      const entregas = lerJson<{ tipo: string; rotulo: string; texto: string }[]>(
+        dados.get("entregas"),
+        []
+      );
       const estoqueSimplesRaw = String(dados.get("estoqueSimples") ?? "").trim();
 
-      // O custo so entra agora se a pessoa escolheu "cadastrar agora" e pos um
-      // valor. Por produto vira custo unitario (anda com a venda); total vira um
-      // lancamento de custo fixo, que sai do liquido na hora.
-      const cadastrarAgora = custoQuando === "AGORA" && custoValor > 0;
-      const custoUnitario = cadastrarAgora && custoComo === "PRODUTO" ? custoValor : 0;
+      // Custo por produto anda com a venda: vira custo unitario e desconta a
+      // cada peca vendida. Custo total do lote NAO entra agora: a acao nao pode
+      // comecar no vermelho e cada venda tem que fazer a barra subir. Ele fica
+      // guardado na config e e descontado so no fim, sobre o que foi vendido
+      // (por enquanto, lancado a mao na tela da acao ao fechar). Igual pra quem
+      // escolhe cadastrar o custo no final.
+      const custoAgoraPorProduto =
+        custoQuando === "AGORA" && custoComo === "PRODUTO" && custoValor > 0;
+      const custoUnitario = custoAgoraPorProduto ? custoValor : 0;
+      const custoTotalGuardado =
+        custoValor > 0 && (custoComo === "TOTAL" || custoQuando === "FINAL") ? custoValor : 0;
 
       // Estoque na propria acao so quando nao ha variacao e o lote ja existe.
       // Com variacao, o estoque mora em cada opcao.
@@ -164,13 +176,22 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
         custoUnitarioCentavos: custoUnitario,
         metaCentavos: meta,
         estoqueTotal,
-        config: { modoProducao: modo, comoEntrega: entrega, prazoProducao: prazo },
+        config: {
+          modoProducao: modo,
+          prazoProducao: prazo,
+          palavraChave,
+          entregas,
+          custoQuando,
+          custoComo,
+          custoTotalCentavos: custoTotalGuardado,
+        },
       });
 
-      // Periodo e capa nao entram no criarAcao: seguem por salvarAcao.
+      // Periodo, capa e cor nao entram no criarAcao: seguem por salvarAcao.
       await salvarAcao(acao.id, {
         capaUrl: capa || null,
         capaFoco: capa ? "50% 50%" : null,
+        cor: cor || undefined,
         abreEm: daCaixaDeData(String(dados.get("abreEm") ?? "")),
         fechaEm: daCaixaDeData(String(dados.get("fechaEm") ?? "")),
       });
@@ -181,18 +202,8 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
         await criarOpcao(acao.id, {
           nome: v.nome,
           precoCentavos: preco ?? 0,
-          custoUnitarioCentavos: custoComo === "PRODUTO" ? custoUnitario : 0,
+          custoUnitarioCentavos: custoUnitario,
           estoqueTotal: v.quantidade,
-        });
-      }
-
-      if (cadastrarAgora && custoComo === "TOTAL") {
-        await registrarCustoFixo({
-          campanhaId: campanha.id,
-          acaoId: acao.id,
-          descricao: "Custo do lote",
-          valorCentavos: custoValor,
-          criadoPorId: usuario.id,
         });
       }
 
@@ -223,10 +234,10 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
             <IconeDaAcao tipo="PRODUTO" />
           </span>
           <div>
-            <h1>Vender um produto pela causa</h1>
+            <h1>Vender um produto</h1>
             <p>
-              Voce monta um produto pra vender e reverter pra arrecadacao. O sistema desconta o
-              custo sozinho, entao o numero que aparece e lucro de verdade, nao faturamento.
+              Você monta um produto pra vender e reverter pra arrecadação. O sistema desconta o
+              custo sozinho, então o número que aparece é lucro de verdade, não faturamento.
             </p>
           </div>
         </div>
@@ -234,15 +245,12 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
         <section className="receita-como">
           <h2>Como funciona</h2>
           <ol>
-            <li>Voce cadastra o produto: foto, preco e quanto custa cada peca pra produzir.</li>
-            <li>Quem compra escolhe a variacao que quer e paga no PIX.</li>
-            <li>
-              O custo so e descontado das pecas que venderam. O que sobra no estoque nao conta como
-              prejuizo.
-            </li>
-            <li>Voce recebe a lista de quem comprou o que, pra entregar tudo certo sem se perder.</li>
+            <li>Você cadastra o produto: foto, preço e quanto custa cada peça pra produzir.</li>
+            <li>Quem compra escolhe a variação que quer e paga no PIX.</li>
+            <li>O custo é descontado do valor de cada peça vendida e o lucro entra para a meta.</li>
+            <li>Você recebe a lista de quem comprou o quê, pra entregar tudo certo sem se perder.</li>
           </ol>
-          <p className="receita-esforco">Da um trabalhinho, mas o retorno e real.</p>
+          <p className="receita-esforco">Dá um trabalhinho, mas o retorno é real.</p>
         </section>
 
         <NovoProduto action={criarProduto} />

@@ -50,6 +50,8 @@ export interface AcaoNaVitrine {
   capaUrl?: string | null;
   /** Como a foto foi encaixada no quadro do cartao ("50% 30%"). */
   capaFoco?: string | null;
+  /** Texto que corre na faixa do cartao. Nulo usa o rotulo do tipo. */
+  palavraChave?: string | null;
   /** Opções de venda (lote do ingresso, tamanho da camisa). Vazio se não tem. */
   opcoes?: OpcaoView[];
 }
@@ -161,6 +163,10 @@ export async function vitrineDaCampanha(slug: string) {
       estoqueTotal: acao.estoqueTotal,
       limitePorPedido: acao.limitePorPedido,
       cor: acao.cor,
+      palavraChave:
+        (typeof acao.config === "object" && acao.config
+          ? (acao.config as Record<string, unknown>).palavraChave
+          : null) as string | null,
       opcoes,
       ...estado,
     };

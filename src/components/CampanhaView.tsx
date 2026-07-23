@@ -245,7 +245,7 @@ function CartaoAcao({
   // deixou a grade pesada e sem hierarquia: quando tudo grita, nada chama.
   const tom = destacado ? "acao-tom-cor" : "acao-tom-claro";
 
-  const rotulo = (rotuloDoTipo[acao.tipo] ?? "Ação").toUpperCase();
+  const rotulo = (acao.palavraChave?.trim() || rotuloDoTipo[acao.tipo] || "Ação").toUpperCase();
 
   /* A faixinha torta atravessando o topo do cartao, com o tipo da acao correndo
      de lado. Passa das bordas de proposito: e o que faz ela parecer pregada POR
