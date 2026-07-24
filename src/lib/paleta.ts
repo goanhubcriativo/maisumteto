@@ -42,7 +42,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "logo",
     nome: "Azul Teto",
-    forte: "#007eb5",
+    forte: "#007bb1",
     marca: "#00a6ee",
     fundo: "rgba(0, 166, 238, 0.1)",
     borda: "rgba(0, 166, 238, 0.22)",
@@ -50,7 +50,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "teto",
     nome: "Azul",
-    forte: "#1b78ce",
+    forte: "#0e76d8",
     marca: "#1f8bf0",
     fundo: "rgba(31, 139, 240, 0.1)",
     borda: "rgba(31, 139, 240, 0.22)",
@@ -65,7 +65,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "campo",
     nome: "Verde",
-    forte: "#0f8655",
+    forte: "#0f8554",
     marca: "#16c079",
     fundo: "rgba(22, 192, 121, 0.1)",
     borda: "rgba(22, 192, 121, 0.22)",
@@ -73,7 +73,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "terra",
     nome: "Coral",
-    forte: "#c2512e",
+    forte: "#e03400",
     marca: "#ff6a3d",
     fundo: "rgba(255, 106, 61, 0.1)",
     borda: "rgba(255, 106, 61, 0.22)",
@@ -81,7 +81,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "ocre",
     nome: "Âmbar",
-    forte: "#9d6a16",
+    forte: "#a56a08",
     marca: "#f5a623",
     fundo: "rgba(245, 166, 35, 0.1)",
     borda: "rgba(245, 166, 35, 0.22)",
@@ -89,7 +89,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "vinho",
     nome: "Framboesa",
-    forte: "#d53564",
+    forte: "#e41b56",
     marca: "#e83a6d",
     fundo: "rgba(232, 58, 109, 0.1)",
     borda: "rgba(232, 58, 109, 0.22)",
@@ -104,7 +104,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "verde",
     nome: "Verde limão",
-    forte: "#3d8625",
+    forte: "#38861f",
     marca: "#5fd13a",
     fundo: "rgba(95, 209, 58, 0.1)",
     borda: "rgba(95, 209, 58, 0.22)",
@@ -112,7 +112,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "dourado",
     nome: "Amarelo",
-    forte: "#8f6f0a",
+    forte: "#947105",
     marca: "#f7bf12",
     fundo: "rgba(247, 191, 18, 0.1)",
     borda: "rgba(247, 191, 18, 0.22)",
@@ -120,7 +120,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "magenta",
     nome: "Magenta",
-    forte: "#d0378d",
+    forte: "#dc1686",
     marca: "#ec3ea0",
     fundo: "rgba(236, 62, 160, 0.1)",
     borda: "rgba(236, 62, 160, 0.22)",
@@ -142,7 +142,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "vermelho",
     nome: "Vermelho",
-    forte: "#dc3632",
+    forte: "#ea1813",
     marca: "#ef3b36",
     fundo: "rgba(239, 59, 54, 0.1)",
     borda: "rgba(239, 59, 54, 0.22)",
@@ -150,7 +150,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "laranja",
     nome: "Laranja",
-    forte: "#bd5a12",
+    forte: "#c55400",
     marca: "#ff7a18",
     fundo: "rgba(255, 122, 24, 0.1)",
     borda: "rgba(255, 122, 24, 0.22)",
@@ -158,7 +158,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "ceu",
     nome: "Azul céu",
-    forte: "#177da5",
+    forte: "#0a7da9",
     marca: "#22b8f2",
     fundo: "rgba(34, 184, 242, 0.1)",
     borda: "rgba(34, 184, 242, 0.22)",
@@ -166,7 +166,7 @@ export const PALETA: CorDaPaleta[] = [
   {
     id: "turquesa",
     nome: "Turquesa",
-    forte: "#0c837f",
+    forte: "#0c807c",
     marca: "#12c6c0",
     fundo: "rgba(18, 198, 192, 0.1)",
     borda: "rgba(18, 198, 192, 0.22)",

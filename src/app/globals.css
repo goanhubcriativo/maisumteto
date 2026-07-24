@@ -921,9 +921,15 @@ a.acao:hover {
 /* ---------- Pagina de uma acao ---------- */
 
 .acao-hero {
-  /* O fim do degrade e proprio quando a acao escolhe (--acao-topo); senao,
-     cai no azul profundo padrao. */
-  background: linear-gradient(140deg, var(--acao-forte), var(--acao-topo, var(--azul-fundo)));
+  /* O hero fica na COR DA ACAO, do tom vivo (forte, que aguenta o texto branco)
+     pra um tom mais fundo da MESMA cor. Antes o fim era o azul da Teto, e todo
+     hero terminava puxando pro azul, entao a cor da acao nunca dominava. O fim
+     proprio (--acao-topo) continua valendo pra quem escolhe cores proprias. */
+  background: linear-gradient(
+    145deg,
+    var(--acao-forte),
+    var(--acao-topo, color-mix(in srgb, var(--acao-forte), #06121a 55%))
+  );
   text-align: left;
 }
 .acao-voltar {
