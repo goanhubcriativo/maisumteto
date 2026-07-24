@@ -78,15 +78,12 @@ export default function FormularioDoProduto({
   const [custoComoTocado, setCustoComoTocado] = useState(!criando);
   const [custoValor, setCustoValor] = useState(valores.custoValorReais);
 
-  // Se uma dimensão tem valores, a chavinha já nasce ligada. Sem isto, dava pra
-  // deixar "P, G" digitado com a chave desligada, e os tamanhos eram ignorados
-  // no silêncio: a pessoa achava que tinha variação e não tinha.
-  const [dimAtiva, setDimAtiva] = useState<Record<Dim, boolean>>(() => ({
-    tamanho: valores.dimAtiva.tamanho || valores.tamanhos.length > 0,
-    modelagem: valores.dimAtiva.modelagem || valores.modelagens.length > 0,
-    cor: valores.dimAtiva.cor || valores.cores.length > 0,
-    modelo: valores.dimAtiva.modelo || valores.modelos.length > 0,
-  }));
+  // A chavinha reflete EXATAMENTE o que foi salvo. Uma versão anterior ligava
+  // sozinha quando a dimensão tinha valores, mas isso teimava: desligar não
+  // segurava, porque os valores continuavam guardados e religavam a chave na
+  // volta. Agora quem manda é o toggle salvo, e salvar limpa os valores das
+  // dimensões desligadas (ver estruturaVariacoes), então não sobra órfão.
+  const [dimAtiva, setDimAtiva] = useState<Record<Dim, boolean>>(valores.dimAtiva);
   const [tamanhos, setTamanhos] = useState<string[]>(valores.tamanhos);
   const [modelagens, setModelagens] = useState<string[]>(valores.modelagens);
   const [cores, setCores] = useState<string[]>(valores.cores);
@@ -212,12 +209,14 @@ export default function FormularioDoProduto({
   // A estrutura das variacoes vai junto pro servidor. E o que permite a tela de
   // gerenciar renascer igualzinha: sem isso, so sobrariam os nomes das variantes
   // ja combinados ("P Feminina"), e nao daria pra saber que dimensoes existiam.
+  // Só guarda os valores das dimensões LIGADAS. Desligou uma, os valores dela
+  // saem do que fica salvo, então a chavinha não religa sozinha na próxima vez.
   const estruturaVariacoes = {
     dimAtiva,
-    tamanhos,
-    modelagens,
-    cores,
-    modelos,
+    tamanhos: dimAtiva.tamanho ? tamanhos : [],
+    modelagens: dimAtiva.modelagem ? modelagens : [],
+    cores: dimAtiva.cor ? cores : [],
+    modelos: dimAtiva.modelo ? modelos : [],
     grade,
     estoqueSimples,
   };
