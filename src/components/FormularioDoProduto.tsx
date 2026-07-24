@@ -243,6 +243,23 @@ export default function FormularioDoProduto({
           </p>
         )}
 
+        <label className="campo produto-largo">
+          <span className="campo-rotulo">
+            Nome da campanha<em className="campo-obrigatorio">obrigatório</em>
+          </span>
+          <input
+            className="campo-entrada"
+            name="nomeCampanha"
+            required={!criando || etapa === 1}
+            defaultValue={valores.titulo}
+            placeholder="Colecionáveis da CC2612"
+          />
+          <span className="campo-ajuda">
+            É o que aparece grande no alto da página, junto com a explicação. Não é o nome da
+            peça: esse vem depois, na parte do produto.
+          </span>
+        </label>
+
         <div className="campo produto-largo">
           <span className="campo-rotulo">
             Explique a ação<em className="campo-obrigatorio">obrigatório</em>
@@ -413,13 +430,13 @@ export default function FormularioDoProduto({
           </span>
           <input
             className="campo-entrada"
-            name="nome"
+            name="nomeProduto"
             required={!criando || etapa === 2}
-            defaultValue={valores.titulo}
-            placeholder="Camiseta da campanha do agasalho"
+            defaultValue={valores.nomeDoProduto}
+            placeholder="Chaveiro Trena 3D"
           />
           <span className="campo-ajuda">
-            É o que aparece no cartão. Nome concreto vende mais que genérico.
+            É o que aparece ao lado da foto, na vitrine. Nome concreto vende mais que genérico.
           </span>
         </label>
 

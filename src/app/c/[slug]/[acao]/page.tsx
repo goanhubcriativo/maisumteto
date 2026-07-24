@@ -134,6 +134,25 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
     : blocos;
   const descricaoDoProduto =
     lerTextoRico(acao.config?.descricaoRica) ?? deTextoSimples(acao.descricao ?? "");
+
+  // O nome do produto e as fotos da vitrine. A capa é a primeira; as outras
+  // vêm da galeria da página e passam pro lado no slide. Produto criado antes
+  // do campo de nome próprio cai no título, que fazia esse papel.
+  const nomeDoProduto =
+    typeof acao.config?.nomeDoProduto === "string" && acao.config.nomeDoProduto.trim()
+      ? acao.config.nomeDoProduto
+      : acao.titulo;
+  const fotosDoProduto: string[] = (() => {
+    const galeria = blocos.find((b) => b.tipo === "GALERIA");
+    const extras = Array.isArray(galeria?.conteudo?.imagens)
+      ? (galeria.conteudo.imagens as unknown[]).filter(
+          (x): x is string => typeof x === "string" && x.length > 0
+        )
+      : [];
+    return [acao.capaUrl, ...extras].filter(
+      (u): u is string => typeof u === "string" && u.length > 0
+    );
+  })();
   const falta = Math.max(0, resumo.metaCentavos - Math.max(0, resumo.liquidoCentavos));
 
   // Mesma regua do cartao: meta propria, senao o que falta no contrato.
@@ -268,47 +287,8 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
             )}
           </section>
 
-          {/* O produto: a foto e a descrição da peça.
-              Vem DEPOIS da meta, e não antes: em cima fica a causa (por que a
-              ação existe) e o quanto já andou, que é o que convence; aqui vem o
-              que a pessoa leva; e logo abaixo o formulário, que é a decisão. */}
-          {ehProduto &&
-            (acao.capaUrl || !textoRicoVazio(descricaoDoProduto) || acao.tabelaMedidas) && (
-              <section className="produto-media">
-                {acao.capaUrl && (
-                  <div
-                    className="produto-foto"
-                    style={{ backgroundImage: `url(${JSON.stringify(acao.capaUrl)})` }}
-                    role="img"
-                    aria-label={`Foto de ${acao.titulo}`}
-                  />
-                )}
-
-                <div className="produto-medidas">
-                  {!textoRicoVazio(descricaoDoProduto) && (
-                    <>
-                      <h2 className="cartao-titulo">O produto</h2>
-                      <TextoRicoView valor={descricaoDoProduto} className="texto" />
-                    </>
-                  )}
-
-                  {acao.tabelaMedidas && (
-                    <>
-                      <h2 className="cartao-titulo">Tabela de tamanhos</h2>
-                      <div className="texto">
-                        {acao.tabelaMedidas
-                          .split("\n")
-                          .map((l) => l.trim())
-                          .filter(Boolean)
-                          .map((linha, i) => (
-                            <p key={i}>{linha}</p>
-                          ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </section>
-            )}
+          {/* A foto e a descrição do produto NÃO ficam aqui soltas: elas entram
+              dentro da vitrine, junto do preço e da escolha, mais abaixo. */}
 
           {/* O fechamento da acao, so quando ela ja acabou. */}
           {acabou && resultado && (
@@ -388,12 +368,12 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
               folgado na coluna que sobrava, e ficam onde a dúvida aparece: na
               hora de preencher. Empilhados, o "como funciona" ia parar longe
               demais do momento em que ele resolve alguma coisa. */}
-          {!acabou && (
-            <section className="participar-grade">
-              <div className="participar-caixa">
-                <h2 className="participar-titulo">
-                  {acao.tipo === "DOACAO" ? "Fazer uma doação" : "Participar"}
-                </h2>
+          {!acabou &&
+            (ehProduto ? (
+              // Produto tem cara de loja: a foto e a descrição entram DENTRO do
+              // formulário, que se organiza em volta delas. Continua sendo um
+              // formulário só, com um envio só.
+              <section className="participar-loja">
                 <FormularioDeApoio
                   acaoId={acao.id}
                   tipo={acao.tipo}
@@ -410,26 +390,60 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
                   }))}
                   valoresSugeridos={valoresSugeridos}
                   corForte={cor.forte}
+                  loja={{
+                    fotos: fotosDoProduto,
+                    nome: nomeDoProduto,
+                    descricao: !textoRicoVazio(descricaoDoProduto) ? (
+                      <>
+                        <h2 className="participar-titulo">O produto</h2>
+                        <TextoRicoView valor={descricaoDoProduto} className="texto" />
+                      </>
+                    ) : null,
+                  }}
                 />
-              </div>
+              </section>
+            ) : (
+              <section className="participar-grade">
+                <div className="participar-caixa">
+                  <h2 className="participar-titulo">
+                    {acao.tipo === "DOACAO" ? "Fazer uma doação" : "Participar"}
+                  </h2>
+                  <FormularioDeApoio
+                    acaoId={acao.id}
+                    tipo={acao.tipo}
+                    precoCentavos={acao.precoCentavos}
+                    restante={acao.restante}
+                    estoqueTotal={acao.estoqueTotal}
+                    limitePorPedido={acao.limitePorPedido}
+                    opcoes={(acao.opcoes ?? []).map((o) => ({
+                      id: o.id,
+                      nome: o.nome,
+                      precoCentavos: o.precoCentavos,
+                      restante: o.restante,
+                      esgotada: o.esgotada,
+                    }))}
+                    valoresSugeridos={valoresSugeridos}
+                    corForte={cor.forte}
+                  />
+                </div>
 
-              {receita && receita.comoParticipar.length > 0 && (
-                <aside className="participar-passos">
-                  <h2 className="participar-titulo">Como funciona</h2>
-                  <ol>
-                    {receita.comoParticipar.map((passo, i) => (
-                      <li key={i}>
-                        <span className="passo-n" style={{ background: cor.forte }}>
-                          {i + 1}
-                        </span>
-                        <span>{passo}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </aside>
-              )}
-            </section>
-          )}
+                {receita && receita.comoParticipar.length > 0 && (
+                  <aside className="participar-passos">
+                    <h2 className="participar-titulo">Como funciona</h2>
+                    <ol>
+                      {receita.comoParticipar.map((passo, i) => (
+                        <li key={i}>
+                          <span className="passo-n" style={{ background: cor.forte }}>
+                            {i + 1}
+                          </span>
+                          <span>{passo}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </aside>
+                )}
+              </section>
+            ))}
 
           {/* Encerrada não tem formulário, mas ainda vale contar como era. */}
           {acabou && receita && receita.comoParticipar.length > 0 && (

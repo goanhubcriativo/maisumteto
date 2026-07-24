@@ -127,7 +127,10 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
       "use server";
       await exigirEdicao();
 
-      const nome = String(dados.get("nome") ?? "").trim();
+      // Dois nomes com papéis diferentes: o da campanha vai no alto da página,
+      // o do produto vai ao lado da foto, na vitrine.
+      const nomeCampanha = String(dados.get("nomeCampanha") ?? "").trim();
+      const nomeProduto = String(dados.get("nomeProduto") ?? "").trim();
       // Os dois textos chegam como JSON do editor (negrito, itálico, cor).
       const descricaoRica = lerTextoRico(lerJson(dados.get("descricao"), null));
       const historia = lerTextoRico(lerJson(dados.get("historia"), null));
@@ -179,7 +182,7 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
       const acao = await criarAcao({
         campanhaId: campanha.id,
         tipo: "PRODUTO",
-        titulo: nome || "Produto",
+        titulo: nomeCampanha || nomeProduto || "Produto",
         descricao: textoSimples(descricaoRica),
         precoCentavos: preco,
         custoUnitarioCentavos: custoUnitario,
@@ -189,6 +192,7 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
           modoProducao: modo,
           prazoProducao: prazo,
           palavraChave,
+          nomeDoProduto: nomeProduto,
           entregas,
           custoQuando,
           custoComo,

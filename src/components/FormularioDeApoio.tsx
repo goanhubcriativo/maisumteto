@@ -13,7 +13,7 @@
 // formulário sem estilo nenhum para quem doa, que é justamente quem não pode
 // tropeçar.
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import EscolherNumeros from "@/components/EscolherNumeros";
 import { useRouter } from "next/navigation";
 
@@ -41,6 +41,15 @@ interface Props {
   /** Botões de atalho para doação, em reais. */
   valoresSugeridos?: number[];
   corForte: string;
+  /**
+   * Arrumação de loja (produto): a foto, o nome e a descrição vêm de fora, e o
+   * formulário se organiza em volta deles. Ausente, usa a arrumação de sempre.
+   */
+  loja?: {
+    fotos: string[];
+    nome: string;
+    descricao?: React.ReactNode;
+  };
 }
 
 function formatar(centavos: number) {
@@ -89,6 +98,7 @@ export default function FormularioDeApoio({
   opcoes = [],
   valoresSugeridos = [20, 50, 100, 200],
   corForte,
+  loja,
 }: Props) {
   const router = useRouter();
   const temOpcoes = opcoes.length > 0;
@@ -164,8 +174,11 @@ export default function FormularioDeApoio({
     }
   }
 
-  return (
-    <form className="ap" onSubmit={enviar}>
+  // Os pedaços do formulário viram variáveis pra poderem ser colocados em duas
+  // arrumações diferentes (a de sempre e a de loja) SEM duplicar nada: é o
+  // mesmo formulário, o mesmo estado e o mesmo envio nos dois casos.
+  const blocoEscolha = (
+    <>
       {temOpcoes ? (
         <div className="ap-bloco">
           <span className="ap-pergunta">
@@ -317,7 +330,10 @@ export default function FormularioDeApoio({
           )}
         </div>
       )}
+    </>
+  );
 
+  const blocoDados = (
       <div className="ap-bloco">
         <span className="ap-pergunta">Seus dados</span>
 
@@ -372,10 +388,13 @@ export default function FormularioDeApoio({
           divulgar.
         </p>
       </div>
+  );
 
-      {/* O chorinho. Só fora da doação livre: uma caixa discreta, opcional, no
-          fim, como era no bolão. Quem quer só a rifa passa reto; quem quer
-          arredondar pra cima acha o campo na hora certa, antes de pagar. */}
+  {/* O chorinho. Só fora da doação livre: uma caixa discreta, opcional, no
+      fim, como era no bolão. Quem quer só a rifa passa reto; quem quer
+      arredondar pra cima acha o campo na hora certa, antes de pagar. */}
+  const blocoExtra = (
+    <>
       {!valorLivre && (
         <div className="ap-bloco ap-extra">
           <span className="ap-pergunta">Quer somar um valor extra?</span>
@@ -426,7 +445,11 @@ export default function FormularioDeApoio({
           </div>
         </div>
       )}
+    </>
+  );
 
+  const blocoFecha = (
+    <>
       {erro && (
         <p className="ap-erro" role="alert">
           {erro}
@@ -446,9 +469,137 @@ export default function FormularioDeApoio({
             : "Escolha um valor acima"}
       </button>
 
-      <p className="ap-rodape">
-        Pagamento por PIX. Leva menos de um minuto.
-      </p>
+      <p className="ap-rodape">Pagamento por PIX. Leva menos de um minuto.</p>
+    </>
+  );
+
+  // Arrumação de LOJA: foto quadrada com as demais em slide, e ao lado o nome,
+  // o preço grande e a escolha da variação. Embaixo, em duas colunas, o que a
+  // pessoa preenche pra comprar (esquerda) e a descrição da peça (direita).
+  if (loja) {
+    return (
+      <form className="ap loja" onSubmit={enviar}>
+        <div className="loja-topo">
+          <Carrossel fotos={loja.fotos} nome={loja.nome} />
+
+          <div className="loja-ficha">
+            <h2 className="loja-nome">{loja.nome}</h2>
+
+            {precoUnit > 0 && (
+              <div className="loja-preco" style={{ color: corForte }}>
+                {formatar(precoUnit)}
+              </div>
+            )}
+
+            {blocoEscolha}
+
+            <p className="loja-nota">
+              O lucro da venda desse produto é 100% destinado à campanha de arrecadação.
+            </p>
+          </div>
+        </div>
+
+        <div className="loja-baixo">
+          <div className="loja-compra">
+            {blocoDados}
+            {blocoExtra}
+            {blocoFecha}
+          </div>
+
+          {loja.descricao && <div className="loja-descricao">{loja.descricao}</div>}
+        </div>
+      </form>
+    );
+  }
+
+  return (
+    <form className="ap" onSubmit={enviar}>
+      {blocoEscolha}
+      {blocoDados}
+      {blocoExtra}
+      {blocoFecha}
     </form>
+  );
+}
+
+/**
+ * As fotos do produto. A primeira é a capa; as outras passam pro lado.
+ *
+ * O deslize é do próprio navegador (scroll com encaixe), e não um carrossel de
+ * biblioteca: no celular o dedo já faz isso sozinho, e as setas existem pra
+ * quem está no computador e não tem como arrastar.
+ */
+function Carrossel({ fotos, nome }: { fotos: string[]; nome: string }) {
+  const trilho = useRef<HTMLDivElement>(null);
+  const [atual, setAtual] = useState(0);
+
+  function irPara(i: number) {
+    const el = trilho.current;
+    if (!el) return;
+    const alvo = Math.max(0, Math.min(fotos.length - 1, i));
+    el.scrollTo({ left: alvo * el.clientWidth, behavior: "smooth" });
+    setAtual(alvo);
+  }
+
+  if (fotos.length === 0) {
+    return <div className="loja-foto-vazia" aria-hidden="true" />;
+  }
+
+  return (
+    <div className="loja-fotos">
+      <div
+        className="loja-trilho"
+        ref={trilho}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          if (el.clientWidth > 0) setAtual(Math.round(el.scrollLeft / el.clientWidth));
+        }}
+      >
+        {fotos.map((url, i) => (
+          <div
+            key={url}
+            className="loja-foto"
+            style={{ backgroundImage: `url(${JSON.stringify(url)})` }}
+            role="img"
+            aria-label={i === 0 ? `Foto de ${nome}` : `Foto ${i + 1} de ${nome}`}
+          />
+        ))}
+      </div>
+
+      {fotos.length > 1 && (
+        <>
+          <button
+            type="button"
+            className="loja-seta esquerda"
+            onClick={() => irPara(atual - 1)}
+            disabled={atual === 0}
+            aria-label="Foto anterior"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            className="loja-seta direita"
+            onClick={() => irPara(atual + 1)}
+            disabled={atual === fotos.length - 1}
+            aria-label="Próxima foto"
+          >
+            ›
+          </button>
+
+          <div className="loja-pontos">
+            {fotos.map((url, i) => (
+              <button
+                key={url}
+                type="button"
+                className={`loja-ponto${i === atual ? " ativo" : ""}`}
+                onClick={() => irPara(i)}
+                aria-label={`Ir para a foto ${i + 1}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }

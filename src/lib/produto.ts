@@ -66,7 +66,10 @@ export type DimensaoDeVariacao = "tamanho" | "modelagem" | "cor" | "modelo";
 export interface ValoresDoProduto {
   historia: TextoRico | null;
   descricao: TextoRico | null;
+  /** Nome da campanha. É o que aparece no alto da página (o header). */
   titulo: string;
+  /** Nome do produto. É o que aparece ao lado da foto, na vitrine. */
+  nomeDoProduto: string;
   fotos: string[];
   precoReais: string;
   metaReais: string;
@@ -95,6 +98,7 @@ export function produtoEmBranco(): ValoresDoProduto {
     historia: null,
     descricao: null,
     titulo: "",
+    nomeDoProduto: "",
     fotos: [],
     precoReais: "",
     metaReais: "",

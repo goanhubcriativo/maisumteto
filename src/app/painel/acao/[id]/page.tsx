@@ -299,7 +299,7 @@ export default async function EditarAcao({
         : null;
 
     await salvarAcao(acaoId, {
-      titulo: String(dados.get("nome") ?? "").trim() || tituloAtual,
+      titulo: String(dados.get("nomeCampanha") ?? "").trim() || tituloAtual,
       descricao: textoSimples(descricaoRica) || null,
       precoCentavos: preco,
       custoUnitarioCentavos: custoUnitario,
@@ -316,6 +316,7 @@ export default async function EditarAcao({
       historia,
       descricaoRica,
       palavraChave: String(dados.get("palavraChave") ?? "").trim().slice(0, 30),
+      nomeDoProduto: String(dados.get("nomeProduto") ?? "").trim(),
       modoProducao: modo,
       prazoProducao: String(dados.get("prazo") ?? "").trim(),
       entregas: comoJson(dados.get("entregas"), []),
@@ -654,6 +655,12 @@ export default async function EditarAcao({
             coresOcupadas={[...coresOcupadas]}
             valores={{
               titulo: acao.titulo,
+              // Produto criado antes deste campo nao tem nome proprio: cai no
+              // titulo, que era o que fazia esse papel.
+              nomeDoProduto:
+                typeof cfg.nomeDoProduto === "string" && cfg.nomeDoProduto
+                  ? cfg.nomeDoProduto
+                  : acao.titulo,
               historia: lerTextoRico(cfg.historia) ?? deTextoSimples(historiaDoBloco),
               descricao:
                 lerTextoRico(cfg.descricaoRica) ?? deTextoSimples(acao.descricao ?? ""),
