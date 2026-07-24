@@ -4195,8 +4195,38 @@ body {
 /* Quantas unidades ainda tem, na vitrine do produto: logo abaixo do preco,
    discreto, mas visIvel pra quem decide na hora. */
 .loja-estoque {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--tinta-70);
-  margin-top: -2px;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--acao-forte, var(--teto));
+  border: 1.5px solid var(--acao-forte, var(--teto));
+  border-radius: 999px;
+  padding: 6px 14px;
+  margin-top: 2px;
+}
+.loja-estoque strong {
+  font-size: 18px;
+  font-weight: 800;
+}
+/* Acabando: vermelho pulsando de leve, pra puxar o olho e criar urgencia. */
+.loja-estoque.urgente {
+  color: #fff;
+  background: var(--vermelho);
+  border-color: var(--vermelho);
+  animation: estoque-pulsa 1.6s ease-in-out infinite;
+}
+.loja-estoque.esgotado {
+  color: var(--tinta-50);
+  background: var(--cinza);
+  border-color: var(--linha);
+}
+@keyframes estoque-pulsa {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loja-estoque.urgente { animation: none; }
 }

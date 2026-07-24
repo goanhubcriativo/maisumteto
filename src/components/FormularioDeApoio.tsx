@@ -662,15 +662,24 @@ export default function FormularioDeApoio({
               </div>
             )}
 
-            {totalDisponivel != null && (
-              <div className="loja-estoque">
-                {totalDisponivel === 0
-                  ? "Esgotado"
-                  : `${totalDisponivel} ${
-                      totalDisponivel === 1 ? "unidade disponível" : "unidades disponíveis"
-                    }`}
-              </div>
-            )}
+            {totalDisponivel != null &&
+              (totalDisponivel === 0 ? (
+                <div className="loja-estoque esgotado">Esgotado</div>
+              ) : (
+                <div
+                  className={`loja-estoque${totalDisponivel <= 10 ? " urgente" : ""}`}
+                  style={totalDisponivel > 10 ? { color: corForte, borderColor: corForte } : undefined}
+                >
+                  <strong>{totalDisponivel}</strong>{" "}
+                  {totalDisponivel <= 10
+                    ? totalDisponivel === 1
+                      ? "última unidade!"
+                      : "últimas unidades!"
+                    : totalDisponivel === 1
+                      ? "unidade disponível"
+                      : "unidades disponíveis"}
+                </div>
+              ))}
 
             {blocoEscolha}
 
