@@ -4010,3 +4010,107 @@ body {
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* A frase do anonimato e o "Entenda melhor" na MESMA linha: o botao corre logo
+   depois do ponto final, em vez de cair numa linha propria embaixo. */
+.ap-anonimo-linha {
+  display: block;
+  font-size: 13.5px;
+  line-height: 1.5;
+  padding: 4px 0;
+}
+.ap-anonimo-linha .ap-anonimo {
+  display: inline-flex;
+  padding: 0;
+  vertical-align: baseline;
+}
+.ap-entenda {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-left: 7px;
+  color: var(--acao-forte, var(--teto));
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ap-entenda:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* ---------- A caixinha da parte publica ----------
+   A .popup do painel nao vale aqui: painel.css so carrega na area logada, e
+   por isso esta caixa abria crua, com a borda cinza do navegador. */
+.caixinha {
+  width: min(460px, calc(100vw - 32px));
+  border: 2px solid var(--teto);
+  border-radius: 18px;
+  padding: 24px 26px 26px;
+  color: var(--tinta);
+  background: var(--branco);
+  box-shadow: 0 26px 70px rgba(9, 30, 44, 0.3);
+}
+.caixinha::backdrop {
+  background: rgba(9, 30, 44, 0.45);
+  backdrop-filter: blur(3px);
+}
+.caixinha-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.caixinha-titulo {
+  font-size: 19px;
+  line-height: 1.25;
+  letter-spacing: -0.4px;
+  margin: 0;
+  color: var(--azul);
+}
+.caixinha-fechar {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 999px;
+  background: var(--teto-6);
+  color: var(--azul);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.caixinha-fechar:hover {
+  background: var(--teto-12);
+}
+.caixinha-texto {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--tinta-70);
+  margin: 0 0 12px;
+}
+.caixinha-ok {
+  width: 100%;
+  margin-top: 8px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--branco);
+  border: none;
+  border-radius: 10px;
+  padding: 13px 18px;
+  cursor: pointer;
+}
+
+/* As caixas da pagina da acao precisavam de ar entre elas: a da meta encostava
+   na vitrine, e as duas liam como um bloco so. */
+.grande {
+  margin-bottom: 28px;
+}
+.participar-loja {
+  margin-top: 28px;
+}

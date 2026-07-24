@@ -452,46 +452,55 @@ export default function FormularioDeApoio({
             extrato dela e no app do banco, sem ter como nao ver. O que existe
             de verdade e um compromisso de nao divulgar, e e isso que esta
             escrito aqui. Ver tambem src/app/painel/extrato. */}
-        <label className="ap-anonimo">
-          <input type="checkbox" name="anonimo" />
-          <span>Não quero meu nome na lista de quem contribuiu</span>
-        </label>
-        {/* A explicação inteira do anonimato virou botão: em pé ela ocupava
-            meia coluna e empurrava o pagamento pra baixo, e é um texto que a
-            maioria não precisa ler. Quem quiser, abre. */}
-        <button type="button" className="ap-entenda" onClick={() => sigilo.current?.showModal()}>
-          Entenda melhor
-        </button>
+        {/* A explicação inteira do anonimato virou botão, na mesma linha da
+            frase: em pé ela ocupava meia coluna e empurrava o pagamento pra
+            baixo, e é um texto que a maioria não precisa ler. */}
+        <span className="ap-anonimo-linha">
+          <label className="ap-anonimo">
+            <input type="checkbox" name="anonimo" />
+            <span>Não quero meu nome na lista de quem contribuiu.</span>
+          </label>
+          <button
+            type="button"
+            className="ap-entenda"
+            onClick={() => sigilo.current?.showModal()}
+          >
+            Entenda melhor
+          </button>
+        </span>
 
-        <dialog ref={sigilo} className="popup" aria-label="Sobre o anonimato">
-          <div className="popup-topo">
-            <h2 className="formulario-secao" style={{ margin: 0 }}>
-              Sobre não divulgar seu nome
-            </h2>
+        {/* Caixa própria da parte pública: a .popup mora no painel.css, que só
+            carrega na área logada, então aqui ela abria sem estilo nenhum. */}
+        <dialog ref={sigilo} className="caixinha" aria-label="Sobre o anonimato">
+          <div className="caixinha-topo">
+            <h2 className="caixinha-titulo">Sobre não divulgar seu nome</h2>
             <button
               type="button"
-              className="popup-fechar"
+              className="caixinha-fechar"
               onClick={() => sigilo.current?.close()}
               aria-label="Fechar"
             >
               ×
             </button>
           </div>
-          <p className="ap-dica" style={{ margin: 0 }}>
-            Seu nome não vai aparecer na página, e ninguém de fora fica sabendo. A equipe, essa
-            continua vendo: o PIX chega com o nome de quem pagou, é assim que o Banco Central
-            manda, e é o que permite conferir o extrato com o banco. O compromisso da equipe é
-            não divulgar.
+
+          <p className="caixinha-texto">
+            Seu nome <strong>não vai aparecer na página</strong>, e ninguém de fora fica sabendo.
           </p>
-          <div className="popup-acoes">
-            <button
-              type="button"
-              className="botao botao-contorno"
-              onClick={() => sigilo.current?.close()}
-            >
-              Entendi
-            </button>
-          </div>
+          <p className="caixinha-texto">
+            A equipe, essa continua vendo: o PIX chega com o nome de quem pagou, é assim que o
+            Banco Central manda, e é o que permite conferir o extrato com o banco. O compromisso
+            da equipe é não divulgar.
+          </p>
+
+          <button
+            type="button"
+            className="caixinha-ok"
+            style={{ background: corForte }}
+            onClick={() => sigilo.current?.close()}
+          >
+            Entendi
+          </button>
         </dialog>
       </div>
   );
