@@ -78,7 +78,15 @@ export default function FormularioDoProduto({
   const [custoComoTocado, setCustoComoTocado] = useState(!criando);
   const [custoValor, setCustoValor] = useState(valores.custoValorReais);
 
-  const [dimAtiva, setDimAtiva] = useState<Record<Dim, boolean>>(valores.dimAtiva);
+  // Se uma dimensão tem valores, a chavinha já nasce ligada. Sem isto, dava pra
+  // deixar "P, G" digitado com a chave desligada, e os tamanhos eram ignorados
+  // no silêncio: a pessoa achava que tinha variação e não tinha.
+  const [dimAtiva, setDimAtiva] = useState<Record<Dim, boolean>>(() => ({
+    tamanho: valores.dimAtiva.tamanho || valores.tamanhos.length > 0,
+    modelagem: valores.dimAtiva.modelagem || valores.modelagens.length > 0,
+    cor: valores.dimAtiva.cor || valores.cores.length > 0,
+    modelo: valores.dimAtiva.modelo || valores.modelos.length > 0,
+  }));
   const [tamanhos, setTamanhos] = useState<string[]>(valores.tamanhos);
   const [modelagens, setModelagens] = useState<string[]>(valores.modelagens);
   const [cores, setCores] = useState<string[]>(valores.cores);
