@@ -225,6 +225,11 @@ export async function listarAcoes(campanhaId: string): Promise<AcaoDoPainel[]> {
 
   return acoes.map((a) => {
     const opcoes = opcoesPorAcao.get(a.id) ?? [];
+    // O card na home (fita, titulo e texto proprios) mora na config. Sem isto,
+    // a home caia sempre no nome e na descricao da acao, e o que a equipe
+    // escreveu no "Card na home" nao aparecia.
+    const cfg = (a.config as Record<string, unknown>) ?? {};
+    const txt = (v: unknown) => (typeof v === "string" && v.trim() ? v : null);
     const base = {
       id: a.id,
       campanhaId: a.campanhaId,
@@ -242,6 +247,9 @@ export async function listarAcoes(campanhaId: string): Promise<AcaoDoPainel[]> {
       cor: a.cor,
       capaUrl: a.capaUrl,
       capaFoco: a.capaFoco,
+      palavraChave: txt(cfg.palavraChave),
+      cardTitulo: txt(cfg.cardTitulo),
+      cardDescricao: txt(cfg.cardDescricao),
       opcoes,
       config: (a.config as Record<string, unknown>) ?? {},
       custoUnitarioCentavos: a.custoUnitarioCentavos,
