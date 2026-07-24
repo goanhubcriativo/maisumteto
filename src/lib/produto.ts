@@ -4,6 +4,8 @@
 // mesma língua: se a lista de formas de entrega existisse em duplicata, uma
 // mudaria e a outra ficaria pra trás sem ninguém notar.
 
+import type { TextoRico } from "./textoRico";
+
 export interface FormaDeEntrega {
   tipo: string;
   rotulo: string;
@@ -44,6 +46,76 @@ export interface EntregaEscolhida {
   tipo: string;
   rotulo: string;
   texto: string;
+}
+
+// ---------------------------------------------------------------------------
+// Os valores do formulário do produto.
+//
+// Moram AQUI, e não dentro do FormularioDoProduto, porque aquele arquivo é
+// "use client": de um módulo client o servidor só consegue renderizar
+// componentes, nunca chamar uma função exportada. Com produtoEmBranco() lá
+// dentro, a tela de criar quebrava no servidor ("Attempted to call
+// produtoEmBranco() from the server"). Num módulo neutro os dois lados usam.
+// ---------------------------------------------------------------------------
+
+export type ModoProducao = "ENCOMENDA" | "PRONTO";
+export type CustoQuando = "AGORA" | "FINAL";
+export type CustoComo = "PRODUTO" | "TOTAL";
+export type DimensaoDeVariacao = "tamanho" | "modelagem" | "cor" | "modelo";
+
+export interface ValoresDoProduto {
+  historia: TextoRico | null;
+  descricao: TextoRico | null;
+  titulo: string;
+  fotos: string[];
+  precoReais: string;
+  metaReais: string;
+  abreEm: string;
+  fechaEm: string;
+  cor: string;
+  palavraChave: string;
+  modoProducao: ModoProducao;
+  custoQuando: CustoQuando;
+  custoComo: CustoComo;
+  custoValorReais: string;
+  dimAtiva: Record<DimensaoDeVariacao, boolean>;
+  tamanhos: string[];
+  modelagens: string[];
+  cores: string[];
+  modelos: string[];
+  grade: Record<string, string>;
+  estoqueSimples: string;
+  entregas: { tipo: string; texto: string }[];
+  prazo: string;
+}
+
+/** O produto em branco, pra tela de criar. */
+export function produtoEmBranco(): ValoresDoProduto {
+  return {
+    historia: null,
+    descricao: null,
+    titulo: "",
+    fotos: [],
+    precoReais: "",
+    metaReais: "",
+    abreEm: "",
+    fechaEm: "",
+    cor: "roxo",
+    palavraChave: "",
+    modoProducao: "ENCOMENDA",
+    custoQuando: "AGORA",
+    custoComo: "PRODUTO",
+    custoValorReais: "",
+    dimAtiva: { tamanho: false, modelagem: false, cor: false, modelo: false },
+    tamanhos: [],
+    modelagens: [],
+    cores: [],
+    modelos: [],
+    grade: {},
+    estoqueSimples: "",
+    entregas: [],
+    prazo: "",
+  };
 }
 
 export function lerEntregas(bruto: unknown): EntregaEscolhida[] {

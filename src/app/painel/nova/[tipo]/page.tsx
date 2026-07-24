@@ -6,7 +6,8 @@ import { criarOpcao } from "@/lib/opcoes";
 import { exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { paraCentavos } from "@/lib/dinheiro";
 import { IconeDaAcao } from "@/components/icones";
-import FormularioDoProduto, { produtoEmBranco } from "@/components/FormularioDoProduto";
+import FormularioDoProduto from "@/components/FormularioDoProduto";
+import { produtoEmBranco } from "@/lib/produto";
 import { CampoDeEscolha, CampoDeLista, CampoDeChave } from "@/components/ControlesDeForm";
 import { lerTextoRico, textoSimples } from "@/lib/textoRico";
 

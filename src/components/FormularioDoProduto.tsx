@@ -15,8 +15,13 @@
 
 import { useRef, useState } from "react";
 import { PALETA } from "@/lib/paleta";
-import { ENTREGAS } from "@/lib/produto";
-import type { TextoRico } from "@/lib/textoRico";
+import {
+  ENTREGAS,
+  type ValoresDoProduto,
+  type ModoProducao,
+  type CustoQuando,
+  type CustoComo,
+} from "@/lib/produto";
 import EditorDeTexto from "@/components/EditorDeTexto";
 import { Segmento, Interruptor, EditorDeChips } from "@/components/ControlesDeForm";
 
@@ -29,69 +34,9 @@ function emCentavos(entrada: string): number | null {
   return Math.round(n * 100);
 }
 
-export type ModoProducao = "ENCOMENDA" | "PRONTO";
-export type CustoQuando = "AGORA" | "FINAL";
-export type CustoComo = "PRODUTO" | "TOTAL";
-
 const MODELAGENS = ["Feminina", "Masculina", "Unissex"];
 const ORDEM = ["tamanho", "modelagem", "cor", "modelo"] as const;
 type Dim = (typeof ORDEM)[number];
-
-/** Tudo que a tela precisa pra nascer preenchida. */
-export interface ValoresDoProduto {
-  historia: TextoRico | null;
-  descricao: TextoRico | null;
-  titulo: string;
-  fotos: string[];
-  precoReais: string;
-  metaReais: string;
-  abreEm: string;
-  fechaEm: string;
-  cor: string;
-  palavraChave: string;
-  modoProducao: ModoProducao;
-  custoQuando: CustoQuando;
-  custoComo: CustoComo;
-  custoValorReais: string;
-  dimAtiva: Record<Dim, boolean>;
-  tamanhos: string[];
-  modelagens: string[];
-  cores: string[];
-  modelos: string[];
-  grade: Record<string, string>;
-  estoqueSimples: string;
-  entregas: { tipo: string; texto: string }[];
-  prazo: string;
-}
-
-/** O produto em branco, pra tela de criar. */
-export function produtoEmBranco(): ValoresDoProduto {
-  return {
-    historia: null,
-    descricao: null,
-    titulo: "",
-    fotos: [],
-    precoReais: "",
-    metaReais: "",
-    abreEm: "",
-    fechaEm: "",
-    cor: "roxo",
-    palavraChave: "",
-    modoProducao: "ENCOMENDA",
-    custoQuando: "AGORA",
-    custoComo: "PRODUTO",
-    custoValorReais: "",
-    dimAtiva: { tamanho: false, modelagem: false, cor: false, modelo: false },
-    tamanhos: [],
-    modelagens: [],
-    cores: [],
-    modelos: [],
-    grade: {},
-    estoqueSimples: "",
-    entregas: [],
-    prazo: "",
-  };
-}
 
 export default function FormularioDoProduto({
   action,
