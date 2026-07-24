@@ -533,7 +533,9 @@ export default async function EditarAcao({
   };
 
   return (
-    <div className="painel-largura">
+    // Produto usa a MESMA moldura do cadastro (largura, fundo, sem cartão):
+    // gerenciar É o formulário de cadastro preenchido, e nada além dele.
+    <div className={ehProduto ? "painel-estreito painel-produto" : "painel-largura"}>
       <div className="painel-topo-acoes">
         <Link href="/painel" className="painel-voltar">
           Voltar para a campanha
@@ -642,7 +644,9 @@ export default async function EditarAcao({
         </div>
       </div>
 
-      <section className="painel-cartao">
+      {/* No produto, o formulário fica solto na página, sem cartão em volta,
+          exatamente como na tela de criar. */}
+      <section className={ehProduto ? undefined : "painel-cartao"}>
         {ehProduto ? (
           <FormularioDoProduto
             action={salvarProduto}
@@ -961,6 +965,11 @@ export default async function EditarAcao({
         </section>
       )}
 
+      {/* Nada disto existe no produto. Gerenciar produto É o formulário de
+          cadastro preenchido: custo mora lá dentro, as fotos e a página também.
+          Duplicar essas seções aqui era aparecer OUTRO cadastro na edição. */}
+      {!ehProduto && (
+        <>
       {/* Lançamento manual.
           Fica na tela da ação, e não numa página só dele, porque quem chega
           aqui com o caderno na mão já sabe de qual ação está falando. O
@@ -1062,6 +1071,8 @@ export default async function EditarAcao({
           ver como ficou usa o "Ver prévia da página", la em cima, que abre a
           coisa real. */}
       <EditorDeBlocos blocos={blocos} acoes={acoesDoEditor} />
+        </>
+      )}
 
       <form action={apagar} className="zona-perigo">
         <div>
