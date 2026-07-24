@@ -147,7 +147,40 @@ export default async function EditarAcao({
     return Array.isArray(imagens) ? imagens.filter((x): x is string => typeof x === "string") : [];
   })();
 
+  // Produto criado antes desta tela guardava a explicação num bloco de texto e
+  // as variações só como opções de venda. Os fallbacks abaixo remontam o
+  // formulário a partir desses lugares, pra nada voltar em branco. No próximo
+  // salvar, tudo passa a ser guardado no formato novo e o fallback nem roda.
+  const blocoDaHistoria = blocos.find(
+    (b) => b.tipo === "TEXTO" && String(b.conteudo?.texto ?? "").trim()
+  );
+  const historiaDoBloco = String(blocoDaHistoria?.conteudo?.texto ?? "");
+  // No primeiro salvar o texto passa a morar na config; o bloco de onde ele
+  // veio sai junto, senão a página mostraria a explicação duas vezes.
+  const historiaJaNaConfig = Boolean(lerTextoRico(cfg.historia));
+  const blocoDaHistoriaId = !historiaJaNaConfig ? blocoDaHistoria?.id ?? null : null;
+
   const variacoesSalvas = (() => {
+    // Sem a estrutura salva, as opções que existem viram uma dimensão única de
+    // tamanho, com o estoque de cada uma na grade. É o melhor que dá pra saber
+    // a partir de nomes já combinados.
+    if (!cfg.variacoes && (acao.opcoes ?? []).length > 0) {
+      const nomes = (acao.opcoes ?? []).map((o) => o.nome);
+      return {
+        dimAtiva: { tamanho: true, modelagem: false, cor: false, modelo: false },
+        tamanhos: nomes,
+        modelagens: [] as string[],
+        cores: [] as string[],
+        modelos: [] as string[],
+        grade: Object.fromEntries(
+          (acao.opcoes ?? []).map((o) => [
+            JSON.stringify([o.nome]),
+            o.estoqueTotal != null ? String(o.estoqueTotal) : "",
+          ])
+        ) as Record<string, string>,
+        estoqueSimples: "",
+      };
+    }
     const v = (cfg.variacoes ?? {}) as Record<string, unknown>;
     const lista = (chave: string) =>
       Array.isArray(v[chave]) ? (v[chave] as unknown[]).filter((x): x is string => typeof x === "string") : [];
@@ -309,6 +342,12 @@ export default async function EditarAcao({
     );
     if (galeria) {
       await salvarBloco(galeria.id, { ...galeria.conteudo, imagens: fotos.slice(1) });
+    }
+
+    // Produto antigo: a explicação morava num bloco de texto. Agora que ela foi
+    // salva na config, o bloco sai, senão a página mostraria o texto duas vezes.
+    if (blocoDaHistoriaId) {
+      await removerBloco({ tipo: "acao", id: acaoId }, blocoDaHistoriaId);
     }
 
     recarregar(acaoId);
@@ -611,7 +650,7 @@ export default async function EditarAcao({
             coresOcupadas={[...coresOcupadas]}
             valores={{
               titulo: acao.titulo,
-              historia: lerTextoRico(cfg.historia),
+              historia: lerTextoRico(cfg.historia) ?? deTextoSimples(historiaDoBloco),
               descricao:
                 lerTextoRico(cfg.descricaoRica) ?? deTextoSimples(acao.descricao ?? ""),
               fotos: [acao.capaUrl, ...fotosDaGaleria].filter(

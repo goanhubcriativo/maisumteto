@@ -114,10 +114,24 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
   // No produto, o alto da página é a CAUSA (por que a ação existe) e a peça
   // aparece mais abaixo, com a foto e a descrição dela. São dois textos com
   // papéis diferentes: um convence, o outro descreve o que a pessoa leva.
+  //
+  // Produto criado antes desta tela guardava a explicação num bloco de texto,
+  // não na config. O fallback lê de lá, e o bloco sai da lista de baixo: sem
+  // isso, o alto ficava sem a explicação e ela aparecia embaixo, num blocão.
   const ehProduto = acao.tipo === "PRODUTO";
+  const blocoDaHistoria = ehProduto
+    ? blocos.find(
+        (b) => b.tipo === "TEXTO" && String(b.conteudo?.texto ?? "").trim().length > 0
+      )
+    : undefined;
   const textoDoHero = ehProduto
-    ? lerTextoRico(acao.config?.historia)
+    ? (lerTextoRico(acao.config?.historia) ??
+      deTextoSimples(String(blocoDaHistoria?.conteudo?.texto ?? "")))
     : deTextoSimples(acao.descricao ?? "");
+  const usouBlocoNoHero = ehProduto && !lerTextoRico(acao.config?.historia) && blocoDaHistoria;
+  const blocosDaPagina = usouBlocoNoHero
+    ? blocos.filter((b) => b.id !== blocoDaHistoria!.id)
+    : blocos;
   const descricaoDoProduto =
     lerTextoRico(acao.config?.descricaoRica) ?? deTextoSimples(acao.descricao ?? "");
   const falta = Math.max(0, resumo.metaCentavos - Math.max(0, resumo.liquidoCentavos));
@@ -195,7 +209,9 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
 
       <main className="corpo">
         <div className="container">
-          <section className="grande">
+          {/* A barra da meta encaixa no hero e desce, como na tela principal:
+              a caixa branca morde a faixa colorida em vez de começar depois. */}
+          <section className="grande grande-no-hero">
             <div className="grande-topo">
               <div>
                 <div className="grande-valor" style={{ color: cor.forte }}>
@@ -432,10 +448,10 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
             </section>
           )}
 
-          {blocos.some((b) => b.visivel) && (
+          {blocosDaPagina.some((b) => b.visivel) && (
             <section className="secao-conteudo">
               <Blocos
-                blocos={blocos}
+                blocos={blocosDaPagina}
                 ctx={{
                   arrecadadoCentavos: acao.liquidoCentavos,
                   metaCentavos: meta,

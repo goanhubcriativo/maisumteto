@@ -3767,3 +3767,13 @@ body {
 .produto-medidas .texto p {
   line-height: 1.55;
 }
+
+/* A caixa da meta mordendo o hero, como o placar da home (.placar-caixa).
+   O hero tem 84px de respiro embaixo e o corpo 34px em cima: -76px poe a caixa
+   ~40px pra dentro da faixa colorida, e o fundo branco separa as camadas. */
+.grande-no-hero {
+  position: relative;
+  z-index: 3;
+  margin-top: -76px;
+  background: var(--branco);
+}
