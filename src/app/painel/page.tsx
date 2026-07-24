@@ -1,20 +1,46 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { campanhaAtual, contarApoiadores, listarAcoes, publicarAcao, type AcaoDoPainel } from "@/lib/repositorio";
+import {
+  buscarAcao,
+  campanhaAtual,
+  contarApoiadores,
+  listarAcoes,
+  publicarAcao,
+  type AcaoDoPainel,
+} from "@/lib/repositorio";
 import { exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { resumoCampanha } from "@/lib/extrato";
-import { formatarBRL, formatarBRLCurto } from "@/lib/dinheiro";
+import { formatarBRL, formatarBRLCurto, paraCentavos } from "@/lib/dinheiro";
+import { lerNumeros, registrarLancamentoManual } from "@/lib/manual";
 import { receitaDe } from "@/lib/catalogo";
 import { IconeDaAcao } from "@/components/icones";
+import LancamentoManual from "@/components/LancamentoManual";
 
 export const dynamic = "force-dynamic";
+
+/** Date -> "AAAA-MM-DD" com os getters locais (toISOString joga pro dia anterior). */
+function paraCampoData(d: Date): string {
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mes}-${dia}`;
+}
+
+/** "AAAA-MM-DD" -> meia-noite LOCAL daquele dia. */
+function daCaixaDeData(texto: string): Date | null {
+  const t = texto.trim();
+  if (!t) return null;
+  const d = new Date(`${t}T00:00:00`);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
 
 export default async function Painel({
   searchParams,
 }: {
-  searchParams: Promise<{ somenteLeitura?: string }>;
+  searchParams: Promise<{ somenteLeitura?: string; lancado?: string; erro?: string }>;
 }) {
-  const { somenteLeitura } = await searchParams;
+  const { somenteLeitura, lancado, erro } = await searchParams;
+  const hoje = paraCampoData(new Date());
   const campanha = await campanhaDoPainel();
   const principal = await campanhaAtual();
   const ehTeste = campanha.id !== principal.id;
@@ -38,12 +64,64 @@ export default async function Painel({
     revalidatePath("/");
   }
 
+  /**
+   * Lançamento manual direto da lista. Uma server action só serve todas as
+   * linhas: a ação vem no próprio formulário (campo `acaoId`), e não presa no
+   * fechamento, senão seria uma action diferente por linha da lista.
+   */
+  async function lancarManualDaLista(dados: FormData) {
+    "use server";
+    const usuario = await exigirEdicao();
+
+    const acaoId = String(dados.get("acaoId") ?? "");
+    const alvo = acaoId ? await buscarAcao(acaoId) : null;
+    if (!alvo) {
+      redirect(`/painel?erro=${encodeURIComponent("Não achei essa ação.")}`);
+    }
+
+    const r = await registrarLancamentoManual({
+      acaoId: alvo.id,
+      nome: String(dados.get("nome") ?? ""),
+      whatsapp: String(dados.get("whatsapp") ?? ""),
+      cpf: String(dados.get("cpf") ?? ""),
+      anonimo: dados.get("anonimo") === "on",
+      quantidade: Number(dados.get("quantidade") ?? 1),
+      valorCentavos: paraCentavos(String(dados.get("valor") ?? "")),
+      numeros: lerNumeros(
+        String(dados.get("numeros") ?? ""),
+        alvo.tipo === "RIFA" ? alvo.estoqueTotal ?? 0 : 0
+      ),
+      forma: String(dados.get("forma") ?? ""),
+      data: daCaixaDeData(String(dados.get("quando") ?? "")) ?? new Date(),
+      registradoPorId: usuario.id,
+    });
+
+    revalidatePath("/painel");
+    revalidatePath("/painel/extrato");
+    revalidatePath("/");
+
+    if (!r.ok) {
+      redirect(`/painel?erro=${encodeURIComponent(r.erro)}`);
+    }
+    redirect("/painel?lancado=1");
+  }
+
   return (
     <div className="painel-largura">
       {somenteLeitura && (
         <div className="aviso-bom" style={{ marginBottom: 22 }}>
           Nada foi alterado: este acesso é <strong>somente leitura</strong>.
         </div>
+      )}
+      {lancado && (
+        <p className="aviso-salvo" role="status" style={{ marginBottom: 22 }}>
+          Lançamento registrado. Já está no extrato.
+        </p>
+      )}
+      {erro && (
+        <p className="aviso-ruim" role="alert" style={{ marginBottom: 22 }}>
+          {erro}
+        </p>
       )}
       {ehTeste && (
         <div className="aviso-teste" style={{ marginBottom: 22 }}>
@@ -98,7 +176,13 @@ export default async function Painel({
           </p>
           <div className="painel-lista">
             {rascunhos.map((a) => (
-              <LinhaDeAcao key={a.id} acao={a} alternar={alternar} />
+              <LinhaDeAcao
+                key={a.id}
+                acao={a}
+                alternar={alternar}
+                lancar={lancarManualDaLista}
+                hoje={hoje}
+              />
             ))}
           </div>
         </>
@@ -107,7 +191,13 @@ export default async function Painel({
       <p className="painel-etiqueta-lista">Publicadas ({publicadas.length})</p>
       <div className="painel-lista">
         {publicadas.map((a) => (
-          <LinhaDeAcao key={a.id} acao={a} alternar={alternar} />
+          <LinhaDeAcao
+            key={a.id}
+            acao={a}
+            alternar={alternar}
+            lancar={lancarManualDaLista}
+            hoje={hoje}
+          />
         ))}
       </div>
     </div>
@@ -117,9 +207,13 @@ export default async function Painel({
 function LinhaDeAcao({
   acao,
   alternar,
+  lancar,
+  hoje,
 }: {
   acao: AcaoDoPainel;
   alternar: (dados: FormData) => Promise<void>;
+  lancar: (dados: FormData) => Promise<void>;
+  hoje: string;
 }) {
   const receita = receitaDe(acao.tipo);
 
@@ -143,13 +237,33 @@ function LinhaDeAcao({
 
       <span className="painel-linha-valor">{formatarBRLCurto(acao.liquidoCentavos)}</span>
 
-      <form action={alternar} className="painel-linha-acoes">
-        <input type="hidden" name="id" value={acao.id} />
-        <input type="hidden" name="publicar" value={acao.rascunho ? "1" : "0"} />
-        <button className="botao botao-contorno botao-pequeno" type="submit">
-          {acao.rascunho ? "Publicar" : "Despublicar"}
-        </button>
-      </form>
+      <span className="painel-linha-acoes">
+        {/* Lançamento manual, publicar e editar, na ordem em que a mão vai:
+            registrar o que entrou fora do site, botar no ar, e só então abrir
+            a ação inteira pra mexer. */}
+        <LancamentoManual
+          variante="botao"
+          acaoId={acao.id}
+          action={lancar}
+          ehRifa={acao.tipo === "RIFA" && (acao.estoqueTotal ?? 0) > 0}
+          valorLivre={acao.precoCentavos == null}
+          precoCentavos={acao.precoCentavos}
+          precoRotulo={formatarBRL(acao.precoCentavos ?? 0)}
+          hoje={hoje}
+        />
+
+        <form action={alternar}>
+          <input type="hidden" name="id" value={acao.id} />
+          <input type="hidden" name="publicar" value={acao.rascunho ? "1" : "0"} />
+          <button className="botao botao-contorno botao-pequeno" type="submit">
+            {acao.rascunho ? "Publicar" : "Despublicar"}
+          </button>
+        </form>
+
+        <Link href={`/painel/acao/${acao.id}`} className="botao botao-contorno botao-pequeno">
+          Editar
+        </Link>
+      </span>
     </div>
   );
 }

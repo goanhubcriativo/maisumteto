@@ -2287,3 +2287,25 @@ textarea.campo-entrada {
   color: var(--tinta-50);
   pointer-events: none;
 }
+
+/* Os comandos da linha da acao: lancamento manual, publicar e editar.
+   No celular a linha quebra e os botoes passam pra baixo, alinhados a esquerda
+   junto com o resto, em vez de espremer tres botoes num canto. */
+.painel-linha-acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 0 0 auto;
+}
+.painel-linha-acoes .botao {
+  white-space: nowrap;
+}
+@media (max-width: 720px) {
+  .painel-linha {
+    flex-wrap: wrap;
+  }
+  .painel-linha-acoes {
+    width: 100%;
+  }
+}

@@ -23,6 +23,14 @@ interface Props {
   /** Mensagens que voltam depois do envio, pela URL. */
   erro?: string;
   lancado?: boolean;
+  /**
+   * Como ele aparece. "cartao" é a caixa com explicação, na tela da ação.
+   * "botao" é só o botão, pra caber na linha da lista de ações. A caixa que
+   * abre é a MESMA nos dois: o formulário não é duplicado.
+   */
+  variante?: "cartao" | "botao";
+  /** Na lista, diz a qual ação o lançamento pertence. */
+  acaoId?: string;
 }
 
 export default function LancamentoManual({
@@ -34,6 +42,8 @@ export default function LancamentoManual({
   hoje,
   erro,
   lancado,
+  variante = "cartao",
+  acaoId,
 }: Props) {
   const dialogo = useRef<HTMLDialogElement>(null);
 
@@ -50,30 +60,8 @@ export default function LancamentoManual({
     dialogo.current?.close();
   }
 
-  return (
-    <section className="painel-cartao lancar-cartao" id="lancar">
-      <div className="lancar-chamada">
-        <div>
-          <h2 className="formulario-secao" style={{ margin: 0 }}>
-            Entrou fora do site?
-          </h2>
-          <p className="campo-ajuda" style={{ margin: "6px 0 0" }}>
-            A rifa vendida na rua, a camisa paga em dinheiro, o PIX direto na conta de alguém da
-            equipe. Registre em nome de quem contribuiu e entra no extrato como lançamento manual.
-          </p>
-        </div>
-        <button type="button" className="botao botao-primario botao-pequeno" onClick={abrir}>
-          Lançar à mão
-        </button>
-      </div>
-
-      {lancado && (
-        <p className="aviso-salvo" role="status" style={{ margin: "16px 0 0" }}>
-          Lançamento registrado. Já está no extrato.
-        </p>
-      )}
-
-      <dialog ref={dialogo} className="popup" aria-label="Lançamento manual">
+  const caixa = (
+    <dialog ref={dialogo} className="popup" aria-label="Lançamento manual">
         <div className="popup-topo">
           <h2 className="formulario-secao" style={{ margin: 0 }}>
             Lancei fora do site
@@ -90,6 +78,7 @@ export default function LancamentoManual({
         )}
 
         <form action={action} className="formulario">
+          {acaoId && <input type="hidden" name="acaoId" value={acaoId} />}
           <label className="campo">
             <span className="campo-rotulo">Nome de quem contribuiu</span>
             <input className="campo-entrada" name="nome" required />
@@ -177,7 +166,46 @@ export default function LancamentoManual({
             </button>
           </div>
         </form>
-      </dialog>
+    </dialog>
+  );
+
+  // Na lista de ações, só o botão: a linha já diz de que ação se trata, e a
+  // explicação longa ali viraria parede de texto repetida em cada linha.
+  if (variante === "botao") {
+    return (
+      <>
+        <button type="button" className="botao botao-contorno botao-pequeno" onClick={abrir}>
+          Lançamento manual
+        </button>
+        {caixa}
+      </>
+    );
+  }
+
+  return (
+    <section className="painel-cartao lancar-cartao" id="lancar">
+      <div className="lancar-chamada">
+        <div>
+          <h2 className="formulario-secao" style={{ margin: 0 }}>
+            Entrou fora do site?
+          </h2>
+          <p className="campo-ajuda" style={{ margin: "6px 0 0" }}>
+            A rifa vendida na rua, a camisa paga em dinheiro, o PIX direto na conta de alguém da
+            equipe. Registre em nome de quem contribuiu e entra no extrato como lançamento manual.
+          </p>
+        </div>
+        <button type="button" className="botao botao-primario botao-pequeno" onClick={abrir}>
+          Lançar à mão
+        </button>
+      </div>
+
+      {lancado && (
+        <p className="aviso-salvo" role="status" style={{ margin: "16px 0 0" }}>
+          Lançamento registrado. Já está no extrato.
+        </p>
+      )}
+
+      {caixa}
     </section>
   );
 }
