@@ -4114,3 +4114,72 @@ body {
 .participar-loja {
   margin-top: 28px;
 }
+
+/* WhatsApp e CPF lado a lado: dois campos curtos que empilhados empurravam o
+   pagamento pra longe. No celular voltam a empilhar. */
+.ap-dupla {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 460px) {
+  .ap-dupla {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Os quatro atalhos de valor extra numa linha so. Sao valores curtos (+R$ 5),
+   e em 2x2 ocupavam altura demais logo antes do botao de pagar. */
+.ap-extra .ap-valores {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.ap-extra .ap-valor {
+  font-size: 14px;
+  padding: 12px 6px;
+  white-space: nowrap;
+}
+.ap-extra .ap-moeda span {
+  padding: 0 2px 0 9px;
+  font-size: 14px;
+}
+.ap-extra .ap-moeda input {
+  font-size: 14px;
+  padding-left: 0;
+  min-width: 0;
+}
+
+/* Como a peca chega: uma forma embaixo da outra, com o detalhe que a equipe
+   escreveu. E a resposta do "como recebo?", que antes ficava sem lugar. */
+.ap-entregas {
+  display: grid;
+  gap: 8px;
+}
+.ap-entrega {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  padding: 12px 14px;
+  background: var(--branco);
+  border: 2px solid var(--linha);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.12s ease;
+}
+.ap-entrega:hover {
+  border-color: var(--linha-forte);
+}
+.ap-entrega-nome {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--tinta);
+}
+.ap-entrega-texto {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--tinta-70);
+  margin-top: 3px;
+}

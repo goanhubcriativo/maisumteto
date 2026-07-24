@@ -25,6 +25,7 @@ import { corDe, estiloDaCor } from "@/lib/paleta";
 import { IconeCasa, IconeDaAcao, rotuloDoTipo } from "@/components/icones";
 import TextoRicoView from "@/components/TextoRicoView";
 import { lerTextoRico, deTextoSimples, textoRicoVazio } from "@/lib/textoRico";
+import { lerEntregas } from "@/lib/produto";
 import Blocos from "@/components/Blocos";
 import FormularioDeApoio from "@/components/FormularioDeApoio";
 
@@ -419,6 +420,7 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
                   valoresSugeridos={valoresSugeridos}
                   corForte={cor.forte}
                   dimensoes={dimensoesDoProduto}
+                  entregas={lerEntregas(acao.config?.entregas)}
                   loja={{
                     fotos: fotosDoProduto,
                     nome: nomeDoProduto,

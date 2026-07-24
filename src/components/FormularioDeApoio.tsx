@@ -61,6 +61,12 @@ interface Props {
    * é assim que a combinação encontra a opção de venda correspondente.
    */
   dimensoes?: { chave: string; rotulo: string; valores: string[] }[];
+  /**
+   * As formas de entrega que a equipe ligou no cadastro. Quem compra escolhe
+   * uma, e ela vai junto no pedido: sem isso a equipe recebia a venda sem
+   * saber como entregar, e tinha que perguntar por fora.
+   */
+  entregas?: { tipo: string; rotulo: string; texto: string }[];
 }
 
 function formatar(centavos: number) {
@@ -111,6 +117,7 @@ export default function FormularioDeApoio({
   corForte,
   loja,
   dimensoes,
+  entregas,
 }: Props) {
   const router = useRouter();
   const temOpcoes = opcoes.length > 0;
@@ -160,6 +167,11 @@ export default function FormularioDeApoio({
   const [erro, setErro] = useState<string | null>(null);
   const sigilo = useRef<HTMLDialogElement>(null);
 
+  // A forma de entrega escolhida. Já começa na primeira: quase sempre é a que
+  // a equipe considera a principal, e assim ninguém trava por falta de marcar.
+  const [entregaTipo, setEntregaTipo] = useState<string>(() => entregas?.[0]?.tipo ?? "");
+  const entregaEscolhida = entregas?.find((e) => e.tipo === entregaTipo) ?? null;
+
   // O chorinho: um extra por cima da rifa, da camisa, do palpite. So aparece
   // fora da doacao livre, onde somar "um extra" ao valor livre nao faria
   // sentido. Comeca vazio: e oferta, nao cobranca.
@@ -192,7 +204,12 @@ export default function FormularioDeApoio({
           anonimo: dados.get("anonimo") === "on",
           quantidade: quantos,
           opcaoId: temOpcoes ? opcaoEscolhida?.id : undefined,
-          dados: ehRifa ? { numeros } : undefined,
+          // O que vai amarrado ao item do pedido: os números da rifa, e a
+          // forma de entrega que a pessoa escolheu.
+          dados: {
+            ...(ehRifa ? { numeros } : {}),
+            ...(entregaEscolhida ? { entrega: entregaEscolhida.rotulo } : {}),
+          },
           valorCentavos: valorLivre ? valor : undefined,
           doacaoExtraCentavos: valorLivre ? undefined : extra,
         }),
@@ -417,34 +434,35 @@ export default function FormularioDeApoio({
           <input name="nome" required autoComplete="name" placeholder="Como você se chama" />
         </label>
 
-        <label className="ap-campo">
-          <span className="ap-nome">WhatsApp</span>
-          <input
-            name="whatsapp"
-            required
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="(41) 99999-9999"
-            value={telefone}
-            onChange={(e) => setTelefone(mascararTelefone(e.target.value))}
-          />
-          <span className="ap-dica">Só se a equipe precisar falar com você.</span>
-        </label>
+        {/* WhatsApp e CPF na mesma linha: são dois campos curtos, e empilhados
+            empurravam o pagamento pra bem longe. */}
+        <div className="ap-dupla">
+          <label className="ap-campo">
+            <span className="ap-nome">WhatsApp</span>
+            <input
+              name="whatsapp"
+              required
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="(41) 99999-9999"
+              value={telefone}
+              onChange={(e) => setTelefone(mascararTelefone(e.target.value))}
+            />
+          </label>
 
-        <label className="ap-campo">
-          <span className="ap-nome">CPF</span>
-          <input
-            name="cpf"
-            required
-            inputMode="numeric"
-            placeholder="000.000.000-00"
-            value={cpf}
-            onChange={(e) => setCpf(mascararCpf(e.target.value))}
-          />
-          <span className="ap-dica">
-            O banco exige para gerar o PIX. Não aparece em nenhum lugar do site.
-          </span>
-        </label>
+          <label className="ap-campo">
+            <span className="ap-nome">CPF</span>
+            <input
+              name="cpf"
+              required
+              inputMode="numeric"
+              placeholder="000.000.000-00"
+              value={cpf}
+              onChange={(e) => setCpf(mascararCpf(e.target.value))}
+            />
+            <span className="ap-dica">O banco exige. Não aparece no site.</span>
+          </label>
+        </div>
 
         {/* A explicacao honesta do anonimato.
             Prometer "ninguem vai saber" seria mentira: pelas regras do Banco
@@ -503,6 +521,34 @@ export default function FormularioDeApoio({
           </button>
         </dialog>
       </div>
+  );
+
+  // Como a peça chega. Vem ANTES do valor extra: primeiro a pessoa resolve o
+  // que é obrigatório pra compra existir, depois é convidada a somar um extra.
+  const blocoEntrega = entregas && entregas.length > 0 && (
+    <div className="ap-bloco">
+      <span className="ap-pergunta">Como você quer receber?</span>
+      <div className="ap-entregas">
+        {entregas.map((e) => {
+          const marcada = e.tipo === entregaTipo;
+          return (
+            <button
+              key={e.tipo}
+              type="button"
+              className={`ap-entrega${marcada ? " marcada" : ""}`}
+              style={marcada ? { borderColor: corForte } : undefined}
+              aria-pressed={marcada}
+              onClick={() => setEntregaTipo(e.tipo)}
+            >
+              <span className="ap-entrega-nome" style={marcada ? { color: corForte } : undefined}>
+                {e.rotulo}
+              </span>
+              {e.texto && <span className="ap-entrega-texto">{e.texto}</span>}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 
   {/* O chorinho. Só fora da doação livre: uma caixa discreta, opcional, no
@@ -622,6 +668,7 @@ export default function FormularioDeApoio({
 
           <div className="loja-compra">
             {blocoDados}
+            {blocoEntrega}
             {blocoExtra}
             {blocoFecha}
           </div>
@@ -634,6 +681,7 @@ export default function FormularioDeApoio({
     <form className="ap" onSubmit={enviar}>
       {blocoEscolha}
       {blocoDados}
+      {blocoEntrega}
       {blocoExtra}
       {blocoFecha}
     </form>
