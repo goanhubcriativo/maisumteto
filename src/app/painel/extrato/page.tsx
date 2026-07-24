@@ -11,8 +11,15 @@ import { prisma } from "@/lib/db";
 import { exigirLogin, campanhaDoPainel } from "@/lib/sessao";
 import { formatarBRL } from "@/lib/dinheiro";
 import DetalhesDoPedido from "@/components/DetalhesDoPedido";
+import FiltroDeAcao from "@/components/FiltroDeAcao";
+import ExportarExtrato from "@/components/ExportarExtrato";
 
 export const dynamic = "force-dynamic";
+
+/** Em centavos -> "24,75", pro CSV (o Excel pt-BR usa vírgula no decimal). */
+function reais(centavos: number | null | undefined): string {
+  return ((centavos ?? 0) / 100).toFixed(2).replace(".", ",");
+}
 
 function mascararCpf(cpf: string | null): string {
   if (!cpf) return "não informado";
@@ -39,8 +46,13 @@ function quandoCompleto(d: Date | null): string {
   return `${quando(d)} às ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
-export default async function Extrato() {
+export default async function Extrato({
+  searchParams,
+}: {
+  searchParams: Promise<{ acao?: string }>;
+}) {
   await exigirLogin();
+  const { acao: acaoFiltro } = await searchParams;
   // O extrato é da campanha que o painel está editando, não de todas juntas:
   // com uma campanha de teste aberta, misturar o dinheiro das duas mentiria.
   const campanha = await campanhaDoPainel();
@@ -66,25 +78,79 @@ export default async function Extrato() {
         select: {
           quantidade: true,
           dados: true,
-          acao: { select: { titulo: true } },
+          acao: { select: { id: true, titulo: true } },
           opcao: { select: { nome: true } },
         },
       },
     },
   });
 
-  const bruto = pedidos.reduce((t, p) => t + p.valorBrutoCentavos, 0);
+  // As ações que aparecem no extrato, pro seletor de filtro. Só as que têm
+  // pagamento entram: filtrar por uma ação sem venda nenhuma daria lista vazia.
+  const acoesDoExtrato = [
+    ...new Map(
+      pedidos.flatMap((p) => p.itens.map((i) => [i.acao.id, i.acao.titulo] as const))
+    ).entries(),
+  ].map(([id, nome]) => ({ id, nome }));
+
+  // Filtro por ação: fica com os pedidos que têm ao menos um item daquela ação.
+  const filtrados = acaoFiltro
+    ? pedidos.filter((p) => p.itens.some((i) => i.acao.id === acaoFiltro))
+    : pedidos;
+
+  const bruto = filtrados.reduce((t, p) => t + p.valorBrutoCentavos, 0);
   // A taxa nem sempre volta do gateway na hora. Quando falta, o líquido cai
   // para o bruto: é melhor mostrar o total um pouco otimista e sinalizar a
   // lacuna do que inventar um desconto que não aconteceu.
-  const taxa = pedidos.reduce((t, p) => t + (p.taxaCentavos ?? 0), 0);
-  const liquido = pedidos.reduce((t, p) => t + (p.liquidoCentavos ?? p.valorBrutoCentavos), 0);
-  const semTaxa = pedidos.filter((p) => p.taxaCentavos == null).length;
+  const taxa = filtrados.reduce((t, p) => t + (p.taxaCentavos ?? 0), 0);
+  const liquido = filtrados.reduce((t, p) => t + (p.liquidoCentavos ?? p.valorBrutoCentavos), 0);
+  const semTaxa = filtrados.filter((p) => p.taxaCentavos == null).length;
 
   // O que entrou fora do site. Serve para conferir: o que NAO e manual tem que
   // estar no extrato do banco, e o que e manual tem que estar com a equipe.
-  const manuais = pedidos.filter((p) => p.manual);
+  const manuais = filtrados.filter((p) => p.manual);
   const manualCentavos = manuais.reduce((t, p) => t + p.valorBrutoCentavos, 0);
+
+  // As linhas da planilha, com TODO o detalhe (mesmo o que a tela esconde no
+  // botão Detalhes). Segue o filtro: exporta o que está sendo mostrado.
+  const dado = (i: { dados: unknown }, chave: string) =>
+    (i.dados as Record<string, unknown> | null)?.[chave];
+  const cabecalhoCsv = [
+    "Quando",
+    "Quem",
+    "Sigilo",
+    "Forma",
+    "Ação",
+    "Variação",
+    "Quantidade",
+    "Entrega",
+    "Ajuda extra",
+    "Bruto",
+    "Taxa",
+    "Líquido",
+    "CPF",
+    "WhatsApp",
+  ];
+  const linhasCsv = filtrados.map((p) => [
+    quandoCompleto(p.paidAt),
+    p.nome,
+    p.anonimo ? "sim" : "",
+    p.manual ? p.formaManual ?? "manual" : "PIX",
+    [...new Set(p.itens.map((i) => i.acao.titulo))].join(" / "),
+    [
+      ...new Set(
+        p.itens.map((i) => i.opcao?.nome ?? (dado(i, "opcaoNome") as string | undefined)).filter(Boolean)
+      ),
+    ].join(" / "),
+    String(p.itens.reduce((t, i) => t + i.quantidade, 0)),
+    [...new Set(p.itens.map((i) => dado(i, "entrega") as string | undefined).filter(Boolean))].join(" / "),
+    reais(p.doacaoExtraCentavos),
+    reais(p.valorBrutoCentavos),
+    p.taxaCentavos == null ? "" : reais(p.taxaCentavos),
+    reais(p.liquidoCentavos ?? p.valorBrutoCentavos),
+    mascararCpf(p.cpf),
+    mascararTelefone(p.whatsapp),
+  ]);
 
   return (
     <div className="painel-largura">
@@ -122,12 +188,25 @@ export default async function Extrato() {
           <span className="painel-placar-rotulo">sobrou limpo</span>
         </div>
         <div>
-          <span className="painel-placar-valor">{pedidos.length}</span>
+          <span className="painel-placar-valor">{filtrados.length}</span>
           <span className="painel-placar-rotulo">
-            {pedidos.length === 1 ? "pagamento" : "pagamentos"}
+            {filtrados.length === 1 ? "pagamento" : "pagamentos"}
           </span>
         </div>
       </section>
+
+      {/* Filtrar por ação e exportar. O que baixa segue o filtro: filtrado por
+          uma ação, só ela; sem filtro, tudo. */}
+      {pedidos.length > 0 && (
+        <div className="extrato-barra">
+          <FiltroDeAcao acoes={acoesDoExtrato} />
+          <ExportarExtrato
+            cabecalho={cabecalhoCsv}
+            linhas={linhasCsv}
+            nomeArquivo={`extrato${acaoFiltro ? "-filtrado" : ""}.csv`}
+          />
+        </div>
+      )}
 
       {manuais.length > 0 && (
         <p className="painel-intro" style={{ marginTop: 16 }}>
@@ -146,11 +225,15 @@ export default async function Extrato() {
         </p>
       )}
 
-      {pedidos.length === 0 ? (
-        <div className="vazio">Nenhum pagamento confirmado ainda.</div>
+      {filtrados.length === 0 ? (
+        <div className="vazio">
+          {pedidos.length === 0
+            ? "Nenhum pagamento confirmado ainda."
+            : "Nenhum pagamento nessa ação."}
+        </div>
       ) : (
         <div className="tabela-rolo">
-          <table className="tabela">
+          <table className="tabela tabela-densa">
             <thead>
               <tr>
                 <th>Quando</th>
@@ -163,38 +246,27 @@ export default async function Extrato() {
               </tr>
             </thead>
             <tbody>
-              {pedidos.map((p) => (
+              {filtrados.map((p) => (
                 <tr key={p.id}>
                   <td>
                     {quando(p.paidAt)}
-                    {/* Manual e PIX contam igual no dinheiro, mas nao se conferem
-                        igual: o PIX aparece no app do banco, o manual so existe
-                        porque alguem da equipe digitou. Quem confere precisa
-                        saber de qual dos dois se trata, e com quem falar. */}
-                    {p.manual && (
-                      <span className="tabela-nota">
-                        {p.formaManual ?? "Lançamento manual"}
-                        {p.registradoPor && `, por ${p.registradoPor.nome}`}
-                      </span>
-                    )}
+                    {/* Manual e PIX contam igual, mas não se conferem igual: o
+                        PIX está no app do banco, o manual só porque a equipe
+                        digitou. Uma etiqueta marca qual é; a forma e quem lançou
+                        ficam no Detalhes. */}
+                    {p.manual && <span className="sigilo-tag">manual</span>}
                   </td>
                   <td>
                     {p.nome}
-                    {/* O anonimato vale para a PÁGINA PÚBLICA. Aqui a equipe
-                        precisa saber quem pagou para conferir o extrato com o
-                        banco, e é isso que a página pública promete. */}
-                    {p.anonimo && <span className="tabela-nota">pediu sigilo</span>}
+                    {/* Sigilo ao lado do nome, uma etiqueta pequena, pra não
+                        gastar uma linha. O anonimato vale pra PÁGINA PÚBLICA;
+                        aqui a equipe vê o nome pra conferir com o banco. */}
+                    {p.anonimo && <span className="sigilo-tag">sigilo</span>}
                   </td>
                   <td>
-                    {/* O nome da ação uma vez só. O detalhe do que foi comprado
-                        (quantos, qual tamanho, entrega) fica no botão Detalhes,
-                        pra linha continuar enxuta e fácil de conferir. */}
+                    {/* Só o nome da ação. O detalhe do que foi comprado (quantos,
+                        tamanho, entrega, ajuda extra) fica no botão Detalhes. */}
                     {[...new Set(p.itens.map((i) => i.acao.titulo))].join(", ") || "doação"}
-                    {p.doacaoExtraCentavos > 0 && (
-                      <span className="tabela-nota">
-                        + {formatarBRL(p.doacaoExtraCentavos)} de ajuda extra
-                      </span>
-                    )}
                   </td>
                   <td className="num">{formatarBRL(p.valorBrutoCentavos)}</td>
                   <td className="num">

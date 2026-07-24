@@ -2453,3 +2453,48 @@ textarea.campo-entrada {
     gap: 2px;
   }
 }
+
+/* Extrato: barra de filtro + exportar, tabela mais densa, etiquetas inline. */
+.extrato-barra {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.filtro-acao {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tinta-70);
+}
+.filtro-acao select {
+  min-width: 240px;
+}
+
+/* Etiqueta pequena ao lado do nome (sigilo, manual): não gasta uma linha. */
+.sigilo-tag {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--tinta-50);
+  background: var(--cinza);
+  border: 1px solid var(--linha);
+  border-radius: 999px;
+  padding: 1px 8px;
+  vertical-align: middle;
+}
+
+/* Mais linhas na mesma tela: aperta o passo vertical e alinha ao meio. */
+.tabela-densa th,
+.tabela-densa td {
+  padding-top: 7px;
+  padding-bottom: 7px;
+  vertical-align: middle;
+}
