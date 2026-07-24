@@ -71,6 +71,15 @@ function coletar(raiz: HTMLElement): PedacoDeTexto[] {
 
     const tag = no.tagName.toLowerCase();
     if (tag === "br") {
+      // O navegador enfia um <br> no fim de todo bloco só pra ele não colapsar
+      // ("filler"). Contar esse <br> como quebra somava uma linha em branco a
+      // cada volta: o bloco já quebra sozinho, e o <br> quebrava de novo. Por
+      // isso o último <br> de um bloco é ignorado.
+      const pai = no.parentElement;
+      const paiEhBloco =
+        pai && pai !== raiz && ["div", "p"].includes(pai.tagName.toLowerCase());
+      if (paiEhBloco && pai.lastChild === no) return;
+
       saida.push({ t: "\n" });
       primeiro = false;
       return;

@@ -129,9 +129,14 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
       deTextoSimples(String(blocoDaHistoria?.conteudo?.texto ?? "")))
     : deTextoSimples(acao.descricao ?? "");
   const usouBlocoNoHero = ehProduto && !lerTextoRico(acao.config?.historia) && blocoDaHistoria;
-  const blocosDaPagina = usouBlocoNoHero
+  const blocosDaPagina = (usouBlocoNoHero
     ? blocos.filter((b) => b.id !== blocoDaHistoria!.id)
-    : blocos;
+    : blocos
+  ).filter(
+    // No produto a galeria já é o slide da vitrine. Deixá-la também aqui
+    // embaixo mostrava a segunda foto uma segunda vez, em tamanho grande.
+    (b) => !(ehProduto && b.tipo === "GALERIA")
+  );
   const descricaoDoProduto =
     lerTextoRico(acao.config?.descricaoRica) ?? deTextoSimples(acao.descricao ?? "");
 
@@ -152,6 +157,29 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
     return [acao.capaUrl, ...extras].filter(
       (u): u is string => typeof u === "string" && u.length > 0
     );
+  })();
+
+  // As dimensões da variação, na MESMA ordem em que o cadastro monta o nome da
+  // variante ("P Feminina"). É por essa ordem que a combinação escolhida na
+  // loja reencontra a opção de venda.
+  const dimensoesDoProduto = (() => {
+    const v = (acao.config?.variacoes ?? {}) as Record<string, unknown>;
+    const ativa = (v.dimAtiva ?? {}) as Record<string, unknown>;
+    const lista = (chave: string) =>
+      Array.isArray(v[chave])
+        ? (v[chave] as unknown[]).filter((x): x is string => typeof x === "string")
+        : [];
+
+    return (
+      [
+        { chave: "tamanho", rotulo: "Tamanho", valores: lista("tamanhos") },
+        { chave: "modelagem", rotulo: "Modelagem", valores: lista("modelagens") },
+        { chave: "cor", rotulo: "Cor", valores: lista("cores") },
+        { chave: "modelo", rotulo: "Modelo", valores: lista("modelos") },
+      ] as const
+    )
+      .filter((d) => ativa[d.chave] === true && d.valores.length > 0)
+      .map((d) => ({ ...d }));
   })();
   const falta = Math.max(0, resumo.metaCentavos - Math.max(0, resumo.liquidoCentavos));
 
@@ -390,6 +418,7 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
                   }))}
                   valoresSugeridos={valoresSugeridos}
                   corForte={cor.forte}
+                  dimensoes={dimensoesDoProduto}
                   loja={{
                     fotos: fotosDoProduto,
                     nome: nomeDoProduto,

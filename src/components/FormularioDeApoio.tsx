@@ -50,6 +50,17 @@ interface Props {
     nome: string;
     descricao?: React.ReactNode;
   };
+  /**
+   * As dimensões da variação (Tamanho, Modelagem, Cor, Modelo) com os valores
+   * de cada uma. Existindo, a escolha vira um seletor POR DIMENSÃO, como em
+   * loja: "Tamanho: P M G", "Modelagem: Feminina Masculina". Sem isso, cairia
+   * na lista de combinações prontas ("P Feminina", "P Masculina"...), que
+   * cresce rápido e não é como as lojas fazem.
+   *
+   * O nome de cada opção é a junção dos valores escolhidos, na ordem daqui, e
+   * é assim que a combinação encontra a opção de venda correspondente.
+   */
+  dimensoes?: { chave: string; rotulo: string; valores: string[] }[];
 }
 
 function formatar(centavos: number) {
@@ -99,16 +110,42 @@ export default function FormularioDeApoio({
   valoresSugeridos = [20, 50, 100, 200],
   corForte,
   loja,
+  dimensoes,
 }: Props) {
   const router = useRouter();
   const temOpcoes = opcoes.length > 0;
   const valorLivre = !temOpcoes && precoCentavos == null;
 
+  // Por dimensão só faz sentido quando há dimensão E opção pra casar com ela.
+  const porDimensao = Boolean(dimensoes && dimensoes.length > 0 && temOpcoes);
+
   // Já começa na primeira opção com vaga: menos um toque pra quem só quer pagar.
   const [opcaoId, setOpcaoId] = useState<string>(
     () => opcoes.find((o) => !o.esgotada)?.id ?? ""
   );
-  const opcaoEscolhida = opcoes.find((o) => o.id === opcaoId) ?? null;
+
+  // O que está marcado em cada dimensão. Começa no que der numa opção com vaga,
+  // pra pessoa não abrir a página já num "esgotado".
+  const [escolhas, setEscolhas] = useState<Record<string, string>>(() => {
+    if (!dimensoes || dimensoes.length === 0) return {};
+    const primeira = opcoes.find((o) => !o.esgotada) ?? opcoes[0];
+    const partes = primeira ? primeira.nome.split(" ") : [];
+    const inicial: Record<string, string> = {};
+    dimensoes.forEach((d, i) => {
+      inicial[d.chave] = d.valores.includes(partes[i]) ? partes[i] : d.valores[0] ?? "";
+    });
+    return inicial;
+  });
+
+  /** O nome da opção que corresponde a uma combinação de valores. */
+  function nomeDaCombinacao(sel: Record<string, string>) {
+    return (dimensoes ?? []).map((d) => sel[d.chave]).filter(Boolean).join(" ");
+  }
+  const opcaoPorNome = (nome: string) => opcoes.find((o) => o.nome === nome) ?? null;
+
+  const opcaoEscolhida = porDimensao
+    ? opcaoPorNome(nomeDaCombinacao(escolhas))
+    : opcoes.find((o) => o.id === opcaoId) ?? null;
 
   const [valor, setValor] = useState<number | null>(null);
   const [valorDigitado, setValorDigitado] = useState("");
@@ -121,6 +158,7 @@ export default function FormularioDeApoio({
   const [cpf, setCpf] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const sigilo = useRef<HTMLDialogElement>(null);
 
   // O chorinho: um extra por cima da rifa, da camisa, do palpite. So aparece
   // fora da doacao livre, onde somar "um extra" ao valor livre nao faria
@@ -153,7 +191,7 @@ export default function FormularioDeApoio({
           cpf,
           anonimo: dados.get("anonimo") === "on",
           quantidade: quantos,
-          opcaoId: temOpcoes ? opcaoId : undefined,
+          opcaoId: temOpcoes ? opcaoEscolhida?.id : undefined,
           dados: ehRifa ? { numeros } : undefined,
           valorCentavos: valorLivre ? valor : undefined,
           doacaoExtraCentavos: valorLivre ? undefined : extra,
@@ -177,9 +215,89 @@ export default function FormularioDeApoio({
   // Os pedaços do formulário viram variáveis pra poderem ser colocados em duas
   // arrumações diferentes (a de sempre e a de loja) SEM duplicar nada: é o
   // mesmo formulário, o mesmo estado e o mesmo envio nos dois casos.
+  const contador = (
+    <>
+      <span className="ap-pergunta" style={{ marginTop: 6 }}>
+        Quantos?
+      </span>
+      <div className="ap-contador">
+        <button
+          type="button"
+          onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
+          disabled={quantidade <= 1}
+          aria-label="Diminuir quantidade"
+        >
+          −
+        </button>
+        <span className="ap-numero">{quantidade}</span>
+        <button
+          type="button"
+          onClick={() => setQuantidade((q) => Math.min(maximo, q + 1))}
+          disabled={quantidade >= maximo}
+          aria-label="Aumentar quantidade"
+        >
+          +
+        </button>
+      </div>
+    </>
+  );
+
   const blocoEscolha = (
     <>
-      {temOpcoes ? (
+      {porDimensao ? (
+        // Uma dimensão embaixo da outra, como em loja: "Tamanho: P M G",
+        // "Modelagem: Feminina Masculina". A combinação do que está marcado é
+        // que encontra a variante à venda.
+        <div className="ap-bloco">
+          {dimensoes!.map((d) => (
+            <div key={d.chave} className="ap-dim">
+              <span className="ap-pergunta">{d.rotulo}</span>
+              <div className="ap-dim-valores">
+                {d.valores.map((v) => {
+                  const marcado = escolhas[d.chave] === v;
+                  const combo = { ...escolhas, [d.chave]: v };
+                  const alvo = opcaoPorNome(nomeDaCombinacao(combo));
+                  const indisponivel = !alvo || alvo.esgotada;
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      className={`ap-dim-valor${marcado ? " marcado" : ""}${
+                        indisponivel ? " esgotado" : ""
+                      }`}
+                      style={marcado ? { borderColor: corForte, color: corForte } : undefined}
+                      aria-pressed={marcado}
+                      onClick={() => {
+                        setEscolhas(combo);
+                        setQuantidade(1);
+                      }}
+                    >
+                      {v}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {opcaoEscolhida && !opcaoEscolhida.esgotada ? (
+            <>
+              {contador}
+              {opcaoEscolhida.restante !== null && opcaoEscolhida.restante <= 10 && (
+                <span className="ap-escassez">
+                  {opcaoEscolhida.restante === 1
+                    ? "resta só 1 dessa"
+                    : `restam só ${opcaoEscolhida.restante} dessa`}
+                </span>
+              )}
+            </>
+          ) : (
+            <p className="ap-dica">
+              Essa combinação está esgotada. Escolha outra para continuar.
+            </p>
+          )}
+        </div>
+      ) : temOpcoes ? (
         <div className="ap-bloco">
           <span className="ap-pergunta">
             {tipo === "EVENTO" ? "Escolha o ingresso" : "Escolha a opção"}
@@ -214,32 +332,7 @@ export default function FormularioDeApoio({
             })}
           </div>
 
-          {opcaoEscolhida && (
-            <>
-              <span className="ap-pergunta" style={{ marginTop: 6 }}>
-                Quantos?
-              </span>
-              <div className="ap-contador">
-                <button
-                  type="button"
-                  onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
-                  disabled={quantidade <= 1}
-                  aria-label="Diminuir quantidade"
-                >
-                  −
-                </button>
-                <span className="ap-numero">{quantidade}</span>
-                <button
-                  type="button"
-                  onClick={() => setQuantidade((q) => Math.min(maximo, q + 1))}
-                  disabled={quantidade >= maximo}
-                  aria-label="Aumentar quantidade"
-                >
-                  +
-                </button>
-              </div>
-            </>
-          )}
+          {opcaoEscolhida && contador}
         </div>
       ) : valorLivre ? (
         <div className="ap-bloco">
@@ -303,25 +396,7 @@ export default function FormularioDeApoio({
           <span className="ap-pergunta">Quantos você quer?</span>
           <span className="ap-preco">{formatar(precoCentavos ?? 0)} cada</span>
 
-          <div className="ap-contador">
-            <button
-              type="button"
-              onClick={() => setQuantidade((q) => Math.max(1, q - 1))}
-              disabled={quantidade <= 1}
-              aria-label="Diminuir quantidade"
-            >
-              −
-            </button>
-            <span className="ap-numero">{quantidade}</span>
-            <button
-              type="button"
-              onClick={() => setQuantidade((q) => Math.min(maximo, q + 1))}
-              disabled={quantidade >= maximo}
-              aria-label="Aumentar quantidade"
-            >
-              +
-            </button>
-          </div>
+          {contador}
 
           {restante !== null && restante <= 10 && (
             <span className="ap-escassez">
@@ -381,12 +456,43 @@ export default function FormularioDeApoio({
           <input type="checkbox" name="anonimo" />
           <span>Não quero meu nome na lista de quem contribuiu</span>
         </label>
-        <p className="ap-dica ap-sigilo">
-          Seu nome não vai aparecer na página, e ninguém de fora fica sabendo. A equipe, essa
-          continua vendo: o PIX chega com o nome de quem pagou, é assim que o Banco Central
-          manda, e é o que permite conferir o extrato com o banco. O compromisso da equipe é não
-          divulgar.
-        </p>
+        {/* A explicação inteira do anonimato virou botão: em pé ela ocupava
+            meia coluna e empurrava o pagamento pra baixo, e é um texto que a
+            maioria não precisa ler. Quem quiser, abre. */}
+        <button type="button" className="ap-entenda" onClick={() => sigilo.current?.showModal()}>
+          Entenda melhor
+        </button>
+
+        <dialog ref={sigilo} className="popup" aria-label="Sobre o anonimato">
+          <div className="popup-topo">
+            <h2 className="formulario-secao" style={{ margin: 0 }}>
+              Sobre não divulgar seu nome
+            </h2>
+            <button
+              type="button"
+              className="popup-fechar"
+              onClick={() => sigilo.current?.close()}
+              aria-label="Fechar"
+            >
+              ×
+            </button>
+          </div>
+          <p className="ap-dica" style={{ margin: 0 }}>
+            Seu nome não vai aparecer na página, e ninguém de fora fica sabendo. A equipe, essa
+            continua vendo: o PIX chega com o nome de quem pagou, é assim que o Banco Central
+            manda, e é o que permite conferir o extrato com o banco. O compromisso da equipe é
+            não divulgar.
+          </p>
+          <div className="popup-acoes">
+            <button
+              type="button"
+              className="botao botao-contorno"
+              onClick={() => sigilo.current?.close()}
+            >
+              Entendi
+            </button>
+          </div>
+        </dialog>
       </div>
   );
 
@@ -499,14 +605,17 @@ export default function FormularioDeApoio({
           </div>
         </div>
 
+        {/* Descrição à esquerda, compra à direita: primeiro a pessoa lê o que
+            é a peça, e o pagamento fica do lado de fora, à direita, que é onde
+            a mão vai depois de decidir. */}
         <div className="loja-baixo">
+          {loja.descricao && <div className="loja-descricao">{loja.descricao}</div>}
+
           <div className="loja-compra">
             {blocoDados}
             {blocoExtra}
             {blocoFecha}
           </div>
-
-          {loja.descricao && <div className="loja-descricao">{loja.descricao}</div>}
         </div>
       </form>
     );

@@ -960,7 +960,9 @@ a.acao:hover {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px 44px;
-  align-items: end;
+  /* Centralizado: o titulo fica no meio da faixa, e nao colado no rodape
+     dela, que era o que acontecia com o alinhamento pelo fim. */
+  align-items: center;
 }
 .acao-hero-grade .acao-hero-desc {
   margin: 0 0 6px;
@@ -3940,4 +3942,71 @@ body {
   .loja-preco {
     font-size: 32px;
   }
+}
+
+/* A coluna de compra repete o respiro do formulario solto (.ap). Sem isso, o
+   "Pagamento por PIX" (que sobe 8px de proposito) encavalava no botao. */
+.loja-compra,
+.loja-ficha {
+  display: grid;
+  gap: 22px;
+  align-content: start;
+}
+.loja-ficha {
+  gap: 0;
+}
+.loja-ficha .ap-bloco {
+  margin-top: 20px;
+}
+
+/* Variacao por dimensao: uma embaixo da outra, com os valores em fichas, que e
+   como as lojas fazem (Tamanho: P M G / Modelagem: Feminina Masculina). */
+.ap-dim + .ap-dim {
+  margin-top: 16px;
+}
+.ap-dim-valores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.ap-dim-valor {
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  min-width: 52px;
+  padding: 11px 16px;
+  color: var(--tinta);
+  background: var(--branco);
+  border: 2px solid var(--linha);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.ap-dim-valor:hover {
+  border-color: var(--linha-forte);
+}
+.ap-dim-valor.marcado {
+  border-width: 2px;
+}
+/* Combinacao sem estoque: continua clicavel (a pessoa pode estar trocando de
+   tamanho pra achar o que tem), mas riscada, pra ficar claro que nao da. */
+.ap-dim-valor.esgotado {
+  color: var(--tinta-50);
+  text-decoration: line-through;
+  background: var(--cinza);
+}
+
+/* O "Entenda melhor" do anonimato: um link discreto, nao um paredao de texto. */
+.ap-entenda {
+  justify-self: start;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--acao-forte, var(--teto));
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
 }

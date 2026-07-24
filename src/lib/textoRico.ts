@@ -65,7 +65,20 @@ export function lerTextoRico(bruto: unknown): TextoRico | null {
     linhas.push(pedacos);
   }
 
-  return linhas.length > 0 ? { linhas } : null;
+  // Duas linhas em branco seguidas viram uma. Textos salvos antes do conserto
+  // do editor acumularam linhas vazias a cada volta (o <br> de enchimento do
+  // navegador contava como quebra), e isso conserta o que já está guardado sem
+  // precisar mexer no banco.
+  const enxutas: LinhaDeTexto[] = [];
+  for (const linha of linhas) {
+    const vazia = linha.length === 0;
+    const anteriorVazia = enxutas.length > 0 && enxutas[enxutas.length - 1].length === 0;
+    if (vazia && (anteriorVazia || enxutas.length === 0)) continue;
+    enxutas.push(linha);
+  }
+  while (enxutas.length > 0 && enxutas[enxutas.length - 1].length === 0) enxutas.pop();
+
+  return enxutas.length > 0 ? { linhas: enxutas } : null;
 }
 
 /** O mesmo texto sem formatação. Serve pro cartão, pro resumo e pra busca. */
