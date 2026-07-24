@@ -182,13 +182,18 @@ export async function registrarPedidoPago(
       }
     }
 
-    // O chorinho nao pertence a nenhuma acao: e doacao pura pra campanha.
+    // O chorinho PERTENCE a acao que a pessoa estava comprando: ela somou um
+    // extra por cima daquela rifa, daquela camisa. Amarrar na acao faz o valor
+    // entrar na fatia dela, em vez de virar uma "doacao avulsa" solta que nao
+    // bate com nada. (Um pedido tem uma acao so; se tivesse varias, vai pra
+    // primeira, que e a que puxou o pedido.)
+    const acaoDoExtra = pedido.itens[0]?.acaoId ?? null;
     if (pedido.doacaoExtraCentavos > 0) {
       await lancarReceita(db, {
         campanhaId,
-        acaoId: null,
+        acaoId: acaoDoExtra,
         pedidoId,
-        descricao: `Doacao extra - ${pedido.nome}`,
+        descricao: `Ajuda extra - ${pedido.nome}`,
         valorCentavos: pedido.doacaoExtraCentavos,
       });
     }
@@ -210,8 +215,8 @@ export async function registrarPedidoPago(
 
       if (pedido.doacaoExtraCentavos > 0) {
         parcelas.push({
-          acaoId: null,
-          rotulo: "Doacao extra",
+          acaoId: acaoDoExtra,
+          rotulo: "Ajuda extra",
           peso: pedido.doacaoExtraCentavos,
         });
       }

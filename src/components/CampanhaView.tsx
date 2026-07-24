@@ -153,7 +153,9 @@ function fatiasDoGrafico(vitrine: AcaoNaVitrine[], liquidoTotal: number) {
   const fatias = vitrine
     .filter((a) => a.liquidoCentavos > 0)
     .map((a) => ({
-      nome: a.titulo,
+      // O nome da faixa (BOLÃO, COLECIONÁVEL), e não o título comprido da ação:
+      // na legenda o título inteiro estourava o espaço.
+      nome: a.palavraChave?.trim() || rotuloDoTipo[a.tipo] || a.titulo,
       valor: a.liquidoCentavos,
       // Mancha, nao texto: usa o tom de identidade da cor (ver src/lib/paleta.ts).
       cor: marcaDe(a.cor),
@@ -308,10 +310,18 @@ function CartaoAcao({
           {textoDaEtiqueta(acao)}
         </span>
 
-        {/* Escassez so aparece quando e verdade e quando ainda da tempo. */}
-        {acao.disponivel && acao.restante !== null && acao.restante <= 10 && (
-          <span>{acao.restante === 1 ? "resta 1" : `restam ${acao.restante}`}</span>
-        )}
+        {/* Quantas unidades ainda tem. Com opções (tamanhos), é a soma do que
+            resta em cada uma; sem opções, o estoque da própria ação. */}
+        {acao.disponivel &&
+          (() => {
+            const comLimite = (acao.opcoes ?? []).filter((o) => o.restante != null);
+            const total =
+              comLimite.length > 0
+                ? comLimite.reduce((t, o) => t + (o.restante ?? 0), 0)
+                : acao.restante;
+            if (total == null) return null;
+            return <span>{total === 1 ? "resta 1" : `${total} disponíveis`}</span>;
+          })()}
         <span className="acao-mais">
           {acao.disponivel ? "Participar" : "Ver como foi"}
         </span>
