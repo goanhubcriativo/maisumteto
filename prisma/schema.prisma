@@ -400,6 +400,11 @@ model Opcao {
   estoqueTotal Int?
   ordem        Int @default(0)
 
+  // No evento, separa o INGRESSO (escolhe um) do EXTRA/adicional (compra
+  // varios: garrafa de vinho, cartela de bingo). Falso = opcao normal (o lote,
+  // o tamanho da camisa), que e o caso de todas as acoes de hoje.
+  ehExtra Boolean @default(false)
+
   itens Item[]
 
   createdAt DateTime @default(now())

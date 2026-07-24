@@ -8,6 +8,8 @@ import { paraCentavos } from "@/lib/dinheiro";
 import { IconeDaAcao } from "@/components/icones";
 import FormularioDoProduto from "@/components/FormularioDoProduto";
 import { produtoEmBranco } from "@/lib/produto";
+import FormularioDoEvento from "@/components/FormularioDoEvento";
+import { eventoEmBranco } from "@/lib/evento";
 import { CampoDeEscolha, CampoDeLista, CampoDeChave } from "@/components/ControlesDeForm";
 import { lerTextoRico, textoSimples } from "@/lib/textoRico";
 
@@ -285,6 +287,134 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
           modo="criar"
           valores={produtoEmBranco()}
         />
+      </div>
+    );
+  }
+
+  // O evento tem tela própria, com a mesma cara do produto (ver FormularioDoEvento).
+  if (tipo === "EVENTO") {
+    async function criarEvento(dados: FormData) {
+      "use server";
+      await exigirEdicao();
+
+      const nome = String(dados.get("nome") ?? "").trim();
+      const historia = lerTextoRico(lerJson(dados.get("historia"), null));
+      const descricaoRica = lerTextoRico(lerJson(dados.get("descricao"), null));
+      const incluso = lerTextoRico(lerJson(dados.get("incluso"), null));
+      const meta = paraCentavos(String(dados.get("meta") ?? ""));
+      const cor = String(dados.get("cor") ?? "").trim();
+      const coresProprias =
+        dados.get("coresProprias") === "1"
+          ? {
+              principal: String(dados.get("corPrincipal") ?? "").trim() || null,
+              topo: String(dados.get("corTopo") ?? "").trim() || null,
+            }
+          : null;
+      const custoFixo = paraCentavos(String(dados.get("custoFixo") ?? "")) ?? 0;
+      const custoPorPessoa = paraCentavos(String(dados.get("custoPorPessoa") ?? "")) ?? 0;
+
+      const ingressos = lerJson<{ nome: string; precoReais: string; vagas: string }[]>(
+        dados.get("ingressos"),
+        []
+      );
+      const extras =
+        dados.get("temExtras") === "1"
+          ? lerJson<{ nome: string; precoReais: string; vagas: string }[]>(dados.get("extras"), [])
+          : [];
+
+      const vagasDe = (v: string) => (v.trim() ? Math.max(0, Math.floor(Number(v))) : null);
+
+      const campanha = await campanhaDoPainel();
+      const acao = await criarAcao({
+        campanhaId: campanha.id,
+        tipo: "EVENTO",
+        titulo: nome || "Evento",
+        descricao: textoSimples(descricaoRica),
+        // O preço vem dos ingressos (opções); a ação não cobra por si.
+        precoCentavos: null,
+        custoUnitarioCentavos: 0,
+        metaCentavos: meta,
+        estoqueTotal: null,
+        config: {
+          historia,
+          descricaoRica,
+          incluso,
+          palavraChave: String(dados.get("palavraChave") ?? "").trim().slice(0, 30),
+          cardTitulo: String(dados.get("cardTitulo") ?? "").trim(),
+          cardDescricao: String(dados.get("cardDescricao") ?? "").trim().slice(0, 160),
+          cores: coresProprias,
+          quando: String(dados.get("quando") ?? "").trim(),
+          onde: String(dados.get("onde") ?? "").trim(),
+          temExtras: dados.get("temExtras") === "1",
+          // Custo fixo adiado pro fechamento, como no produto (custoComo TOTAL).
+          custoQuando: "AGORA",
+          custoComo: "TOTAL",
+          custoTotalCentavos: custoFixo,
+        },
+      });
+
+      await salvarAcao(acao.id, {
+        cor: cor || undefined,
+        abreEm: daCaixaDeData(String(dados.get("abreEm") ?? "")),
+        fechaEm: daCaixaDeData(String(dados.get("fechaEm") ?? "")),
+      });
+
+      // Ingressos: opção normal, com o custo POR PESSOA (comida/bebida) em cada.
+      for (const l of ingressos) {
+        await criarOpcao(acao.id, {
+          nome: l.nome,
+          precoCentavos: paraCentavos(l.precoReais) ?? 0,
+          custoUnitarioCentavos: custoPorPessoa,
+          estoqueTotal: vagasDe(l.vagas),
+          ehExtra: false,
+        });
+      }
+      // Extras: adicionais, marcados como ehExtra.
+      for (const e of extras) {
+        await criarOpcao(acao.id, {
+          nome: e.nome,
+          precoCentavos: paraCentavos(e.precoReais) ?? 0,
+          custoUnitarioCentavos: 0,
+          estoqueTotal: vagasDe(e.vagas),
+          ehExtra: true,
+        });
+      }
+
+      redirect(`/painel/acao/${acao.id}?novo=1`);
+    }
+
+    return (
+      <div className="painel-estreito painel-produto">
+        <Link href="/painel/ferramentas" className="painel-voltar">
+          Voltar para a caixa de ferramentas
+        </Link>
+
+        <div className="receita-cabeca">
+          <span className="receita-icone">
+            <IconeDaAcao tipo="EVENTO" />
+          </span>
+          <div>
+            <h1>Vender ingressos de um evento</h1>
+            <p>
+              Um jantar, uma festa, uma noite de jogos. A pessoa escolhe o ingresso e ainda pode
+              somar extras. O custo do salão e da comida sai antes, então o número que aparece já é
+              o líquido.
+            </p>
+          </div>
+        </div>
+
+        <section className="receita-como">
+          <h2>Como funciona</h2>
+          <ol>
+            <li>Você monta os tipos de ingresso e os extras, com preço e vagas.</li>
+            <li>Quem vai escolhe o ingresso, soma o que quiser e paga no PIX.</li>
+            <li>O custo por pessoa sai a cada ingresso; o custo do salão, no fechamento.</li>
+            <li>Você recebe a lista de quem vem e o que cada um levou, pra organizar a noite.</li>
+          </ol>
+          <p className="receita-esforco">Evento de verdade: dá trabalho, mas rende.</p>
+        </section>
+
+        <FormularioDoEvento action={criarEvento} modo="criar" valores={eventoEmBranco()} />
       </div>
     );
   }

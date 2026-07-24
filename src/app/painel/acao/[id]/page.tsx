@@ -24,6 +24,7 @@ import { lerNumeros, registrarLancamentoManual } from "@/lib/manual";
 import { criarOpcao, salvarOpcao, removerOpcao, sincronizarOpcoes } from "@/lib/opcoes";
 import { registrarCustoFixo, custosFixosDaAcao, apagarCustoFixo } from "@/lib/lancamentos";
 import FormularioDoProduto from "@/components/FormularioDoProduto";
+import FormularioDoEvento from "@/components/FormularioDoEvento";
 import { lerTextoRico, textoSimples, deTextoSimples } from "@/lib/textoRico";
 import { lerEntregas } from "@/lib/produto";
 import EditorDeBlocos, { lerConteudoDoFormulario } from "@/components/EditorDeBlocos";
@@ -138,7 +139,30 @@ export default async function EditarAcao({
   // precisa reconstruir tudo que foi preenchido lá: as fotos (capa mais as da
   // galeria) e a estrutura das variações (quais dimensões, com que valores).
   const ehProduto = acao.tipo === "PRODUTO";
+  const ehEvento = acao.tipo === "EVENTO";
+  // Produto e evento usam o formulário próprio; o resto segue no genérico.
+  const ehFormularioProprio = ehProduto || ehEvento;
   const coresDaAcao = lerCoresProprias(cfg.cores);
+
+  // Pro evento: reconstrói ingressos e extras a partir das opções salvas.
+  const emReaisCr = (c: number) => (c / 100).toFixed(2).replace(".", ",");
+  const opcoesDoEvento = acao.opcoes ?? [];
+  const ingressosSalvos = opcoesDoEvento
+    .filter((o) => !o.ehExtra)
+    .map((o) => ({
+      nome: o.nome,
+      precoReais: emReaisCr(o.precoCentavos),
+      vagas: o.estoqueTotal != null ? String(o.estoqueTotal) : "",
+    }));
+  const extrasSalvos = opcoesDoEvento
+    .filter((o) => o.ehExtra)
+    .map((o) => ({
+      nome: o.nome,
+      precoReais: emReaisCr(o.precoCentavos),
+      vagas: o.estoqueTotal != null ? String(o.estoqueTotal) : "",
+    }));
+  // Custo por pessoa fica congelado no custo unitário de cada ingresso.
+  const custoPorPessoa = opcoesDoEvento.find((o) => !o.ehExtra)?.custoUnitarioCentavos ?? 0;
   const emReais = (centavos: number | null | undefined) =>
     centavos != null && centavos > 0 ? (centavos / 100).toFixed(2).replace(".", ",") : "";
 
@@ -253,6 +277,94 @@ export default async function EditarAcao({
    * Salvar do produto. É o mesmo formulário do cadastro, então lê exatamente os
    * mesmos campos: textos ricos, fotos, custo, variações, grade e entrega.
    */
+  async function salvarEvento(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+
+    const comoJson = <T,>(bruto: FormDataEntryValue | null, padrao: T): T => {
+      try {
+        const v = JSON.parse(String(bruto ?? ""));
+        return (v ?? padrao) as T;
+      } catch {
+        return padrao;
+      }
+    };
+
+    const historia = lerTextoRico(comoJson(dados.get("historia"), null));
+    const descricaoRica = lerTextoRico(comoJson(dados.get("descricao"), null));
+    const incluso = lerTextoRico(comoJson(dados.get("incluso"), null));
+    const custoFixo = paraCentavos(String(dados.get("custoFixo") ?? "")) ?? 0;
+    const custoPorPessoaNovo = paraCentavos(String(dados.get("custoPorPessoa") ?? "")) ?? 0;
+
+    const ingressos = comoJson<{ nome: string; precoReais: string; vagas: string }[]>(
+      dados.get("ingressos"),
+      []
+    );
+    const extras =
+      dados.get("temExtras") === "1"
+        ? comoJson<{ nome: string; precoReais: string; vagas: string }[]>(dados.get("extras"), [])
+        : [];
+    const vagasDe = (v: string) => (v.trim() ? Math.max(0, Math.floor(Number(v))) : null);
+
+    await salvarAcao(acaoId, {
+      titulo: String(dados.get("nome") ?? "").trim() || tituloAtual,
+      descricao: textoSimples(descricaoRica) || null,
+      precoCentavos: null,
+      custoUnitarioCentavos: 0,
+      metaCentavos: paraCentavos(String(dados.get("meta") ?? "")),
+      estoqueTotal: null,
+      cor: String(dados.get("cor") ?? "") || undefined,
+      abreEm: daCaixaDeData(String(dados.get("abreEm") ?? "")),
+      fechaEm: daCaixaDeData(String(dados.get("fechaEm") ?? "")),
+    });
+
+    await atualizarConfig(acaoId, {
+      historia,
+      descricaoRica,
+      incluso,
+      palavraChave: String(dados.get("palavraChave") ?? "").trim().slice(0, 30),
+      cardTitulo: String(dados.get("cardTitulo") ?? "").trim(),
+      cardDescricao: String(dados.get("cardDescricao") ?? "").trim().slice(0, 160),
+      cores:
+        dados.get("coresProprias") === "1"
+          ? {
+              principal: String(dados.get("corPrincipal") ?? "").trim() || null,
+              topo: String(dados.get("corTopo") ?? "").trim() || null,
+            }
+          : null,
+      quando: String(dados.get("quando") ?? "").trim(),
+      onde: String(dados.get("onde") ?? "").trim(),
+      temExtras: dados.get("temExtras") === "1",
+      custoQuando: "AGORA",
+      custoComo: "TOTAL",
+      custoTotalCentavos: custoFixo,
+    });
+
+    await sincronizarOpcoes(acaoId, [
+      ...ingressos
+        .filter((l) => l.nome.trim())
+        .map((l) => ({
+          nome: l.nome.trim(),
+          precoCentavos: paraCentavos(l.precoReais) ?? 0,
+          custoUnitarioCentavos: custoPorPessoaNovo,
+          estoqueTotal: vagasDe(l.vagas),
+          ehExtra: false,
+        })),
+      ...extras
+        .filter((e) => e.nome.trim())
+        .map((e) => ({
+          nome: e.nome.trim(),
+          precoCentavos: paraCentavos(e.precoReais) ?? 0,
+          custoUnitarioCentavos: 0,
+          estoqueTotal: vagasDe(e.vagas),
+          ehExtra: true,
+        })),
+    ]);
+
+    recarregar(acaoId);
+    redirect(`/painel/acao/${acaoId}?salvo=1`);
+  }
+
   async function salvarProduto(dados: FormData) {
     "use server";
     await exigirEdicao();
@@ -546,7 +658,7 @@ export default async function EditarAcao({
   return (
     // Produto usa a MESMA moldura do cadastro (largura, fundo, sem cartão):
     // gerenciar É o formulário de cadastro preenchido, e nada além dele.
-    <div className={ehProduto ? "painel-estreito painel-produto" : "painel-largura"}>
+    <div className={ehFormularioProprio ? "painel-estreito painel-produto" : "painel-largura"}>
       <div className="painel-topo-acoes">
         <Link href="/painel" className="painel-voltar">
           Voltar para a campanha
@@ -655,10 +767,41 @@ export default async function EditarAcao({
         </div>
       </div>
 
-      {/* No produto, o formulário fica solto na página, sem cartão em volta,
-          exatamente como na tela de criar. */}
-      <section className={ehProduto ? undefined : "painel-cartao"}>
-        {ehProduto ? (
+      {/* Produto e evento: o formulário fica solto, sem cartão em volta, igual
+          à tela de criar. */}
+      <section className={ehFormularioProprio ? undefined : "painel-cartao"}>
+        {ehEvento ? (
+          <FormularioDoEvento
+            action={salvarEvento}
+            modo="editar"
+            coresOcupadas={[...coresOcupadas]}
+            valores={{
+              titulo: acao.titulo,
+              historia: lerTextoRico(cfg.historia) ?? deTextoSimples(historiaDoBloco),
+              descricao: lerTextoRico(cfg.descricaoRica) ?? deTextoSimples(acao.descricao ?? ""),
+              incluso: lerTextoRico(cfg.incluso),
+              metaReais: emReais(acao.metaCentavos),
+              abreEm: acao.abreEm ? paraCampoData(acao.abreEm) : "",
+              fechaEm: acao.fechaEm ? paraCampoData(acao.fechaEm) : "",
+              cor: acao.cor ?? "terra",
+              coresProprias: Boolean(coresDaAcao.principal || coresDaAcao.topo),
+              corPrincipal: coresDaAcao.principal ?? "#0d5fa6",
+              corTopo: coresDaAcao.topo ?? "#074973",
+              palavraChave: typeof cfg.palavraChave === "string" ? cfg.palavraChave : "",
+              cardTitulo: typeof cfg.cardTitulo === "string" ? cfg.cardTitulo : "",
+              cardDescricao: typeof cfg.cardDescricao === "string" ? cfg.cardDescricao : "",
+              quando: typeof cfg.quando === "string" ? cfg.quando : "",
+              onde: typeof cfg.onde === "string" ? cfg.onde : "",
+              ingressos: ingressosSalvos.length
+                ? ingressosSalvos
+                : [{ nome: "", precoReais: "", vagas: "" }],
+              temExtras: cfg.temExtras === true || extrasSalvos.length > 0,
+              extras: extrasSalvos.length ? extrasSalvos : [{ nome: "", precoReais: "", vagas: "" }],
+              custoFixoReais: emReais(custoGuardado),
+              custoPorPessoaReais: emReais(custoPorPessoa),
+            }}
+          />
+        ) : ehProduto ? (
           <FormularioDoProduto
             action={salvarProduto}
             modo="editar"
@@ -955,7 +1098,7 @@ export default async function EditarAcao({
 
       {/* O resumo da config também fica fora do produto: tudo que estaria aqui
           já é campo editável no formulário de cima. */}
-      {!ehProduto && receita && Object.keys(acao.config).length > 0 && (
+      {!ehFormularioProprio && receita && Object.keys(acao.config).length > 0 && (
         <section className="painel-cartao">
           <h2 className="formulario-secao">Detalhes de {receita.nome.toLowerCase()}</h2>
           <dl className="config-lista">
@@ -987,10 +1130,9 @@ export default async function EditarAcao({
         </section>
       )}
 
-      {/* Nada disto existe no produto. Gerenciar produto É o formulário de
-          cadastro preenchido: custo mora lá dentro, as fotos e a página também.
-          Duplicar essas seções aqui era aparecer OUTRO cadastro na edição. */}
-      {!ehProduto && (
+      {/* Nada disto existe no produto nem no evento: gerenciar é o formulário
+          de cadastro preenchido. Duplicar aqui era aparecer OUTRO cadastro. */}
+      {!ehFormularioProprio && (
         <>
       {/* Lançamento manual.
           Fica na tela da ação, e não numa página só dele, porque quem chega

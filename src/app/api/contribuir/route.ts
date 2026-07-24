@@ -93,14 +93,19 @@ export async function POST(req: NextRequest) {
   // Opções de venda (lote do ingresso, tamanho da camisa). Quando a ação tem,
   // o preço, o estoque e o custo saem da OPÇÃO escolhida, nunca do corpo. Uma
   // ação com opções não usa mais o precoCentavos dela nem o caminho da rifa.
+  // Ingressos (o que a pessoa escolhe UM) e extras (adicionais, compra vários)
+  // vivem na mesma lista de opções, separados pelo ehExtra. O item principal é
+  // sempre um ingresso; os extras entram por cima (ver mais abaixo). Ação sem
+  // extras (produto, evento sem adicional) cai exatamente no caminho de antes.
   const opcoes = await opcoesDaAcao(acao.id);
-  const opcaoEscolhida = opcoes.length
-    ? opcoes.find((o) => o.id === String(corpo.opcaoId ?? ""))
+  const ingressos = opcoes.filter((o) => !o.ehExtra);
+  const opcaoEscolhida = ingressos.length
+    ? ingressos.find((o) => o.id === String(corpo.opcaoId ?? ""))
     : null;
   let custoUnitarioItem = acao.custoUnitarioCentavos;
   let dadosDoItem: Record<string, unknown> = dados;
 
-  if (opcoes.length > 0) {
+  if (ingressos.length > 0) {
     if (!opcaoEscolhida) {
       return NextResponse.json({ erro: "Escolha uma opção." }, { status: 400 });
     }
@@ -209,12 +214,49 @@ export async function POST(req: NextRequest) {
     valorItens = (precoUnitario ?? 0) * quantos;
   }
 
+  // Extras/adicionais do evento: escolheu UM ingresso acima e soma vários
+  // adicionais (vinho, cartela de bingo), cada um com sua quantidade. Só
+  // existem quando a ação tem opção marcada como extra; as outras ações mandam
+  // a lista vazia e nada muda. O preço, como sempre, sai do banco, nunca do
+  // corpo.
+  const extrasCorpo = Array.isArray(corpo.extras) ? corpo.extras : [];
+  const extrasEscolhidos: { opcao: (typeof opcoes)[number]; quantidade: number }[] = [];
+  let extrasValor = 0;
+  for (const bruto of extrasCorpo) {
+    const oid = String((bruto as { opcaoId?: unknown })?.opcaoId ?? "");
+    const qtd = Math.floor(Number((bruto as { quantidade?: unknown })?.quantidade ?? 0));
+    if (!oid || !(qtd > 0)) continue;
+    const opc = opcoes.find((o) => o.id === oid && o.ehExtra);
+    if (!opc) {
+      return NextResponse.json({ erro: "Adicional inválido." }, { status: 400 });
+    }
+    if (qtd > LIMITE_POR_PEDIDO) {
+      return NextResponse.json(
+        { erro: `Máximo de ${LIMITE_POR_PEDIDO} por adicional.` },
+        { status: 400 }
+      );
+    }
+    if (opc.restante !== null && qtd > opc.restante) {
+      return NextResponse.json(
+        {
+          erro:
+            opc.restante === 0
+              ? `Acabou: ${opc.nome}.`
+              : `Restam apenas ${opc.restante} de ${opc.nome}.`,
+        },
+        { status: 409 }
+      );
+    }
+    extrasEscolhidos.push({ opcao: opc, quantidade: qtd });
+    extrasValor += opc.precoCentavos * qtd;
+  }
+
   // O chorinho só vale fora da doação livre: lá o valor já é livre, somar um
   // "extra" seria pedir duas vezes a mesma coisa. Ação com opção de venda não é
   // doação livre, então aceita o extra. Teto de R$ 50 mil, o mesmo da doação.
   const ehDoacaoLivre = !opcaoEscolhida && precoUnitario == null;
   const extra = ehDoacaoLivre ? 0 : Math.min(doacaoExtra, 5_000_000);
-  const totalCentavos = valorItens + extra;
+  const totalCentavos = valorItens + extrasValor + extra;
 
   const pedido = await prisma.pedido.create({
     data: {
@@ -228,18 +270,31 @@ export async function POST(req: NextRequest) {
       doacaoExtraCentavos: extra,
       status: "PENDENTE",
       itens: {
-        create: {
-          acaoId: acao.id,
-          opcaoId: opcaoEscolhida?.id ?? null,
-          quantidade: quantos,
-          valorUnitarioCentavos: opcaoEscolhida
-            ? opcaoEscolhida.precoCentavos
-            : precoUnitario ?? valorItens,
-          // O custo é congelado no momento da venda: se a equipe mudar o custo
-          // depois, o que já foi vendido continua com o custo que valia.
-          custoUnitarioCentavos: custoUnitarioItem,
-          dados: dadosDoItem as never,
-        },
+        create: [
+          {
+            acaoId: acao.id,
+            opcaoId: opcaoEscolhida?.id ?? null,
+            quantidade: quantos,
+            valorUnitarioCentavos: opcaoEscolhida
+              ? opcaoEscolhida.precoCentavos
+              : precoUnitario ?? valorItens,
+            // O custo é congelado no momento da venda: se a equipe mudar o custo
+            // depois, o que já foi vendido continua com o custo que valia.
+            custoUnitarioCentavos: custoUnitarioItem,
+            dados: dadosDoItem as never,
+          },
+          // Os adicionais viram itens próprios do mesmo pedido, cada um com o
+          // seu preço e custo congelados. O extrato e a taxa já sabem lidar com
+          // pedido de vários itens.
+          ...extrasEscolhidos.map((e) => ({
+            acaoId: acao.id,
+            opcaoId: e.opcao.id,
+            quantidade: e.quantidade,
+            valorUnitarioCentavos: e.opcao.precoCentavos,
+            custoUnitarioCentavos: e.opcao.custoUnitarioCentavos,
+            dados: { opcaoNome: e.opcao.nome, ehExtra: true } as never,
+          })),
+        ],
       },
     },
   });

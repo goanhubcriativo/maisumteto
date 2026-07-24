@@ -21,6 +21,8 @@ export interface OpcaoView {
   restante: number | null;
   esgotada: boolean;
   ordem: number;
+  /** Extra/adicional do evento (compra vários), em vez de opção normal. */
+  ehExtra: boolean;
 }
 
 /** Quantas unidades de cada opção já foram vendidas (só pedido pago). */
@@ -54,6 +56,7 @@ export async function opcoesDaAcao(acaoId: string): Promise<OpcaoView[]> {
       restante,
       esgotada: restante !== null && restante <= 0,
       ordem: o.ordem,
+      ehExtra: o.ehExtra,
     };
   });
 }
@@ -95,6 +98,7 @@ export async function opcoesPorAcaoDaCampanha(
       restante,
       esgotada: restante !== null && restante <= 0,
       ordem: o.ordem,
+      ehExtra: o.ehExtra,
     };
     const lista = mapa.get(o.acaoId) ?? [];
     lista.push(view);
@@ -113,6 +117,7 @@ export interface NovaOpcao {
   precoCentavos: number;
   custoUnitarioCentavos?: number;
   estoqueTotal?: number | null;
+  ehExtra?: boolean;
 }
 
 export async function criarOpcao(acaoId: string, dados: NovaOpcao) {
@@ -124,6 +129,7 @@ export async function criarOpcao(acaoId: string, dados: NovaOpcao) {
       precoCentavos: dados.precoCentavos,
       custoUnitarioCentavos: dados.custoUnitarioCentavos ?? 0,
       estoqueTotal: dados.estoqueTotal ?? null,
+      ehExtra: dados.ehExtra ?? false,
       ordem: quantas,
     },
   });
@@ -137,6 +143,7 @@ export async function salvarOpcao(id: string, dados: NovaOpcao) {
       precoCentavos: dados.precoCentavos,
       custoUnitarioCentavos: dados.custoUnitarioCentavos ?? 0,
       estoqueTotal: dados.estoqueTotal ?? null,
+      ehExtra: dados.ehExtra ?? false,
     },
   });
 }
@@ -156,6 +163,7 @@ export async function sincronizarOpcoes(
     precoCentavos: number;
     custoUnitarioCentavos: number;
     estoqueTotal: number | null;
+    ehExtra?: boolean;
   }[]
 ): Promise<{ mantidasComVenda: string[] }> {
   const [atuais, vendidas] = await Promise.all([
@@ -174,6 +182,7 @@ export async function sincronizarOpcoes(
           precoCentavos: nova.precoCentavos,
           custoUnitarioCentavos: nova.custoUnitarioCentavos,
           estoqueTotal: nova.estoqueTotal,
+          ehExtra: nova.ehExtra ?? false,
           ordem: i,
         },
       });
@@ -186,6 +195,7 @@ export async function sincronizarOpcoes(
           precoCentavos: nova.precoCentavos,
           custoUnitarioCentavos: nova.custoUnitarioCentavos,
           estoqueTotal: nova.estoqueTotal,
+          ehExtra: nova.ehExtra ?? false,
           ordem: i,
         },
       });

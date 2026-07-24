@@ -2498,3 +2498,40 @@ textarea.campo-entrada {
   padding-bottom: 7px;
   vertical-align: middle;
 }
+
+/* Editor de ingressos/extras do evento: linhas de nome, preço e vagas. */
+.evento-lotes {
+  display: grid;
+  gap: 10px;
+}
+.evento-lote {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 0 12px;
+  align-items: end;
+  padding: 12px 14px;
+  border: 1px solid var(--linha);
+  border-radius: 10px;
+}
+.evento-lote .campo {
+  margin-bottom: 0;
+}
+.evento-lote-tira {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--vermelho);
+  background: none;
+  border: none;
+  padding: 0 0 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+@media (max-width: 620px) {
+  .evento-lote {
+    grid-template-columns: 1fr 1fr;
+  }
+  .evento-lote .campo:first-child {
+    grid-column: 1 / -1;
+  }
+}
