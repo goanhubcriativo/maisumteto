@@ -60,6 +60,8 @@ export default function FormularioDoProduto({
   const [corPrincipal, setCorPrincipal] = useState(valores.corPrincipal);
   const [corTopo, setCorTopo] = useState(valores.corTopo);
   const [palavraChave, setPalavraChave] = useState(valores.palavraChave);
+  const [cardTitulo, setCardTitulo] = useState(valores.cardTitulo);
+  const [cardDescricao, setCardDescricao] = useState(valores.cardDescricao);
   const [abreEm, setAbreEm] = useState(valores.abreEm);
   const [fechaEm, setFechaEm] = useState(valores.fechaEm);
 
@@ -220,6 +222,8 @@ export default function FormularioDoProduto({
       <input type="hidden" name="corPrincipal" value={coresProprias ? corPrincipal : ""} />
       <input type="hidden" name="corTopo" value={coresProprias ? corTopo : ""} />
       <input type="hidden" name="palavraChave" value={palavraChave} />
+      <input type="hidden" name="cardTitulo" value={cardTitulo} />
+      <input type="hidden" name="cardDescricao" value={cardDescricao} />
       <input type="hidden" name="abreEm" value={abreEm} />
       <input type="hidden" name="fechaEm" value={fechaEm} />
       <input type="hidden" name="modoProducao" value={producao} />
@@ -393,19 +397,59 @@ export default function FormularioDoProduto({
           )}
         </fieldset>
 
-        <label className="campo produto-largo">
-          <span className="campo-rotulo">Palavra-chave</span>
-          <input
-            className="campo-entrada"
-            maxLength={30}
-            value={palavraChave}
-            onChange={(e) => setPalavraChave(e.target.value)}
-            placeholder="PRODUTO"
-          />
-          <span className="campo-ajuda">
-            É o texto que corre na faixa do cartão. Até 30 caracteres. Em branco, fica PRODUTO.
-          </span>
-        </label>
+        {/* O card na home: como a ação aparece no quadro "Formas de ajudar". */}
+        <div className="produto-largo produto-card">
+          <h3 className="produto-custo-titulo">Card na home</h3>
+          <p className="produto-sub">
+            É o quadrinho desta ação na página, junto das outras formas de ajudar.
+          </p>
+
+          <label className="campo">
+            <span className="campo-rotulo">Título da faixa</span>
+            <input
+              className="campo-entrada"
+              maxLength={30}
+              value={palavraChave}
+              onChange={(e) => setPalavraChave(e.target.value)}
+              placeholder="PRODUTO"
+            />
+            <span className="campo-ajuda">
+              Corre na fita torta do card. Até 30 caracteres. Em branco, fica PRODUTO.
+            </span>
+          </label>
+
+          <label className="campo">
+            <span className="campo-rotulo">Título da chamada</span>
+            <input
+              className="campo-entrada"
+              value={cardTitulo}
+              onChange={(e) => setCardTitulo(e.target.value)}
+              placeholder="Chaveiro Trena 3D"
+            />
+            <span className="campo-ajuda">
+              O título grande do card. Em branco, usa o nome da campanha.
+            </span>
+          </label>
+
+          <label className="campo">
+            <span className="campo-rotulo">
+              Descrição do card
+              <em className="produto-contador">{cardDescricao.length}/160</em>
+            </span>
+            <textarea
+              className="campo-entrada"
+              rows={2}
+              maxLength={160}
+              value={cardDescricao}
+              onChange={(e) => setCardDescricao(e.target.value)}
+              placeholder="Uma frase curta que faz a pessoa querer abrir."
+            />
+            <span className="campo-ajuda">
+              O textinho embaixo do título, no card. Até 160 caracteres. Em branco, usa a descrição
+              do produto.
+            </span>
+          </label>
+        </div>
 
         <label className="campo produto-largo">
           <span className="campo-rotulo">Meta da ação</span>

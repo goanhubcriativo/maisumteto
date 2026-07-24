@@ -317,6 +317,8 @@ export default async function EditarAcao({
       historia,
       descricaoRica,
       palavraChave: String(dados.get("palavraChave") ?? "").trim().slice(0, 30),
+      cardTitulo: String(dados.get("cardTitulo") ?? "").trim(),
+      cardDescricao: String(dados.get("cardDescricao") ?? "").trim().slice(0, 160),
       nomeDoProduto: String(dados.get("nomeProduto") ?? "").trim(),
       cores:
         dados.get("coresProprias") === "1"
@@ -684,6 +686,8 @@ export default async function EditarAcao({
               corPrincipal: coresDaAcao.principal ?? "#0d5fa6",
               corTopo: coresDaAcao.topo ?? "#074973",
               palavraChave: typeof cfg.palavraChave === "string" ? cfg.palavraChave : "",
+              cardTitulo: typeof cfg.cardTitulo === "string" ? cfg.cardTitulo : "",
+              cardDescricao: typeof cfg.cardDescricao === "string" ? cfg.cardDescricao : "",
               modoProducao: cfg.modoProducao === "PRONTO" ? "PRONTO" : "ENCOMENDA",
               custoQuando: cfg.custoQuando === "FINAL" ? "FINAL" : "AGORA",
               custoComo: cfg.custoComo === "TOTAL" ? "TOTAL" : "PRODUTO",

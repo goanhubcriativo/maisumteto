@@ -52,6 +52,9 @@ export interface AcaoNaVitrine {
   capaFoco?: string | null;
   /** Texto que corre na faixa do cartao. Nulo usa o rotulo do tipo. */
   palavraChave?: string | null;
+  /** Titulo e texto proprios do card na home. Nulos, caem no titulo/descricao. */
+  cardTitulo?: string | null;
+  cardDescricao?: string | null;
   /** Opções de venda (lote do ingresso, tamanho da camisa). Vazio se não tem. */
   opcoes?: OpcaoView[];
 }
@@ -163,10 +166,18 @@ export async function vitrineDaCampanha(slug: string) {
       estoqueTotal: acao.estoqueTotal,
       limitePorPedido: acao.limitePorPedido,
       cor: acao.cor,
-      palavraChave:
-        (typeof acao.config === "object" && acao.config
-          ? (acao.config as Record<string, unknown>).palavraChave
-          : null) as string | null,
+      ...(() => {
+        const cfg = (typeof acao.config === "object" && acao.config ? acao.config : {}) as Record<
+          string,
+          unknown
+        >;
+        const texto = (v: unknown) => (typeof v === "string" && v.trim() ? v : null);
+        return {
+          palavraChave: texto(cfg.palavraChave),
+          cardTitulo: texto(cfg.cardTitulo),
+          cardDescricao: texto(cfg.cardDescricao),
+        };
+      })(),
       opcoes,
       ...estado,
     };

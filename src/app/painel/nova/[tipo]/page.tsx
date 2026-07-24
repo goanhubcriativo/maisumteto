@@ -199,6 +199,8 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
           modoProducao: modo,
           prazoProducao: prazo,
           palavraChave,
+          cardTitulo: String(dados.get("cardTitulo") ?? "").trim(),
+          cardDescricao: String(dados.get("cardDescricao") ?? "").trim().slice(0, 160),
           nomeDoProduto: nomeProduto,
           cores: coresProprias,
           entregas,

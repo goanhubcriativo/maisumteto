@@ -80,7 +80,11 @@ export interface ValoresDoProduto {
   coresProprias: boolean;
   corPrincipal: string;
   corTopo: string;
+  // O card na home (o quadro "Formas de ajudar"): a fita que corre, o título
+  // grande e o texto curto. Vazios, o card cai no nome e na descrição da ação.
   palavraChave: string;
+  cardTitulo: string;
+  cardDescricao: string;
   modoProducao: ModoProducao;
   custoQuando: CustoQuando;
   custoComo: CustoComo;
@@ -113,6 +117,8 @@ export function produtoEmBranco(): ValoresDoProduto {
     corPrincipal: "#0d5fa6",
     corTopo: "#074973",
     palavraChave: "",
+    cardTitulo: "",
+    cardDescricao: "",
     modoProducao: "ENCOMENDA",
     custoQuando: "AGORA",
     custoComo: "PRODUTO",

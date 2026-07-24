@@ -279,11 +279,13 @@ function CartaoAcao({
         <span className="acao-icone">
           <IconeDaAcao tipo={acao.tipo} />
         </span>
-        <span className="acao-titulo">{acao.titulo}</span>
+        <span className="acao-titulo">{acao.cardTitulo || acao.titulo}</span>
       </span>
       <span className="acao-preco">{precoDaAcao(acao)}</span>
 
-      {acao.descricao && <p className="acao-desc">{acao.descricao}</p>}
+      {(acao.cardDescricao || acao.descricao) && (
+        <p className="acao-desc">{acao.cardDescricao || acao.descricao}</p>
+      )}
 
       {regua && (
         <div className="acao-regua">
