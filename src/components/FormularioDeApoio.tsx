@@ -180,6 +180,16 @@ export default function FormularioDeApoio({
 
   // O teto da quantidade: numa opção, o que resta dela; senão, o estoque da ação.
   const maximo = temOpcoes ? opcaoEscolhida?.restante ?? 50 : restante ?? 50;
+
+  // Quantas unidades ainda existem no total. Com opções, é a soma do que resta
+  // em cada uma (as sem limite, sob encomenda, não entram). Nulo = sem limite,
+  // e aí não mostra contagem.
+  const opcoesComLimite = opcoes.filter((o) => o.restante != null);
+  const totalDisponivel = temOpcoes
+    ? opcoesComLimite.length > 0
+      ? opcoesComLimite.reduce((t, o) => t + (o.restante ?? 0), 0)
+      : null
+    : restante;
   const quantos = ehRifa ? numeros.length : quantidade;
   const precoUnit = temOpcoes ? opcaoEscolhida?.precoCentavos ?? 0 : precoCentavos ?? 0;
   const totalItens = valorLivre ? (valor ?? 0) : precoUnit * quantos;
@@ -649,6 +659,16 @@ export default function FormularioDeApoio({
             {precoUnit > 0 && (
               <div className="loja-preco" style={{ color: corForte }}>
                 {formatar(precoUnit)}
+              </div>
+            )}
+
+            {totalDisponivel != null && (
+              <div className="loja-estoque">
+                {totalDisponivel === 0
+                  ? "Esgotado"
+                  : `${totalDisponivel} ${
+                      totalDisponivel === 1 ? "unidade disponível" : "unidades disponíveis"
+                    }`}
               </div>
             )}
 

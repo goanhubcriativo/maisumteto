@@ -50,6 +50,7 @@ export default async function Extrato() {
       anonimo: true,
       paidAt: true,
       valorBrutoCentavos: true,
+      doacaoExtraCentavos: true,
       taxaCentavos: true,
       liquidoCentavos: true,
       manual: true,
@@ -187,9 +188,12 @@ export default async function Extrato() {
                         o dinheiro basta saber que os R$ 50 entraram pelo bolão,
                         não que foram cinco linhas iguais. */}
                     {[...new Set(p.itens.map((i) => i.acao.titulo))].join(", ") || "doação"}
-                    {/* A opção vendida (o lote, o tamanho): vem da relação, ou do
-                        que ficou congelado no item se a opção já foi apagada. */}
+                    {/* Quantos e qual opção (o lote, o tamanho): pra equipe saber
+                        se a pessoa levou um ou dois, e de qual variação. A opção
+                        vem da relação, ou do que ficou congelado no item se ela
+                        já foi apagada. */}
                     {(() => {
+                      const qtd = p.itens.reduce((t, i) => t + i.quantidade, 0);
                       const ops = [
                         ...new Set(
                           p.itens
@@ -201,8 +205,20 @@ export default async function Extrato() {
                             .filter(Boolean)
                         ),
                       ];
-                      return ops.length ? <span className="tabela-nota">{ops.join(", ")}</span> : null;
+                      const partes: string[] = [];
+                      if (qtd > 1) partes.push(`${qtd} unidades`);
+                      if (ops.length) partes.push(ops.join(", "));
+                      return partes.length ? (
+                        <span className="tabela-nota">{partes.join(" · ")}</span>
+                      ) : null;
                     })()}
+                    {/* A ajuda extra que a pessoa somou por cima. O valor da
+                        direita já inclui ela; aqui a equipe vê quanto foi extra. */}
+                    {p.doacaoExtraCentavos > 0 && (
+                      <span className="tabela-nota">
+                        + {formatarBRL(p.doacaoExtraCentavos)} de ajuda extra
+                      </span>
+                    )}
                   </td>
                   <td className="num">{formatarBRL(p.valorBrutoCentavos)}</td>
                   <td className="num">

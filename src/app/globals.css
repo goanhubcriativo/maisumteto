@@ -4191,3 +4191,12 @@ body {
   color: var(--tinta-70);
   margin-top: 3px;
 }
+
+/* Quantas unidades ainda tem, na vitrine do produto: logo abaixo do preco,
+   discreto, mas visIvel pra quem decide na hora. */
+.loja-estoque {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--tinta-70);
+  margin-top: -2px;
+}
