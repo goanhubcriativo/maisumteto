@@ -138,6 +138,13 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
       const meta = paraCentavos(String(dados.get("meta") ?? ""));
       const prazo = String(dados.get("prazo") ?? "").trim();
       const cor = String(dados.get("cor") ?? "").trim();
+      const coresProprias =
+        dados.get("coresProprias") === "1"
+          ? {
+              principal: String(dados.get("corPrincipal") ?? "").trim() || null,
+              topo: String(dados.get("corTopo") ?? "").trim() || null,
+            }
+          : null;
       const palavraChave = String(dados.get("palavraChave") ?? "")
         .trim()
         .slice(0, 30);
@@ -193,6 +200,7 @@ export default async function NovaAcao({ params }: { params: Promise<{ tipo: str
           prazoProducao: prazo,
           palavraChave,
           nomeDoProduto: nomeProduto,
+          cores: coresProprias,
           entregas,
           custoQuando,
           custoComo,

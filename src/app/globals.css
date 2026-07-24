@@ -921,7 +921,9 @@ a.acao:hover {
 /* ---------- Pagina de uma acao ---------- */
 
 .acao-hero {
-  background: linear-gradient(140deg, var(--acao-forte), var(--azul-fundo));
+  /* O fim do degrade e proprio quando a acao escolhe (--acao-topo); senao,
+     cai no azul profundo padrao. */
+  background: linear-gradient(140deg, var(--acao-forte), var(--acao-topo, var(--azul-fundo)));
   text-align: left;
 }
 .acao-voltar {

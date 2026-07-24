@@ -141,12 +141,55 @@ export const COR_SUGERIDA: Record<string, string> = {
  * elemento da acao, entao o CSS continua sem saber quais cores existem: ele so
  * usa var(--acao-forte) e a cor certa chega de fora.
  */
-export function estiloDaCor(id: string | null | undefined): React.CSSProperties {
+/** "#0d5fa6" -> "rgba(13, 95, 166, 0.08)". Serve pra derivar os tons leves de
+ *  uma cor propria sem a pessoa ter que escolher quatro cores na mao. */
+function comAlfa(hex: string, alfa: number): string {
+  const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(hex.trim());
+  if (!m) return hex;
+  const r = parseInt(m[1], 16);
+  const g = parseInt(m[2], 16);
+  const b = parseInt(m[3], 16);
+  return `rgba(${r}, ${g}, ${b}, ${alfa})`;
+}
+
+const HEX = /^#[\da-fA-F]{6}$/;
+
+/**
+ * As cores proprias de uma acao, quando ela nao usa a paleta.
+ *
+ * `principal` pinta tudo que a cor da acao pintava (botao, preco, barra). `topo`
+ * e so o fim do degrade do heroi, pra dupla de cima combinar. Vazias, cada uma
+ * volta pro padrao: a acao segue identica a antes.
+ */
+export interface CoresProprias {
+  principal?: string | null;
+  topo?: string | null;
+}
+
+export function estiloDaCor(
+  id: string | null | undefined,
+  cores?: CoresProprias | null
+): React.CSSProperties {
   const c = corDe(id);
-  return {
-    ["--acao-forte" as string]: c.forte,
-    ["--acao-marca" as string]: c.marca ?? c.forte,
-    ["--acao-fundo" as string]: c.fundo,
-    ["--acao-borda" as string]: c.borda,
+  const principal = cores?.principal && HEX.test(cores.principal) ? cores.principal : null;
+  const topo = cores?.topo && HEX.test(cores.topo) ? cores.topo : null;
+
+  const estilo: Record<string, string> = {
+    "--acao-forte": principal ?? c.forte,
+    "--acao-marca": principal ?? (c.marca ?? c.forte),
+    "--acao-fundo": principal ? comAlfa(principal, 0.08) : c.fundo,
+    "--acao-borda": principal ? comAlfa(principal, 0.18) : c.borda,
   };
+  // Só define o topo quando é próprio: assim o CSS cai no azul padrão do heroi
+  // (var(--acao-topo, var(--azul-fundo))) pra todo mundo que não escolheu.
+  if (topo) estilo["--acao-topo"] = topo;
+  return estilo as React.CSSProperties;
+}
+
+/** Lê as cores próprias guardadas na config, já filtrando o que não é hex. */
+export function lerCoresProprias(bruto: unknown): CoresProprias {
+  const o = (bruto ?? {}) as Record<string, unknown>;
+  const pega = (k: string) =>
+    typeof o[k] === "string" && HEX.test(o[k] as string) ? (o[k] as string) : null;
+  return { principal: pega("principal"), topo: pega("topo") };
 }

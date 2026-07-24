@@ -76,6 +76,10 @@ export interface ValoresDoProduto {
   abreEm: string;
   fechaEm: string;
   cor: string;
+  /** Conjunto de cores próprio da ação. Vazio = usa a paleta acima. */
+  coresProprias: boolean;
+  corPrincipal: string;
+  corTopo: string;
   palavraChave: string;
   modoProducao: ModoProducao;
   custoQuando: CustoQuando;
@@ -105,6 +109,9 @@ export function produtoEmBranco(): ValoresDoProduto {
     abreEm: "",
     fechaEm: "",
     cor: "roxo",
+    coresProprias: false,
+    corPrincipal: "#0d5fa6",
+    corTopo: "#074973",
     palavraChave: "",
     modoProducao: "ENCOMENDA",
     custoQuando: "AGORA",

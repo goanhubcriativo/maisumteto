@@ -56,6 +56,9 @@ export default function FormularioDoProduto({
 
   const [meta, setMeta] = useState(valores.metaReais);
   const [corAcao, setCorAcao] = useState(valores.cor);
+  const [coresProprias, setCoresProprias] = useState(valores.coresProprias);
+  const [corPrincipal, setCorPrincipal] = useState(valores.corPrincipal);
+  const [corTopo, setCorTopo] = useState(valores.corTopo);
   const [palavraChave, setPalavraChave] = useState(valores.palavraChave);
   const [abreEm, setAbreEm] = useState(valores.abreEm);
   const [fechaEm, setFechaEm] = useState(valores.fechaEm);
@@ -90,7 +93,11 @@ export default function FormularioDoProduto({
     )
   );
 
-  const corForte = PALETA.find((c) => c.id === corAcao)?.forte ?? "#0092dd";
+  // A cor forte pro editor de texto ("Cor da ação" dentro do texto) e pra
+  // qualquer previa: quando a ação usa cores próprias, é a principal delas.
+  const corForte = coresProprias
+    ? corPrincipal
+    : PALETA.find((c) => c.id === corAcao)?.forte ?? "#0092dd";
 
   function trocarProducao(novo: ModoProducao) {
     setProducao(novo);
@@ -209,6 +216,9 @@ export default function FormularioDoProduto({
     <form id="form-acao" action={action} className="produto-form">
       <input type="hidden" name="meta" value={meta} />
       <input type="hidden" name="cor" value={corAcao} />
+      <input type="hidden" name="coresProprias" value={coresProprias ? "1" : ""} />
+      <input type="hidden" name="corPrincipal" value={coresProprias ? corPrincipal : ""} />
+      <input type="hidden" name="corTopo" value={coresProprias ? corTopo : ""} />
       <input type="hidden" name="palavraChave" value={palavraChave} />
       <input type="hidden" name="abreEm" value={abreEm} />
       <input type="hidden" name="fechaEm" value={fechaEm} />
@@ -302,25 +312,84 @@ export default function FormularioDoProduto({
             Pinta o cartão desta ação e a fatia dela no gráfico da campanha. É o que deixa claro,
             de bater o olho, de onde veio cada parte do dinheiro.
           </span>
-          <div className="cores">
-            {PALETA.map((c) => (
-              <label key={c.id} className="cor" title={c.nome}>
-                <input
-                  type="radio"
-                  name="corVisual"
-                  checked={corAcao === c.id}
-                  onChange={() => setCorAcao(c.id)}
-                />
-                <span className="cor-bolha" style={{ background: c.marca ?? c.forte }} />
-                <span className="cor-nome">{c.nome}</span>
-              </label>
-            ))}
-          </div>
-          {coresOcupadas.includes(corAcao) && (
-            <p className="cor-aviso">
-              Outra ação já usa esta cor. No gráfico da campanha as duas ficam com a mesma fatia, e
-              aí a cor deixa de dizer de onde veio o dinheiro.
-            </p>
+
+          {/* Ou a paleta padrão da plataforma, ou um conjunto de cores próprio
+              desta ação. As outras ações e campanhas seguem na paleta. */}
+          <Segmento
+            valor={coresProprias ? "PROPRIAS" : "PALETA"}
+            aoTrocar={(v) => setCoresProprias(v === "PROPRIAS")}
+            opcoes={[
+              { valor: "PALETA", rotulo: "Paleta da plataforma" },
+              { valor: "PROPRIAS", rotulo: "Cores próprias" },
+            ]}
+          />
+
+          {!coresProprias ? (
+            <>
+              <div className="cores" style={{ marginTop: 14 }}>
+                {PALETA.map((c) => (
+                  <label key={c.id} className="cor" title={c.nome}>
+                    <input
+                      type="radio"
+                      name="corVisual"
+                      checked={corAcao === c.id}
+                      onChange={() => setCorAcao(c.id)}
+                    />
+                    <span className="cor-bolha" style={{ background: c.marca ?? c.forte }} />
+                    <span className="cor-nome">{c.nome}</span>
+                  </label>
+                ))}
+              </div>
+              {coresOcupadas.includes(corAcao) && (
+                <p className="cor-aviso">
+                  Outra ação já usa esta cor. No gráfico da campanha as duas ficam com a mesma
+                  fatia, e aí a cor deixa de dizer de onde veio o dinheiro.
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="cores-proprias">
+              <div className="cor-campo">
+                <label className="cor-campo-cabeca">
+                  <span className="cor-bolha" style={{ background: corPrincipal }} />
+                  <span>
+                    <strong>Cor principal</strong>
+                    <em>botões, preço, barra e detalhes</em>
+                  </span>
+                  <input
+                    type="color"
+                    value={corPrincipal}
+                    onChange={(e) => setCorPrincipal(e.target.value)}
+                  />
+                </label>
+              </div>
+
+              <div className="cor-campo">
+                <label className="cor-campo-cabeca">
+                  <span className="cor-bolha" style={{ background: corTopo }} />
+                  <span>
+                    <strong>Cor do topo</strong>
+                    <em>o fundo do alto da página</em>
+                  </span>
+                  <input
+                    type="color"
+                    value={corTopo}
+                    onChange={(e) => setCorTopo(e.target.value)}
+                  />
+                </label>
+              </div>
+
+              {/* Prévia do degradê do topo com a cor do preço por cima. */}
+              <div
+                className="cores-previa"
+                style={{ background: `linear-gradient(140deg, ${corPrincipal}, ${corTopo})` }}
+              >
+                <span style={{ color: "#fff" }}>Assim fica o alto da página</span>
+              </div>
+              <p className="campo-ajuda">
+                Só esta ação muda. As outras e as demais campanhas seguem na paleta da plataforma.
+              </p>
+            </div>
           )}
         </fieldset>
 

@@ -21,7 +21,7 @@ import {
 import { resumoCampanha } from "@/lib/extrato";
 import { receitaDe } from "@/lib/catalogo";
 import { formatarBRL, formatarBRLCurto } from "@/lib/dinheiro";
-import { corDe, estiloDaCor } from "@/lib/paleta";
+import { corDe, estiloDaCor, lerCoresProprias } from "@/lib/paleta";
 import { IconeCasa, IconeDaAcao, rotuloDoTipo } from "@/components/icones";
 import TextoRicoView from "@/components/TextoRicoView";
 import { lerTextoRico, deTextoSimples, textoRicoVazio } from "@/lib/textoRico";
@@ -204,7 +204,7 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
   return (
     // A classe marca "esta é a página de UMA ação": é o gancho pro rodapé (e o
     // que mais precise) seguir a cor da ação, sem afetar a página da campanha.
-    <div className="acao-pagina" style={estiloDaCor(acao.cor)}>
+    <div className="acao-pagina" style={estiloDaCor(acao.cor, lerCoresProprias(acao.config?.cores))}>
       <header className="topo">
         <div className="container topo-linha">
           <Link href="/" className="marca">

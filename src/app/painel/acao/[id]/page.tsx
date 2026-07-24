@@ -17,7 +17,7 @@ import {
 } from "@/lib/repositorio";
 import { receitaDe } from "@/lib/catalogo";
 import { definicaoDe, type TipoBloco } from "@/lib/blocos";
-import { PALETA } from "@/lib/paleta";
+import { PALETA, lerCoresProprias } from "@/lib/paleta";
 import { formatarBRL, formatarBRLCurto, paraCentavos } from "@/lib/dinheiro";
 import { exigirLogin, exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { lerNumeros, registrarLancamentoManual } from "@/lib/manual";
@@ -138,6 +138,7 @@ export default async function EditarAcao({
   // precisa reconstruir tudo que foi preenchido lá: as fotos (capa mais as da
   // galeria) e a estrutura das variações (quais dimensões, com que valores).
   const ehProduto = acao.tipo === "PRODUTO";
+  const coresDaAcao = lerCoresProprias(cfg.cores);
   const emReais = (centavos: number | null | undefined) =>
     centavos != null && centavos > 0 ? (centavos / 100).toFixed(2).replace(".", ",") : "";
 
@@ -317,6 +318,13 @@ export default async function EditarAcao({
       descricaoRica,
       palavraChave: String(dados.get("palavraChave") ?? "").trim().slice(0, 30),
       nomeDoProduto: String(dados.get("nomeProduto") ?? "").trim(),
+      cores:
+        dados.get("coresProprias") === "1"
+          ? {
+              principal: String(dados.get("corPrincipal") ?? "").trim() || null,
+              topo: String(dados.get("corTopo") ?? "").trim() || null,
+            }
+          : null,
       modoProducao: modo,
       prazoProducao: String(dados.get("prazo") ?? "").trim(),
       entregas: comoJson(dados.get("entregas"), []),
@@ -672,6 +680,9 @@ export default async function EditarAcao({
               abreEm: acao.abreEm ? paraCampoData(acao.abreEm) : "",
               fechaEm: acao.fechaEm ? paraCampoData(acao.fechaEm) : "",
               cor: acao.cor ?? "roxo",
+              coresProprias: Boolean(coresDaAcao.principal || coresDaAcao.topo),
+              corPrincipal: coresDaAcao.principal ?? "#0d5fa6",
+              corTopo: coresDaAcao.topo ?? "#074973",
               palavraChave: typeof cfg.palavraChave === "string" ? cfg.palavraChave : "",
               modoProducao: cfg.modoProducao === "PRONTO" ? "PRONTO" : "ENCOMENDA",
               custoQuando: cfg.custoQuando === "FINAL" ? "FINAL" : "AGORA",
