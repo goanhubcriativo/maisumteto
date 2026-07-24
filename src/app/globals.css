@@ -4251,3 +4251,9 @@ body {
   margin: 10px 0 0;
   max-width: 56ch;
 }
+
+/* Na barra da campanha, a ressalva tambem numa linha so, encostada a direita. */
+.placar-nota {
+  text-align: right;
+  max-width: none;
+}

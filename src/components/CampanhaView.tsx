@@ -557,8 +557,8 @@ export default function CampanhaView({
           )}
 
           {metaDefinida && (
-            <p className="meta-nota">
-              Este valor já desconta o custo, então R$ 10 doados não somam exatos R$ 10 aqui.
+            <p className="meta-nota placar-nota">
+              O valor já desconta o custo: R$ 10 doados não somam R$ 10 exatos.
             </p>
           )}
 
