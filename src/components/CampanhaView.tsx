@@ -556,6 +556,12 @@ export default function CampanhaView({
             </div>
           )}
 
+          {metaDefinida && (
+            <p className="meta-nota">
+              Este valor já desconta o custo, então R$ 10 doados não somam exatos R$ 10 aqui.
+            </p>
+          )}
+
           <div className="placar-pes">
             <span>
               <strong>{resumo.apoiadores}</strong>{" "}

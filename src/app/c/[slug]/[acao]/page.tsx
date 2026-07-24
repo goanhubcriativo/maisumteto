@@ -312,6 +312,9 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
                     <strong>{Math.floor(pct)}%</strong> da meta desta ação
                   </span>
                 </div>
+                <p className="meta-nota">
+                  Este valor já desconta o custo, então R$ 10 doados não somam exatos R$ 10 aqui.
+                </p>
               </>
             )}
           </section>
