@@ -10,6 +10,7 @@
 import { prisma } from "@/lib/db";
 import { exigirLogin, campanhaDoPainel } from "@/lib/sessao";
 import { formatarBRL } from "@/lib/dinheiro";
+import DetalhesDoPedido from "@/components/DetalhesDoPedido";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,11 @@ function mascararTelefone(t: string | null): string {
 function quando(d: Date | null): string {
   if (!d) return "";
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+/** Data e hora juntas, pro detalhe. */
+function quandoCompleto(d: Date | null): string {
+  if (!d) return "";
+  return `${quando(d)} às ${d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 export default async function Extrato() {
@@ -149,12 +155,11 @@ export default async function Extrato() {
               <tr>
                 <th>Quando</th>
                 <th>Quem</th>
-                <th>CPF</th>
-                <th>Telefone</th>
                 <th>Ação</th>
                 <th className="num">Bruto</th>
                 <th className="num">Taxa</th>
                 <th className="num">Líquido</th>
+                <th />
               </tr>
             </thead>
             <tbody>
@@ -180,40 +185,11 @@ export default async function Extrato() {
                         banco, e é isso que a página pública promete. */}
                     {p.anonimo && <span className="tabela-nota">pediu sigilo</span>}
                   </td>
-                  <td>{mascararCpf(p.cpf)}</td>
-                  <td>{mascararTelefone(p.whatsapp)}</td>
                   <td>
-                    {/* O nome da ação uma vez só. Um pedido pode ter cinco itens
-                        da mesma ação (cinco palpites do bolão), mas para conferir
-                        o dinheiro basta saber que os R$ 50 entraram pelo bolão,
-                        não que foram cinco linhas iguais. */}
+                    {/* O nome da ação uma vez só. O detalhe do que foi comprado
+                        (quantos, qual tamanho, entrega) fica no botão Detalhes,
+                        pra linha continuar enxuta e fácil de conferir. */}
                     {[...new Set(p.itens.map((i) => i.acao.titulo))].join(", ") || "doação"}
-                    {/* Quantos e qual opção (o lote, o tamanho): pra equipe saber
-                        se a pessoa levou um ou dois, e de qual variação. A opção
-                        vem da relação, ou do que ficou congelado no item se ela
-                        já foi apagada. */}
-                    {(() => {
-                      const qtd = p.itens.reduce((t, i) => t + i.quantidade, 0);
-                      const ops = [
-                        ...new Set(
-                          p.itens
-                            .map(
-                              (i) =>
-                                i.opcao?.nome ??
-                                (i.dados as { opcaoNome?: string } | null)?.opcaoNome
-                            )
-                            .filter(Boolean)
-                        ),
-                      ];
-                      const partes: string[] = [];
-                      if (qtd > 1) partes.push(`${qtd} unidades`);
-                      if (ops.length) partes.push(ops.join(", "));
-                      return partes.length ? (
-                        <span className="tabela-nota">{partes.join(" · ")}</span>
-                      ) : null;
-                    })()}
-                    {/* A ajuda extra que a pessoa somou por cima. O valor da
-                        direita já inclui ela; aqui a equipe vê quanto foi extra. */}
                     {p.doacaoExtraCentavos > 0 && (
                       <span className="tabela-nota">
                         + {formatarBRL(p.doacaoExtraCentavos)} de ajuda extra
@@ -226,6 +202,34 @@ export default async function Extrato() {
                   </td>
                   <td className="num forte">
                     {formatarBRL(p.liquidoCentavos ?? p.valorBrutoCentavos)}
+                  </td>
+                  <td className="num">
+                    <DetalhesDoPedido
+                      quando={quandoCompleto(p.paidAt)}
+                      nome={p.nome}
+                      anonimo={p.anonimo}
+                      cpf={mascararCpf(p.cpf)}
+                      whatsapp={mascararTelefone(p.whatsapp)}
+                      manual={p.manual}
+                      forma={p.formaManual}
+                      registradoPor={p.registradoPor?.nome ?? null}
+                      brutoCentavos={p.valorBrutoCentavos}
+                      taxaCentavos={p.taxaCentavos}
+                      liquidoCentavos={p.liquidoCentavos ?? p.valorBrutoCentavos}
+                      extraCentavos={p.doacaoExtraCentavos}
+                      itens={p.itens.map((i) => ({
+                        acao: i.acao.titulo,
+                        quantidade: i.quantidade,
+                        opcao:
+                          i.opcao?.nome ??
+                          (i.dados as { opcaoNome?: string } | null)?.opcaoNome ??
+                          null,
+                        entrega: (i.dados as { entrega?: string } | null)?.entrega ?? null,
+                        numeros: Array.isArray((i.dados as { numeros?: number[] } | null)?.numeros)
+                          ? (i.dados as { numeros?: number[] }).numeros ?? null
+                          : null,
+                      }))}
+                    />
                   </td>
                 </tr>
               ))}

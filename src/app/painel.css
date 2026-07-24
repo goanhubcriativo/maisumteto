@@ -2413,3 +2413,43 @@ textarea.campo-entrada {
   font-weight: 700;
   color: var(--tinta-50);
 }
+
+/* A caixa de detalhes de um pedido do extrato. */
+.detalhe-lista {
+  margin: 0;
+}
+.detalhe-linha {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px 14px;
+  padding: 10px 0;
+}
+.detalhe-linha + .detalhe-linha {
+  border-top: 1px solid var(--linha);
+}
+.detalhe-linha dt {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--tinta-50);
+}
+.detalhe-linha dd {
+  margin: 0;
+  font-size: 14px;
+}
+.detalhe-sub {
+  font-size: 13.5px;
+  color: var(--tinta-70);
+  margin-top: 2px;
+}
+.detalhe-forte {
+  color: var(--tinta);
+  font-weight: 700;
+}
+@media (max-width: 520px) {
+  .detalhe-linha {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+}
