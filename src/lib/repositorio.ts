@@ -215,7 +215,7 @@ async function liquidoPorAcao(campanhaId: string): Promise<Map<string, number>> 
 
 export async function listarAcoes(campanhaId: string): Promise<AcaoDoPainel[]> {
   const [acoes, vendidos, liquidos, opcoesPorAcao] = await Promise.all([
-    prisma.acao.findMany({ where: { campanhaId }, orderBy: { createdAt: "asc" } }),
+    prisma.acao.findMany({ where: { campanhaId }, orderBy: [{ ordem: "asc" }, { createdAt: "asc" }] }),
     vendidosPorAcao(),
     liquidoPorAcao(campanhaId),
     opcoesPorAcaoDaCampanha(campanhaId),
@@ -368,6 +368,32 @@ export async function atualizarConfig(id: string, patch: Record<string, unknown>
     where: { id },
     data: { config: { ...base, ...patch } as Prisma.InputJsonValue },
   });
+}
+
+/**
+ * Sobe ou desce uma ação publicada na ordem dos cards.
+ *
+ * Só mexe entre as publicadas, que são as que aparecem pra quem visita: um
+ * bolão que já vendeu não devia ficar na frente de algo à venda, e agora a
+ * equipe decide a ordem. A conta normaliza o `ordem` de todas de uma vez (0, 1,
+ * 2...) e troca a alvo com a vizinha, então some com empates de `ordem` 0 que
+ * vinham de antes deste recurso existir.
+ */
+export async function moverAcao(campanhaId: string, id: string, direcao: "cima" | "baixo") {
+  const publicadas = await prisma.acao.findMany({
+    where: { campanhaId, status: StatusAcao.ATIVA },
+    orderBy: [{ ordem: "asc" }, { createdAt: "asc" }],
+    select: { id: true },
+  });
+  const i = publicadas.findIndex((a) => a.id === id);
+  if (i < 0) return;
+  const j = direcao === "cima" ? i - 1 : i + 1;
+  if (j < 0 || j >= publicadas.length) return;
+
+  [publicadas[i], publicadas[j]] = [publicadas[j], publicadas[i]];
+  await prisma.$transaction(
+    publicadas.map((a, k) => prisma.acao.update({ where: { id: a.id }, data: { ordem: k } }))
+  );
 }
 
 export async function publicarAcao(id: string, publicar: boolean) {

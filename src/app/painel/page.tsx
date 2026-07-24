@@ -6,6 +6,7 @@ import {
   campanhaAtual,
   contarApoiadores,
   listarAcoes,
+  moverAcao,
   publicarAcao,
   type AcaoDoPainel,
 } from "@/lib/repositorio";
@@ -60,6 +61,16 @@ export default async function Painel({
     await exigirEdicao();
     const id = String(dados.get("id"));
     await publicarAcao(id, dados.get("publicar") === "1");
+    revalidatePath("/painel");
+    revalidatePath("/");
+  }
+
+  // Sobe ou desce um card na ordem em que ele aparece pra quem visita.
+  async function reordenar(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    const c = await campanhaDoPainel();
+    await moverAcao(c.id, String(dados.get("id")), dados.get("direcao") === "cima" ? "cima" : "baixo");
     revalidatePath("/painel");
     revalidatePath("/");
   }
@@ -188,15 +199,21 @@ export default async function Painel({
         </>
       )}
 
-      <p className="painel-etiqueta-lista">Publicadas ({publicadas.length})</p>
+      <p className="painel-etiqueta-lista">
+        Publicadas ({publicadas.length})
+        {publicadas.length > 1 ? " · use as setas para ordenar os cards" : ""}
+      </p>
       <div className="painel-lista">
-        {publicadas.map((a) => (
+        {publicadas.map((a, i) => (
           <LinhaDeAcao
             key={a.id}
             acao={a}
             alternar={alternar}
             lancar={lancarManualDaLista}
             hoje={hoje}
+            reordenar={reordenar}
+            primeiro={i === 0}
+            ultimo={i === publicadas.length - 1}
           />
         ))}
       </div>
@@ -209,11 +226,18 @@ function LinhaDeAcao({
   alternar,
   lancar,
   hoje,
+  reordenar,
+  primeiro,
+  ultimo,
 }: {
   acao: AcaoDoPainel;
   alternar: (dados: FormData) => Promise<void>;
   lancar: (dados: FormData) => Promise<void>;
   hoje: string;
+  /** Só nas publicadas: sobe/desce o card. Ausente = sem setas (rascunho). */
+  reordenar?: (dados: FormData) => Promise<void>;
+  primeiro?: boolean;
+  ultimo?: boolean;
 }) {
   const receita = receitaDe(acao.tipo);
 
@@ -236,6 +260,37 @@ function LinhaDeAcao({
       </span>
 
       <span className="painel-linha-valor">{formatarBRLCurto(acao.liquidoCentavos)}</span>
+
+      {reordenar && (
+        <span className="painel-linha-ordem">
+          <form action={reordenar}>
+            <input type="hidden" name="id" value={acao.id} />
+            <input type="hidden" name="direcao" value="cima" />
+            <button
+              className="ordem-seta"
+              type="submit"
+              disabled={primeiro}
+              title="Subir"
+              aria-label={`Subir ${acao.titulo}`}
+            >
+              ↑
+            </button>
+          </form>
+          <form action={reordenar}>
+            <input type="hidden" name="id" value={acao.id} />
+            <input type="hidden" name="direcao" value="baixo" />
+            <button
+              className="ordem-seta"
+              type="submit"
+              disabled={ultimo}
+              title="Descer"
+              aria-label={`Descer ${acao.titulo}`}
+            >
+              ↓
+            </button>
+          </form>
+        </span>
+      )}
 
       <span className="painel-linha-acoes">
         {/* Lançamento manual, publicar e editar, na ordem em que a mão vai:

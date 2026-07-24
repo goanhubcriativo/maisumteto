@@ -2366,3 +2366,32 @@ textarea.campo-entrada {
   font-size: 13px;
   font-weight: 700;
 }
+
+/* As setas de ordenar o card, so nas publicadas. */
+.painel-linha-ordem {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+.ordem-seta {
+  width: 26px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  line-height: 1;
+  color: var(--tinta-70);
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ordem-seta:hover:not(:disabled) {
+  border-color: var(--teto);
+  color: var(--teto);
+}
+.ordem-seta:disabled {
+  opacity: 0.35;
+  cursor: default;
+}

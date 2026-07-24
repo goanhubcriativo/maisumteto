@@ -106,7 +106,7 @@ export async function vitrineDaCampanha(slug: string) {
     extratoPorAcao(campanha.id),
     prisma.acao.findMany({
       where: { campanhaId: campanha.id, status: { not: StatusAcao.RASCUNHO } },
-      orderBy: { createdAt: "asc" },
+      orderBy: [{ ordem: "asc" }, { createdAt: "asc" }],
     }),
     // Quanto ja saiu de cada acao. So conta pedido PAGO: reservar estoque com
     // pedido pendente deixaria a rifa "esgotada" por causa de quem gerou o PIX

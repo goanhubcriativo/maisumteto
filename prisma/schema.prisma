@@ -225,6 +225,9 @@ model Acao {
   estoqueTotal    Int?
   limitePorPedido Int?
 
+  // Ordem do card na vitrine. A equipe sobe e desce pelo painel; menor primeiro.
+  ordem Int @default(0)
+
   // Meta propria opcional ("essa camisa precisa levantar R$ 1.500").
   metaCentavos Int?
 
