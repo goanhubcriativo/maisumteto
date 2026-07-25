@@ -23,6 +23,8 @@ export interface OpcaoDoForm {
   precoCentavos: number;
   restante: number | null;
   esgotada: boolean;
+  /** Extra/adicional do evento (soma vários), em vez de ingresso (escolhe um). */
+  ehExtra?: boolean;
 }
 
 interface Props {
@@ -67,6 +69,14 @@ interface Props {
    * saber como entregar, e tinha que perguntar por fora.
    */
   entregas?: { tipo: string; rotulo: string; texto: string }[];
+  /**
+   * Arrumação de evento: os detalhes (data, local, incluído) e a descrição vêm
+   * de fora, e o formulário vira carrinho (escolhe um ingresso, soma extras).
+   */
+  evento?: {
+    detalhes: React.ReactNode;
+    descricao?: React.ReactNode;
+  };
 }
 
 function formatar(centavos: number) {
@@ -112,14 +122,20 @@ export default function FormularioDeApoio({
   restante,
   estoqueTotal,
   limitePorPedido,
-  opcoes = [],
+  opcoes: todasOpcoes = [],
   valoresSugeridos = [20, 50, 100, 200],
   corForte,
   loja,
   dimensoes,
   entregas,
+  evento,
 }: Props) {
   const router = useRouter();
+  // Ingressos (escolhe UM) e extras (soma vários) chegam na mesma lista de
+  // opções, separados pelo ehExtra. `opcoes` daqui pra baixo é só ingresso; os
+  // extras viram o carrinho de adicionais. Ação sem extras não muda nada.
+  const opcoes = todasOpcoes.filter((o) => !o.ehExtra);
+  const opcoesExtra = todasOpcoes.filter((o) => o.ehExtra);
   const temOpcoes = opcoes.length > 0;
   const valorLivre = !temOpcoes && precoCentavos == null;
 
@@ -167,6 +183,13 @@ export default function FormularioDeApoio({
   const [erro, setErro] = useState<string | null>(null);
   const sigilo = useRef<HTMLDialogElement>(null);
 
+  // O carrinho de adicionais: quantos de cada extra. Vazio = nenhum.
+  const [carrinho, setCarrinho] = useState<Record<string, number>>({});
+  const extrasTotal = opcoesExtra.reduce(
+    (t, o) => t + (carrinho[o.id] ?? 0) * o.precoCentavos,
+    0
+  );
+
   // A forma de entrega escolhida. Já começa na primeira: quase sempre é a que
   // a equipe considera a principal, e assim ninguém trava por falta de marcar.
   const [entregaTipo, setEntregaTipo] = useState<string>(() => entregas?.[0]?.tipo ?? "");
@@ -193,7 +216,7 @@ export default function FormularioDeApoio({
   const quantos = ehRifa ? numeros.length : quantidade;
   const precoUnit = temOpcoes ? opcaoEscolhida?.precoCentavos ?? 0 : precoCentavos ?? 0;
   const totalItens = valorLivre ? (valor ?? 0) : precoUnit * quantos;
-  const total = totalItens + (valorLivre ? 0 : extra);
+  const total = totalItens + extrasTotal + (valorLivre ? 0 : extra);
 
   async function enviar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -222,6 +245,10 @@ export default function FormularioDeApoio({
           },
           valorCentavos: valorLivre ? valor : undefined,
           doacaoExtraCentavos: valorLivre ? undefined : extra,
+          // Os adicionais do carrinho, cada um com sua quantidade.
+          extras: opcoesExtra
+            .filter((o) => (carrinho[o.id] ?? 0) > 0)
+            .map((o) => ({ opcaoId: o.id, quantidade: carrinho[o.id] })),
         }),
       });
 
@@ -643,6 +670,77 @@ export default function FormularioDeApoio({
       <p className="ap-rodape">Pagamento por PIX. Leva menos de um minuto.</p>
     </>
   );
+
+  // Os adicionais do evento: cada um com um contador ao lado, pra pessoa ir
+  // montando o carrinho antes de preencher os dados. Some do fluxo das outras
+  // ações (só o evento tem extras).
+  const blocoAdicionais = opcoesExtra.length > 0 && (
+    <div className="ap-bloco">
+      <span className="ap-pergunta">Adicionais</span>
+      <span className="ap-dica">Opcional. Some o que quiser por cima do ingresso.</span>
+      <div className="ap-adicionais">
+        {opcoesExtra.map((o) => {
+          const qtd = carrinho[o.id] ?? 0;
+          const teto = o.restante ?? 99;
+          return (
+            <div key={o.id} className={`ap-adicional${o.esgotada ? " esgotado" : ""}`}>
+              <div className="ap-adicional-texto">
+                <span className="ap-adicional-nome">{o.nome}</span>
+                <span className="ap-adicional-preco">{formatar(o.precoCentavos)}</span>
+              </div>
+              {o.esgotada ? (
+                <span className="ap-adicional-esgotado">Esgotado</span>
+              ) : (
+                <div className="ap-contador pequeno">
+                  <button
+                    type="button"
+                    onClick={() => setCarrinho((c) => ({ ...c, [o.id]: Math.max(0, (c[o.id] ?? 0) - 1) }))}
+                    disabled={qtd <= 0}
+                    aria-label={`Menos ${o.nome}`}
+                  >
+                    −
+                  </button>
+                  <span className="ap-numero">{qtd}</span>
+                  <button
+                    type="button"
+                    onClick={() => setCarrinho((c) => ({ ...c, [o.id]: Math.min(teto, (c[o.id] ?? 0) + 1) }))}
+                    disabled={qtd >= teto}
+                    aria-label={`Mais ${o.nome}`}
+                  >
+                    +
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  // Arrumação de EVENTO: os detalhes e a descrição de um lado, o carrinho do
+  // outro (50/50). O carrinho é: escolhe o ingresso, soma os adicionais, e só
+  // então preenche os dados e paga.
+  if (evento) {
+    return (
+      <form className="ap loja" onSubmit={enviar}>
+        <div className="loja-baixo">
+          <div className="loja-descricao">
+            {evento.detalhes}
+            {evento.descricao}
+          </div>
+
+          <div className="loja-compra">
+            {blocoEscolha}
+            {blocoAdicionais}
+            {blocoDados}
+            {blocoExtra}
+            {blocoFecha}
+          </div>
+        </div>
+      </form>
+    );
+  }
 
   // Arrumação de LOJA: foto quadrada com as demais em slide, e ao lado o nome,
   // o preço grande e a escolha da variação. Embaixo, em duas colunas, o que a

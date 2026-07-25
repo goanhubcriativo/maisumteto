@@ -4257,3 +4257,92 @@ body {
   text-align: right;
   max-width: none;
 }
+
+/* ---------- Evento: carrinho e detalhes ---------- */
+
+/* Os detalhes do evento (quando, onde, incluído), num quadro discreto acima da
+   descrição, do lado esquerdo do carrinho. */
+.evento-detalhes {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 22px;
+  padding: 16px 18px;
+  background: var(--acao-fundo, var(--cinza));
+  border: 1px solid var(--acao-borda, var(--linha));
+  border-radius: 12px;
+}
+.evento-detalhes p,
+.evento-detalhes > div {
+  margin: 0;
+}
+.evento-detalhes strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--tinta-50);
+  margin-bottom: 2px;
+}
+.evento-detalhes span {
+  font-size: 15px;
+  line-height: 1.4;
+}
+.evento-detalhes .texto {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.evento-detalhes .texto p {
+  margin: 0 0 4px;
+}
+
+/* Os adicionais: cada um com um contador ao lado, pra montar o carrinho. */
+.ap-adicionais {
+  display: grid;
+  gap: 8px;
+}
+.ap-adicional {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--linha);
+  border-radius: 10px;
+}
+.ap-adicional.esgotado {
+  opacity: 0.6;
+}
+.ap-adicional-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ap-adicional-nome {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+.ap-adicional-preco {
+  font-size: 13px;
+  color: var(--tinta-70);
+}
+.ap-adicional-esgotado {
+  font-size: 12.5px;
+  color: var(--tinta-50);
+  white-space: nowrap;
+}
+/* O contador menor dos adicionais, ao lado de cada linha. */
+.ap-contador.pequeno {
+  gap: 8px;
+  flex: 0 0 auto;
+}
+.ap-contador.pequeno button {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+}
+.ap-contador.pequeno .ap-numero {
+  min-width: 20px;
+  text-align: center;
+  font-size: 16px;
+}

@@ -120,12 +120,17 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
   // não na config. O fallback lê de lá, e o bloco sai da lista de baixo: sem
   // isso, o alto ficava sem a explicação e ela aparecia embaixo, num blocão.
   const ehProduto = acao.tipo === "PRODUTO";
+  const ehEvento = acao.tipo === "EVENTO";
+  // Produto e evento: no alto da página vai a explicação da ação (a "sobre a
+  // ação"), e a descrição do item (do produto, do evento) fica ao lado da
+  // compra, mais abaixo.
+  const usaHistoriaNoHero = ehProduto || ehEvento;
   const blocoDaHistoria = ehProduto
     ? blocos.find(
         (b) => b.tipo === "TEXTO" && String(b.conteudo?.texto ?? "").trim().length > 0
       )
     : undefined;
-  const textoDoHero = ehProduto
+  const textoDoHero = usaHistoriaNoHero
     ? (lerTextoRico(acao.config?.historia) ??
       deTextoSimples(String(blocoDaHistoria?.conteudo?.texto ?? "")))
     : deTextoSimples(acao.descricao ?? "");
@@ -140,6 +145,21 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
   );
   const descricaoDoProduto =
     lerTextoRico(acao.config?.descricaoRica) ?? deTextoSimples(acao.descricao ?? "");
+
+  // Detalhes do evento: quando (formatado), onde e o que está incluído.
+  const quandoEvento = (() => {
+    const q = typeof acao.config?.quando === "string" ? acao.config.quando : "";
+    if (!q) return "";
+    const d = new Date(q);
+    if (Number.isNaN(d.getTime())) return "";
+    return (
+      d.toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" }) +
+      ", às " +
+      d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    );
+  })();
+  const ondeEvento = typeof acao.config?.onde === "string" ? acao.config.onde : "";
+  const inclusoEvento = lerTextoRico(acao.config?.incluso);
 
   // O nome do produto e as fotos da vitrine. A capa é a primeira; as outras
   // vêm da galeria da página e passam pro lado no slide. Produto criado antes
@@ -430,6 +450,60 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
                     descricao: !textoRicoVazio(descricaoDoProduto) ? (
                       <>
                         <h2 className="participar-titulo">O produto</h2>
+                        <TextoRicoView valor={descricaoDoProduto} className="texto" />
+                      </>
+                    ) : null,
+                  }}
+                />
+              </section>
+            ) : ehEvento ? (
+              // Evento: carrinho. Os detalhes e a descrição de um lado, a
+              // compra (escolhe ingresso, soma adicionais, preenche, paga) do
+              // outro. Mesmo formulário, um envio só.
+              <section className="participar-loja">
+                <FormularioDeApoio
+                  acaoId={acao.id}
+                  tipo={acao.tipo}
+                  precoCentavos={acao.precoCentavos}
+                  restante={acao.restante}
+                  estoqueTotal={acao.estoqueTotal}
+                  limitePorPedido={acao.limitePorPedido}
+                  opcoes={(acao.opcoes ?? []).map((o) => ({
+                    id: o.id,
+                    nome: o.nome,
+                    precoCentavos: o.precoCentavos,
+                    restante: o.restante,
+                    esgotada: o.esgotada,
+                    ehExtra: o.ehExtra,
+                  }))}
+                  valoresSugeridos={valoresSugeridos}
+                  corForte={cor.forte}
+                  evento={{
+                    detalhes: (
+                      <div className="evento-detalhes">
+                        {quandoEvento && (
+                          <p>
+                            <strong>Quando</strong>
+                            <span>{quandoEvento}</span>
+                          </p>
+                        )}
+                        {ondeEvento && (
+                          <p>
+                            <strong>Onde</strong>
+                            <span>{ondeEvento}</span>
+                          </p>
+                        )}
+                        {!textoRicoVazio(inclusoEvento) && (
+                          <div>
+                            <strong>Incluído</strong>
+                            <TextoRicoView valor={inclusoEvento} className="texto" />
+                          </div>
+                        )}
+                      </div>
+                    ),
+                    descricao: !textoRicoVazio(descricaoDoProduto) ? (
+                      <>
+                        <h2 className="participar-titulo">Sobre o evento</h2>
                         <TextoRicoView valor={descricaoDoProduto} className="texto" />
                       </>
                     ) : null,
