@@ -137,6 +137,8 @@ export default function EditorDeTexto({
   valorInicial,
   placeholder,
   corDaAcao,
+  corMarca,
+  corTexto,
   rows = 5,
   aoMudar,
 }: {
@@ -144,8 +146,12 @@ export default function EditorDeTexto({
   nome: string;
   valorInicial?: TextoRico | null;
   placeholder?: string;
-  /** A cor forte da ação, pra "Cor da ação" mostrar a cor certa aqui dentro. */
+  /** A cor forte da ação (fundos e bordas dentro do editor). */
   corDaAcao?: string;
+  /** O tom vivo da ação, pra bolinha de "Cor da ação" mostrar a cor de verdade. */
+  corMarca?: string;
+  /** O tom de leitura, pra o texto colorido "Cor da ação" não sair ocre. */
+  corTexto?: string;
   rows?: number;
   /** Avisa quem está de fora (pra validar "escreveu alguma coisa?"). */
   aoMudar?: (temTexto: boolean) => void;
@@ -214,7 +220,18 @@ export default function EditorDeTexto({
   }
 
   return (
-    <div className="editor-texto" style={corDaAcao ? ({ "--acao-forte": corDaAcao } as React.CSSProperties) : undefined}>
+    <div
+      className="editor-texto"
+      style={
+        corDaAcao
+          ? ({
+              "--acao-forte": corDaAcao,
+              "--acao-marca": corMarca ?? corDaAcao,
+              "--acao-texto": corTexto ?? corDaAcao,
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
       <input type="hidden" name={nome} value={JSON.stringify(rico)} />
 
       <div className="editor-barra">

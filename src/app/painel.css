@@ -2255,7 +2255,9 @@ textarea.campo-entrada {
   background: var(--teto);
 }
 .tx-fundo-acao {
-  background: var(--acao-forte, var(--teto));
+  /* A bolinha mostra a cor VIVA da ação (o amarelo de verdade), pra pessoa
+     reconhecer a opção. O texto aplicado usa o tom de leitura (.tx-acao). */
+  background: var(--acao-marca, var(--acao-forte, var(--teto)));
 }
 
 /* A caixa editavel. O placeholder e um texto por cima, porque contenteditable

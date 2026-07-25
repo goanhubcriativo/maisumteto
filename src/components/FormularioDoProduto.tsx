@@ -14,7 +14,7 @@
 // tudo aberto, porque quem volta quer ir direto no campo que precisa mudar.
 
 import { useRef, useState } from "react";
-import { PALETA } from "@/lib/paleta";
+import { PALETA, tomDeTexto } from "@/lib/paleta";
 import {
   ENTREGAS,
   type ValoresDoProduto,
@@ -102,9 +102,17 @@ export default function FormularioDoProduto({
 
   // A cor forte pro editor de texto ("Cor da ação" dentro do texto) e pra
   // qualquer previa: quando a ação usa cores próprias, é a principal delas.
-  const corForte = coresProprias
+  const corDaPaleta = PALETA.find((c) => c.id === corAcao);
+  const corForte = coresProprias ? corPrincipal : corDaPaleta?.forte ?? "#0092dd";
+  // O tom vivo (bolinha) e o tom de leitura (texto), pra "cor da ação" no editor
+  // não sair ocre quando a cor clara é amarela.
+  const corMarca = coresProprias
     ? corPrincipal
-    : PALETA.find((c) => c.id === corAcao)?.forte ?? "#0092dd";
+    : corDaPaleta?.marca ?? corDaPaleta?.forte ?? "#0092dd";
+  const corTexto = tomDeTexto(
+    coresProprias ? null : corAcao,
+    coresProprias ? { principal: corPrincipal } : null
+  );
 
   function trocarProducao(novo: ModoProducao) {
     setProducao(novo);
@@ -289,6 +297,8 @@ export default function FormularioDoProduto({
             nome="historia"
             valorInicial={valores.historia}
             corDaAcao={corForte}
+            corMarca={corMarca}
+            corTexto={corTexto}
             rows={5}
             aoMudar={setTemHistoria}
           />
@@ -566,6 +576,8 @@ export default function FormularioDoProduto({
             nome="descricao"
             valorInicial={valores.descricao}
             corDaAcao={corForte}
+            corMarca={corMarca}
+            corTexto={corTexto}
             rows={4}
             placeholder="Momento vendedor: explique a peça para quem vai comprar, dê detalhes, fale sobre os diferenciais."
           />

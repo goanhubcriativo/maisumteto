@@ -193,6 +193,23 @@ export function marcaDe(id: string | null | undefined): string {
 }
 
 /**
+ * O tom pra TEXTO colorido sobre branco (o "cor da ação" no texto rico, um
+ * número de destaque). Numa cor escura é o próprio forte, que já lê bem. Numa
+ * cor clara (amarelo) o forte viraria ocre, e um texto ocre lê como cor errada:
+ * cai num escuro neutro. Mesma regra do --acao-texto da página pública, pra
+ * edição e visualização mostrarem a mesma coisa.
+ */
+export function tomDeTexto(
+  id: string | null | undefined,
+  cores?: CoresProprias | null
+): string {
+  const c = corDe(id);
+  const principal = cores?.principal && HEX.test(cores.principal) ? cores.principal : null;
+  const mancha = principal ?? (c.marca ?? c.forte);
+  return ehClara(mancha) ? "#1b2530" : principal ?? c.forte;
+}
+
+/**
  * Sugestao de cor por tipo de acao.
  *
  * Nao e regra, e ponto de partida: a acao ja nasce com uma cor que combina com

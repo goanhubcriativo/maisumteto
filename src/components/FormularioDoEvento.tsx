@@ -9,7 +9,7 @@
 // fechamento) e por pessoa (comida e bebida, que anda com cada ingresso).
 
 import { useState } from "react";
-import { PALETA } from "@/lib/paleta";
+import { PALETA, tomDeTexto } from "@/lib/paleta";
 import type { ValoresDoEvento, EntradaDeEvento } from "@/lib/evento";
 import EditorDeTexto from "@/components/EditorDeTexto";
 import { Segmento, Interruptor } from "@/components/ControlesDeForm";
@@ -134,9 +134,17 @@ export default function FormularioDoEvento({
   const [custoFixo, setCustoFixo] = useState(valores.custoFixoReais);
   const [custoPorPessoa, setCustoPorPessoa] = useState(valores.custoPorPessoaReais);
 
-  const corForte = coresProprias
+  const corDaPaleta = PALETA.find((c) => c.id === corAcao);
+  const corForte = coresProprias ? corPrincipal : corDaPaleta?.forte ?? "#0092dd";
+  // O tom vivo (bolinha "cor da ação") e o tom de leitura (texto "cor da ação"),
+  // pra o editor não mostrar ocre onde a cor clara é amarela.
+  const corMarca = coresProprias
     ? corPrincipal
-    : PALETA.find((c) => c.id === corAcao)?.forte ?? "#0092dd";
+    : corDaPaleta?.marca ?? corDaPaleta?.forte ?? "#0092dd";
+  const corTexto = tomDeTexto(
+    coresProprias ? null : corAcao,
+    coresProprias ? { principal: corPrincipal } : null
+  );
 
   function avancar() {
     if (!temHistoria) {
@@ -207,6 +215,8 @@ export default function FormularioDoEvento({
             nome="historia"
             valorInicial={valores.historia}
             corDaAcao={corForte}
+            corMarca={corMarca}
+            corTexto={corTexto}
             rows={5}
             aoMudar={setTemHistoria}
           />
@@ -394,6 +404,8 @@ export default function FormularioDoEvento({
             nome="descricao"
             valorInicial={valores.descricao}
             corDaAcao={corForte}
+            corMarca={corMarca}
+            corTexto={corTexto}
             rows={4}
             placeholder="Como vai ser a noite, o clima, o que esperar."
           />
@@ -425,6 +437,8 @@ export default function FormularioDoEvento({
             nome="incluso"
             valorInicial={valores.incluso}
             corDaAcao={corForte}
+            corMarca={corMarca}
+            corTexto={corTexto}
             rows={3}
             placeholder="Prato principal, sobremesa e uma bebida. Estacionamento no local."
           />

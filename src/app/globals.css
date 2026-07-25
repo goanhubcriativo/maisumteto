@@ -3543,26 +3543,27 @@ body {
    é legível em qualquer cor: --acao-forte passa 4.5:1 contra o branco, e razão
    de contraste é simétrica, então branco sobre forte passa igual. */
 .acao-pagina .rodape {
-  background: var(--acao-forte);
-  color: rgba(255, 255, 255, 0.85);
+  background: var(--acao-solido, var(--acao-forte));
+  color: color-mix(in srgb, var(--acao-solido-tinta, #fff), transparent 18%);
 }
 .acao-pagina .rodape-linha strong,
 .acao-pagina .rodape-links a {
-  color: #fff;
+  color: var(--acao-solido-tinta, #fff);
 }
 .acao-pagina .rodape-entrar {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.5);
+  color: var(--acao-solido-tinta, #fff);
+  border-color: color-mix(in srgb, var(--acao-solido-tinta, #fff), transparent 50%);
 }
 .acao-pagina .rodape-entrar:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: color-mix(in srgb, var(--acao-solido-tinta, #fff), transparent 82%);
 }
 
 /* Botão montado num bloco da página da ação (ex.: "Ver a página do bolão").
    Segue a cor da ação, como o resto: azul fixo aqui destoava do topo e do
    rodapé, que já são da cor dela. */
 .acao-pagina .bl-botao .botao-primario {
-  background: var(--acao-forte);
+  background: var(--acao-solido, var(--acao-forte));
+  color: var(--acao-solido-tinta, #fff);
 }
 .acao-pagina .bl-botao .botao-primario:hover {
   filter: brightness(0.92);
@@ -3790,7 +3791,9 @@ body {
   color: var(--teto);
 }
 .tx-acao {
-  color: var(--acao-forte, var(--teto));
+  /* Texto colorido na cor da ação: usa o tom de leitura (escuro neutro nas
+     cores claras), pra "cor da ação" no amarelo não sair ocre. */
+  color: var(--acao-texto, var(--acao-forte, var(--teto)));
 }
 /* Linha em branco entre paragrafos: vira respiro, e nao um paragrafo vazio
    colado no de cima. */
