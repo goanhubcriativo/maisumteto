@@ -938,10 +938,29 @@ a.acao:hover {
      proprio (--acao-topo) continua valendo pra quem escolhe cores proprias. */
   background: linear-gradient(
     145deg,
-    var(--acao-forte),
-    var(--acao-topo, color-mix(in srgb, var(--acao-forte), #06121a 55%))
+    var(--acao-heroi-de, var(--acao-forte)),
+    var(--acao-heroi-ate, var(--acao-topo, color-mix(in srgb, var(--acao-forte), #06121a 55%)))
   );
   text-align: left;
+}
+/* A letra do herói acompanha a cor: branca sobre as cores escuras, escura sobre
+   as claras (o amarelo). A --acao-heroi-tinta decide, e a secundária é a mesma
+   tinta um pouco apagada. Sem cor definida, cai no branco de sempre. */
+.acao-hero .hero-titulo {
+  color: var(--acao-heroi-tinta, var(--branco));
+}
+.acao-hero .acao-hero-desc {
+  color: color-mix(in srgb, var(--acao-heroi-tinta, #fff), transparent 14%);
+}
+.acao-hero .acao-voltar {
+  color: color-mix(in srgb, var(--acao-heroi-tinta, #fff), transparent 22%);
+}
+.acao-hero .acao-voltar:hover {
+  color: var(--acao-heroi-tinta, var(--branco));
+}
+.acao-hero .selo-acao {
+  color: var(--acao-heroi-tinta, var(--branco));
+  border-color: color-mix(in srgb, var(--acao-heroi-tinta, #fff), transparent 62%);
 }
 .acao-voltar {
   display: inline-block;

@@ -230,6 +230,28 @@ function comAlfa(hex: string, alfa: number): string {
 const HEX = /^#[\da-fA-F]{6}$/;
 
 /**
+ * Uma cor é "clara" quando texto branco por cima dela mal se lê. É o caso do
+ * amarelo, do lima, do âmbar: o tom vivo da identidade é claro demais pra
+ * segurar letra branca. Pra essas, o herói não pode usar o `forte` (que, pra
+ * aguentar branco, escurece tanto que vira ocre e some com a cor escolhida):
+ * usa o tom vivo mesmo, com a LETRA escura. Assim o amarelo aparece amarelo.
+ *
+ * O limiar (luminância ~0.35) separa as claras (amarelo, lima, âmbar, céu,
+ * turquesa) das escuras (coral, roxo, azul, magenta), que seguem com letra
+ * branca sobre o tom forte, exatamente como antes.
+ */
+function ehClara(hex: string): boolean {
+  const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(hex.trim());
+  if (!m) return false;
+  const canal = (h: string) => {
+    const c = parseInt(h, 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  const lum = 0.2126 * canal(m[1]) + 0.7152 * canal(m[2]) + 0.0722 * canal(m[3]);
+  return lum > 0.35;
+}
+
+/**
  * As cores proprias de uma acao, quando ela nao usa a paleta.
  *
  * `principal` pinta tudo que a cor da acao pintava (botao, preco, barra). `topo`
@@ -249,12 +271,37 @@ export function estiloDaCor(
   const principal = cores?.principal && HEX.test(cores.principal) ? cores.principal : null;
   const topo = cores?.topo && HEX.test(cores.topo) ? cores.topo : null;
 
+  // A mancha é o tom vivo da cor (identidade), e é dela que sai a decisão de
+  // clara/escura. Numa cor própria os dois papéis colapsam no principal.
+  const mancha = principal ?? (c.marca ?? c.forte);
+  const clara = ehClara(mancha);
+
   const estilo: Record<string, string> = {
     "--acao-forte": principal ?? c.forte,
-    "--acao-marca": principal ?? (c.marca ?? c.forte),
+    "--acao-marca": mancha,
     "--acao-fundo": principal ? comAlfa(principal, 0.08) : c.fundo,
     "--acao-borda": principal ? comAlfa(principal, 0.18) : c.borda,
+    // O tom pra TEXTO colorido sobre branco (o número da meta, um destaque).
+    // Cor escura: o próprio forte. Cor clara (amarelo): forte viraria ocre, e
+    // um número ocre lê como cor errada, então cai num escuro neutro, que lê
+    // como número preto de propósito, e deixa a cor viva pra barra e o herói.
+    "--acao-texto": clara ? "#1b2530" : principal ?? c.forte,
   };
+
+  // O herói. Cor escura: tom forte com letra branca, como sempre. Cor clara: o
+  // tom vivo mesmo (o amarelo que a pessoa escolheu), com a letra escura pra
+  // ler por cima. O fim do degradê é um passo mais fundo da mesma cor.
+  if (clara) {
+    estilo["--acao-heroi-de"] = mancha;
+    estilo["--acao-heroi-ate"] = topo ?? `color-mix(in srgb, ${mancha}, #000 16%)`;
+    estilo["--acao-heroi-tinta"] = `color-mix(in srgb, ${mancha}, #000 86%)`;
+  } else {
+    estilo["--acao-heroi-de"] = principal ?? c.forte;
+    estilo["--acao-heroi-ate"] =
+      topo ?? `color-mix(in srgb, ${principal ?? c.forte}, #06121a 55%)`;
+    estilo["--acao-heroi-tinta"] = "#ffffff";
+  }
+
   // Só define o topo quando é próprio: assim o CSS cai no azul padrão do heroi
   // (var(--acao-topo, var(--azul-fundo))) pra todo mundo que não escolheu.
   if (topo) estilo["--acao-topo"] = topo;

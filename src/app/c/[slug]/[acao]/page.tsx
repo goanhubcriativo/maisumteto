@@ -282,7 +282,7 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
           <section className="grande grande-no-hero">
             <div className="grande-topo">
               <div>
-                <div className="grande-valor" style={{ color: cor.forte }}>
+                <div className="grande-valor" style={{ color: "var(--acao-texto)" }}>
                   {formatarBRL(Math.max(0, acao.liquidoCentavos))}
                 </div>
                 <div className="grande-rotulo">
@@ -324,7 +324,7 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
                 <div className="grafico">
                   <div
                     className="grafico-fatia"
-                    style={{ width: `${pct}%`, background: cor.forte }}
+                    style={{ width: `${pct}%`, background: cor.marca ?? cor.forte }}
                   />
                 </div>
                 <div className="grafico-regua">
@@ -373,7 +373,7 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
                   </div>
                 )}
                 <div>
-                  <span className="numero" style={{ color: cor.forte }}>
+                  <span className="numero" style={{ color: "var(--acao-texto)" }}>
                     {formatarBRL(resultado.liquidoCentavos)}
                   </span>
                   <span className="resultado-rotulo">foram para a casa</span>
