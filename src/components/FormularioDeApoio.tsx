@@ -370,7 +370,7 @@ export default function FormularioDeApoio({
                       className={`ap-dim-valor${marcado ? " marcado" : ""}${
                         indisponivel ? " esgotado" : ""
                       }`}
-                      style={marcado ? { borderColor: corForte, color: corForte } : undefined}
+                      style={marcado ? { borderColor: "var(--acao-marca)", color: "var(--acao-texto)" } : undefined}
                       aria-pressed={marcado}
                       onClick={() => {
                         setEscolhas(combo);
@@ -416,7 +416,7 @@ export default function FormularioDeApoio({
                   key={o.id}
                   type="button"
                   className={`ap-opcao${escolhida ? " escolhida" : ""}${o.esgotada ? " esgotada" : ""}`}
-                  style={escolhida ? { borderColor: corForte } : undefined}
+                  style={escolhida ? { borderColor: "var(--acao-marca)" } : undefined}
                   disabled={o.esgotada}
                   onClick={() => {
                     setOpcaoId(o.id);
@@ -424,7 +424,7 @@ export default function FormularioDeApoio({
                   }}
                 >
                   <span className="ap-opcao-nome">{o.nome}</span>
-                  <span className="ap-opcao-preco" style={escolhida ? { color: corForte } : undefined}>
+                  <span className="ap-opcao-preco" style={escolhida ? { color: "var(--acao-texto)" } : undefined}>
                     {o.esgotada ? "Esgotado" : formatar(o.precoCentavos)}
                   </span>
                   {!o.esgotada && o.restante !== null && o.restante <= 10 && (
@@ -453,7 +453,7 @@ export default function FormularioDeApoio({
                   key={v}
                   type="button"
                   className={`ap-valor${escolhido ? " escolhido" : ""}`}
-                  style={escolhido ? { borderColor: corForte, color: corForte } : undefined}
+                  style={escolhido ? { borderColor: "var(--acao-marca)", color: "var(--acao-texto)" } : undefined}
                   onClick={() => {
                     setValor(v * 100);
                     // Preenche tambem o campo de baixo. Antes ele continuava
@@ -601,7 +601,7 @@ export default function FormularioDeApoio({
           <button
             type="button"
             className="caixinha-ok"
-            style={{ background: corForte }}
+            style={{ background: "var(--acao-solido)", color: "var(--acao-solido-tinta)" }}
             onClick={() => sigilo.current?.close()}
           >
             Entendi
@@ -623,11 +623,11 @@ export default function FormularioDeApoio({
               key={e.tipo}
               type="button"
               className={`ap-entrega${marcada ? " marcada" : ""}`}
-              style={marcada ? { borderColor: corForte } : undefined}
+              style={marcada ? { borderColor: "var(--acao-marca)" } : undefined}
               aria-pressed={marcada}
               onClick={() => setEntregaTipo(e.tipo)}
             >
-              <span className="ap-entrega-nome" style={marcada ? { color: corForte } : undefined}>
+              <span className="ap-entrega-nome" style={marcada ? { color: "var(--acao-texto)" } : undefined}>
                 {e.rotulo}
               </span>
               {e.texto && <span className="ap-entrega-texto">{e.texto}</span>}
@@ -661,7 +661,7 @@ export default function FormularioDeApoio({
                   key={v}
                   type="button"
                   className={`ap-valor${escolhido ? " escolhido" : ""}`}
-                  style={escolhido ? { borderColor: corForte, color: corForte } : undefined}
+                  style={escolhido ? { borderColor: "var(--acao-marca)", color: "var(--acao-texto)" } : undefined}
                   onClick={() => {
                     // Clicar de novo no mesmo tira: o extra é opcional e a
                     // pessoa precisa conseguir voltar atrás sem recarregar.
@@ -707,7 +707,7 @@ export default function FormularioDeApoio({
       <button
         className="ap-enviar"
         type="submit"
-        style={{ background: corForte }}
+        style={{ background: "var(--acao-solido)", color: "var(--acao-solido-tinta)" }}
         disabled={enviando || total <= 0 || (evento && !temIngressoNoCarrinho)}
       >
         {enviando
@@ -887,7 +887,7 @@ export default function FormularioDeApoio({
             <h2 className="loja-nome">{loja.nome}</h2>
 
             {precoUnit > 0 && (
-              <div className="loja-preco" style={{ color: corForte }}>
+              <div className="loja-preco" style={{ color: "var(--acao-texto)" }}>
                 {formatar(precoUnit)}
               </div>
             )}
@@ -898,7 +898,7 @@ export default function FormularioDeApoio({
               ) : (
                 <div
                   className={`loja-estoque${totalDisponivel <= 10 ? " urgente" : ""}`}
-                  style={totalDisponivel > 10 ? { color: corForte, borderColor: corForte } : undefined}
+                  style={totalDisponivel > 10 ? { color: "var(--acao-texto)", borderColor: "var(--acao-marca)" } : undefined}
                 >
                   <strong>{totalDisponivel}</strong>{" "}
                   {totalDisponivel <= 10

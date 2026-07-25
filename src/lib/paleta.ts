@@ -286,6 +286,12 @@ export function estiloDaCor(
     // um número ocre lê como cor errada, então cai num escuro neutro, que lê
     // como número preto de propósito, e deixa a cor viva pra barra e o herói.
     "--acao-texto": clara ? "#1b2530" : principal ?? c.forte,
+    // O botão cheio (Pagar, Entendi) e qualquer mancha que carrega texto: usa a
+    // cor VIVA quando ela é clara (amarelo de verdade, com letra escura) e o
+    // tom forte quando ela é escura (que aí já é a identidade e aguenta branco).
+    // É a MESMA cor do herói: o que a pessoa clicou é o que ela vê no botão.
+    "--acao-solido": clara ? mancha : principal ?? c.forte,
+    "--acao-solido-tinta": clara ? "#1b2530" : "#ffffff",
   };
 
   // O herói. Cor escura: tom forte com letra branca, como sempre. Cor clara: o

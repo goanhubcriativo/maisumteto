@@ -541,7 +541,7 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
                     <ol>
                       {receita.comoParticipar.map((passo, i) => (
                         <li key={i}>
-                          <span className="passo-n" style={{ background: cor.forte }}>
+                          <span className="passo-n" style={{ background: "var(--acao-solido)", color: "var(--acao-solido-tinta)" }}>
                             {i + 1}
                           </span>
                           <span>{passo}</span>
@@ -560,7 +560,7 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
               <ol className="passos-faixa">
                 {receita.comoParticipar.map((passo, i) => (
                   <li key={i}>
-                    <span className="passo-n" style={{ background: cor.forte }}>
+                    <span className="passo-n" style={{ background: "var(--acao-solido)", color: "var(--acao-solido-tinta)" }}>
                       {i + 1}
                     </span>
                     <span>{passo}</span>
