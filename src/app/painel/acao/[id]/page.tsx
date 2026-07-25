@@ -21,7 +21,7 @@ import { PALETA, lerCoresProprias } from "@/lib/paleta";
 import { formatarBRL, formatarBRLCurto, paraCentavos } from "@/lib/dinheiro";
 import { exigirLogin, exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import { lerNumeros, registrarLancamentoManual } from "@/lib/manual";
-import { criarOpcao, salvarOpcao, removerOpcao, sincronizarOpcoes } from "@/lib/opcoes";
+import { sincronizarOpcoes } from "@/lib/opcoes";
 import { registrarCustoFixo, custosFixosDaAcao, apagarCustoFixo } from "@/lib/lancamentos";
 import FormularioDoProduto from "@/components/FormularioDoProduto";
 import FormularioDoEvento from "@/components/FormularioDoEvento";
@@ -88,13 +88,12 @@ export default async function EditarAcao({
     salvo?: string;
     lancado?: string;
     erro?: string;
-    erroOpcao?: string;
     custo?: string;
     erroCusto?: string;
   }>;
 }) {
   const { id } = await params;
-  const { novo, salvo, lancado, erro, erroOpcao, custo, erroCusto } = await searchParams;
+  const { novo, salvo, lancado, erro, custo, erroCusto } = await searchParams;
 
   const usuario = await exigirLogin();
   const acao = await buscarAcao(id);
@@ -522,46 +521,6 @@ export default async function EditarAcao({
     redirect("/painel");
   }
 
-  // Opções de venda: o lote do ingresso, o tamanho da camisa. O preço vem em
-  // reais e vira centavos aqui; estoque vazio = ilimitado.
-  async function adicionarOpcao(dados: FormData) {
-    "use server";
-    await exigirEdicao();
-    const nome = String(dados.get("nome") ?? "").trim();
-    const preco = paraCentavos(String(dados.get("preco") ?? "")) ?? 0;
-    if (!nome || preco <= 0) {
-      redirect(`/painel/acao/${acaoId}?erroOpcao=${encodeURIComponent("Dê um nome e um preço à opção.")}`);
-    }
-    const estoque = String(dados.get("estoque") ?? "").trim();
-    await criarOpcao(acaoId, {
-      nome,
-      precoCentavos: preco,
-      custoUnitarioCentavos: paraCentavos(String(dados.get("custo") ?? "")) ?? 0,
-      estoqueTotal: estoque ? Math.max(0, Math.floor(Number(estoque))) : null,
-    });
-    recarregar(acaoId);
-  }
-
-  async function salvarOpcaoAction(dados: FormData) {
-    "use server";
-    await exigirEdicao();
-    const estoque = String(dados.get("estoque") ?? "").trim();
-    await salvarOpcao(String(dados.get("id")), {
-      nome: String(dados.get("nome") ?? "").trim(),
-      precoCentavos: paraCentavos(String(dados.get("preco") ?? "")) ?? 0,
-      custoUnitarioCentavos: paraCentavos(String(dados.get("custo") ?? "")) ?? 0,
-      estoqueTotal: estoque ? Math.max(0, Math.floor(Number(estoque))) : null,
-    });
-    recarregar(acaoId);
-  }
-
-  async function removerOpcaoAction(dados: FormData) {
-    "use server";
-    await exigirEdicao();
-    await removerOpcao(acaoId, String(dados.get("id")));
-    recarregar(acaoId);
-  }
-
   // Custo fixo: o valor cheio que a ação custou pra acontecer, e que some do
   // líquido na hora (a barra passa a precisar dele a mais pra fechar a meta).
   async function lancarCustoAction(dados: FormData) {
@@ -975,126 +934,6 @@ export default async function EditarAcao({
         )}
       </section>
 
-      {/* Opções de venda: os lotes do ingresso, os tamanhos da camisa. Cada uma
-          com preço e estoque próprios. Só evento e produto usam. */}
-      {/* O produto NÃO entra aqui: as variações dele são montadas na grade do
-          próprio formulário, e um segundo editor das mesmas opções brigaria com
-          ela (salvar num lugar desfaria o outro). */}
-      {acao.tipo === "EVENTO" && (
-        <section className="painel-cartao">
-          <h2 className="formulario-secao">
-            {acao.tipo === "EVENTO" ? "Tipos de ingresso" : "Opções e tamanhos"}
-          </h2>
-          <p className="campo-ajuda" style={{ margin: "-8px 0 18px" }}>
-            {acao.tipo === "EVENTO"
-              ? "Cada tipo de ingresso (1º lote, 2º lote, VIP) com seu preço e sua quantidade. Quem compra escolhe um."
-              : "Cada variação (P, M, G, sabor, cor) com seu preço e seu estoque. Quem compra escolhe uma."}{" "}
-            Sem nenhuma opção, a ação cobra pelo preço único lá de cima.
-          </p>
-
-          {erroOpcao && (
-            <p className="aviso-ruim" role="alert">
-              {erroOpcao}
-            </p>
-          )}
-
-          {(acao.opcoes ?? []).length > 0 && (
-            <div className="opcoes-lista">
-              {(acao.opcoes ?? []).map((o) => (
-                <form key={o.id} action={salvarOpcaoAction} className="opcao-linha">
-                  <input type="hidden" name="id" value={o.id} />
-                  <label className="campo opcao-nome">
-                    <span className="campo-rotulo">Nome</span>
-                    <input className="campo-entrada" name="nome" defaultValue={o.nome} />
-                  </label>
-                  <label className="campo opcao-preco">
-                    <span className="campo-rotulo">Preço</span>
-                    <input
-                      className="campo-entrada"
-                      name="preco"
-                      inputMode="decimal"
-                      defaultValue={(o.precoCentavos / 100).toFixed(2).replace(".", ",")}
-                    />
-                  </label>
-                  <label className="campo opcao-preco">
-                    <span className="campo-rotulo">Custo</span>
-                    <input
-                      className="campo-entrada"
-                      name="custo"
-                      inputMode="decimal"
-                      defaultValue={
-                        o.custoUnitarioCentavos
-                          ? (o.custoUnitarioCentavos / 100).toFixed(2).replace(".", ",")
-                          : ""
-                      }
-                      placeholder="0,00"
-                    />
-                  </label>
-                  <label className="campo opcao-estoque">
-                    <span className="campo-rotulo">Quantidade</span>
-                    <input
-                      className="campo-entrada"
-                      name="estoque"
-                      inputMode="numeric"
-                      defaultValue={o.estoqueTotal ?? ""}
-                      placeholder="livre"
-                    />
-                  </label>
-                  <div className="opcao-botoes">
-                    <button className="botao botao-contorno botao-pequeno" type="submit">
-                      Salvar
-                    </button>
-                    <button
-                      className="editor-mini perigo"
-                      type="submit"
-                      formAction={removerOpcaoAction}
-                      title="Remover opção"
-                    >
-                      Remover
-                    </button>
-                  </div>
-                  {o.estoqueTotal != null && (
-                    <span className="opcao-resta">
-                      {o.restante ?? 0} de {o.estoqueTotal} ainda disponíveis
-                    </span>
-                  )}
-                </form>
-              ))}
-            </div>
-          )}
-
-          <form action={adicionarOpcao} className="opcao-nova">
-            <h3 className="opcao-nova-titulo">Adicionar {acao.tipo === "EVENTO" ? "ingresso" : "opção"}</h3>
-            <div className="opcao-linha">
-              <label className="campo opcao-nome">
-                <span className="campo-rotulo">Nome</span>
-                <input
-                  className="campo-entrada"
-                  name="nome"
-                  placeholder={acao.tipo === "EVENTO" ? "1º lote" : "Tamanho M"}
-                />
-              </label>
-              <label className="campo opcao-preco">
-                <span className="campo-rotulo">Preço</span>
-                <input className="campo-entrada" name="preco" inputMode="decimal" placeholder="40,00" />
-              </label>
-              <label className="campo opcao-preco">
-                <span className="campo-rotulo">Custo</span>
-                <input className="campo-entrada" name="custo" inputMode="decimal" placeholder="0,00" />
-              </label>
-              <label className="campo opcao-estoque">
-                <span className="campo-rotulo">Quantidade</span>
-                <input className="campo-entrada" name="estoque" inputMode="numeric" placeholder="livre" />
-              </label>
-              <div className="opcao-botoes">
-                <button className="botao botao-primario botao-pequeno" type="submit">
-                  Adicionar
-                </button>
-              </div>
-            </div>
-          </form>
-        </section>
-      )}
 
       {/* O resumo da config também fica fora do produto: tudo que estaria aqui
           já é campo editável no formulário de cima. */}

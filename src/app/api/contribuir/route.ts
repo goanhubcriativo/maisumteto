@@ -105,7 +105,67 @@ export async function POST(req: NextRequest) {
   let custoUnitarioItem = acao.custoUnitarioCentavos;
   let dadosDoItem: Record<string, unknown> = dados;
 
-  if (ingressos.length > 0) {
+  // Carrinho de evento: a pessoa monta uma lista (vários tipos de ingresso,
+  // cada um com sua quantidade, mais os adicionais). Cada linha vira um Item do
+  // pedido, com preço e custo tirados do banco, nunca do corpo. Só o evento
+  // manda `itens`; as outras ações seguem no caminho de item único, intactas.
+  const itensCorpo = Array.isArray(corpo.itens) ? corpo.itens : [];
+  const ehCarrinhoEvento = itensCorpo.length > 0;
+  const linhasEvento: {
+    acaoId: string;
+    opcaoId: string;
+    quantidade: number;
+    valorUnitarioCentavos: number;
+    custoUnitarioCentavos: number;
+    dados: Record<string, unknown>;
+  }[] = [];
+
+  if (ehCarrinhoEvento) {
+    let temIngresso = false;
+    for (const bruto of itensCorpo) {
+      const oid = String((bruto as { opcaoId?: unknown })?.opcaoId ?? "");
+      const qtd = Math.floor(Number((bruto as { quantidade?: unknown })?.quantidade ?? 0));
+      if (!oid || !(qtd > 0)) continue;
+      const opc = opcoes.find((o) => o.id === oid);
+      if (!opc) {
+        return NextResponse.json({ erro: "Item inválido." }, { status: 400 });
+      }
+      if (qtd > LIMITE_POR_PEDIDO) {
+        return NextResponse.json(
+          { erro: `Máximo de ${LIMITE_POR_PEDIDO} por item.` },
+          { status: 400 }
+        );
+      }
+      if (opc.restante !== null && qtd > opc.restante) {
+        return NextResponse.json(
+          {
+            erro:
+              opc.restante === 0
+                ? `Acabou: ${opc.nome}.`
+                : `Restam apenas ${opc.restante} de ${opc.nome}.`,
+          },
+          { status: 409 }
+        );
+      }
+      if (!opc.ehExtra) temIngresso = true;
+      linhasEvento.push({
+        acaoId: acao.id,
+        opcaoId: opc.id,
+        quantidade: qtd,
+        valorUnitarioCentavos: opc.precoCentavos,
+        custoUnitarioCentavos: opc.custoUnitarioCentavos,
+        dados: { opcaoNome: opc.nome, ...(opc.ehExtra ? { ehExtra: true } : {}) },
+      });
+    }
+    if (linhasEvento.length === 0 || !temIngresso) {
+      return NextResponse.json({ erro: "Escolha ao menos um ingresso." }, { status: 400 });
+    }
+    quantos = 1; // no carrinho a quantidade mora em cada linha, não aqui
+    valorItens = linhasEvento.reduce(
+      (t, l) => t + l.valorUnitarioCentavos * l.quantidade,
+      0
+    );
+  } else if (ingressos.length > 0) {
     if (!opcaoEscolhida) {
       return NextResponse.json({ erro: "Escolha uma opção." }, { status: 400 });
     }
@@ -219,7 +279,8 @@ export async function POST(req: NextRequest) {
   // existem quando a ação tem opção marcada como extra; as outras ações mandam
   // a lista vazia e nada muda. O preço, como sempre, sai do banco, nunca do
   // corpo.
-  const extrasCorpo = Array.isArray(corpo.extras) ? corpo.extras : [];
+  const extrasCorpo =
+    !ehCarrinhoEvento && Array.isArray(corpo.extras) ? corpo.extras : [];
   const extrasEscolhidos: { opcao: (typeof opcoes)[number]; quantidade: number }[] = [];
   let extrasValor = 0;
   for (const bruto of extrasCorpo) {
@@ -254,7 +315,7 @@ export async function POST(req: NextRequest) {
   // O chorinho só vale fora da doação livre: lá o valor já é livre, somar um
   // "extra" seria pedir duas vezes a mesma coisa. Ação com opção de venda não é
   // doação livre, então aceita o extra. Teto de R$ 50 mil, o mesmo da doação.
-  const ehDoacaoLivre = !opcaoEscolhida && precoUnitario == null;
+  const ehDoacaoLivre = !ehCarrinhoEvento && !opcaoEscolhida && precoUnitario == null;
   const extra = ehDoacaoLivre ? 0 : Math.min(doacaoExtra, 5_000_000);
   const totalCentavos = valorItens + extrasValor + extra;
 
@@ -270,31 +331,36 @@ export async function POST(req: NextRequest) {
       doacaoExtraCentavos: extra,
       status: "PENDENTE",
       itens: {
-        create: [
-          {
-            acaoId: acao.id,
-            opcaoId: opcaoEscolhida?.id ?? null,
-            quantidade: quantos,
-            valorUnitarioCentavos: opcaoEscolhida
-              ? opcaoEscolhida.precoCentavos
-              : precoUnitario ?? valorItens,
-            // O custo é congelado no momento da venda: se a equipe mudar o custo
-            // depois, o que já foi vendido continua com o custo que valia.
-            custoUnitarioCentavos: custoUnitarioItem,
-            dados: dadosDoItem as never,
-          },
-          // Os adicionais viram itens próprios do mesmo pedido, cada um com o
-          // seu preço e custo congelados. O extrato e a taxa já sabem lidar com
-          // pedido de vários itens.
-          ...extrasEscolhidos.map((e) => ({
-            acaoId: acao.id,
-            opcaoId: e.opcao.id,
-            quantidade: e.quantidade,
-            valorUnitarioCentavos: e.opcao.precoCentavos,
-            custoUnitarioCentavos: e.opcao.custoUnitarioCentavos,
-            dados: { opcaoNome: e.opcao.nome, ehExtra: true } as never,
-          })),
-        ],
+        // No carrinho de evento, cada linha já é um item pronto (ingresso ou
+        // adicional). Fora dele, o caminho de sempre: o item principal e, se
+        // houver, os adicionais por cima.
+        create: ehCarrinhoEvento
+          ? linhasEvento.map((l) => ({ ...l, dados: l.dados as never }))
+          : [
+              {
+                acaoId: acao.id,
+                opcaoId: opcaoEscolhida?.id ?? null,
+                quantidade: quantos,
+                valorUnitarioCentavos: opcaoEscolhida
+                  ? opcaoEscolhida.precoCentavos
+                  : precoUnitario ?? valorItens,
+                // O custo é congelado no momento da venda: se a equipe mudar o
+                // custo depois, o que já foi vendido continua com o que valia.
+                custoUnitarioCentavos: custoUnitarioItem,
+                dados: dadosDoItem as never,
+              },
+              // Os adicionais viram itens próprios do mesmo pedido, cada um com
+              // o seu preço e custo congelados. O extrato e a taxa já sabem
+              // lidar com pedido de vários itens.
+              ...extrasEscolhidos.map((e) => ({
+                acaoId: acao.id,
+                opcaoId: e.opcao.id,
+                quantidade: e.quantidade,
+                valorUnitarioCentavos: e.opcao.precoCentavos,
+                custoUnitarioCentavos: e.opcao.custoUnitarioCentavos,
+                dados: { opcaoNome: e.opcao.nome, ehExtra: true } as never,
+              })),
+            ],
       },
     },
   });

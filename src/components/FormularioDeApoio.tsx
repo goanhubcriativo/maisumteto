@@ -183,12 +183,52 @@ export default function FormularioDeApoio({
   const [erro, setErro] = useState<string | null>(null);
   const sigilo = useRef<HTMLDialogElement>(null);
 
-  // O carrinho de adicionais: quantos de cada extra. Vazio = nenhum.
+  // O carrinho do evento: o que já foi somado, por id de opção (ingresso OU
+  // adicional). Fica vazio nas outras ações, que nem chegam a montar carrinho.
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
-  const extrasTotal = opcoesExtra.reduce(
-    (t, o) => t + (carrinho[o.id] ?? 0) * o.precoCentavos,
+  // O que está sendo escolhido AGORA, antes de clicar "adicionar ao carrinho":
+  // um balcão pros ingressos e outro pros adicionais. Some no botão, que joga
+  // as quantidades pro carrinho de baixo e zera o balcão.
+  const [balcaoIngresso, setBalcaoIngresso] = useState<Record<string, number>>({});
+  const [balcaoAdicional, setBalcaoAdicional] = useState<Record<string, number>>({});
+
+  const opcaoPorId = (id: string) => todasOpcoes.find((o) => o.id === id) ?? null;
+  const somaBalcao = (b: Record<string, number>) =>
+    Object.values(b).reduce((a, q) => a + q, 0);
+
+  // As linhas do carrinho, já com a opção resolvida e o subtotal. Ignora o que
+  // zerou (removido) e o que não casa com nenhuma opção.
+  const carrinhoLinhas = Object.entries(carrinho)
+    .map(([id, q]) => ({ opcao: opcaoPorId(id), quantidade: q }))
+    .filter((l): l is { opcao: OpcaoDoForm; quantidade: number } => !!l.opcao && l.quantidade > 0);
+  const carrinhoTotal = carrinhoLinhas.reduce(
+    (t, l) => t + l.opcao.precoCentavos * l.quantidade,
     0
   );
+  const temIngressoNoCarrinho = carrinhoLinhas.some((l) => !l.opcao.ehExtra);
+
+  /** Joga um balcão pro carrinho (somando ao que já tem) e zera o balcão. */
+  function adicionarAoCarrinho(
+    balcao: Record<string, number>,
+    limpar: (v: Record<string, number>) => void
+  ) {
+    setCarrinho((c) => {
+      const novo = { ...c };
+      for (const [id, q] of Object.entries(balcao)) {
+        if (q > 0) novo[id] = (novo[id] ?? 0) + q;
+      }
+      return novo;
+    });
+    limpar({});
+  }
+
+  function removerDoCarrinho(id: string) {
+    setCarrinho((c) => {
+      const novo = { ...c };
+      delete novo[id];
+      return novo;
+    });
+  }
 
   // A forma de entrega escolhida. Já começa na primeira: quase sempre é a que
   // a equipe considera a principal, e assim ninguém trava por falta de marcar.
@@ -216,7 +256,11 @@ export default function FormularioDeApoio({
   const quantos = ehRifa ? numeros.length : quantidade;
   const precoUnit = temOpcoes ? opcaoEscolhida?.precoCentavos ?? 0 : precoCentavos ?? 0;
   const totalItens = valorLivre ? (valor ?? 0) : precoUnit * quantos;
-  const total = totalItens + extrasTotal + (valorLivre ? 0 : extra);
+  // O evento paga o que está no carrinho (mais o chorinho, se houver). As
+  // outras ações somam o item e o chorinho, como sempre.
+  const total = evento
+    ? carrinhoTotal + extra
+    : totalItens + (valorLivre ? 0 : extra);
 
   async function enviar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -235,20 +279,27 @@ export default function FormularioDeApoio({
           whatsapp: telefone,
           cpf,
           anonimo: dados.get("anonimo") === "on",
-          quantidade: quantos,
-          opcaoId: temOpcoes ? opcaoEscolhida?.id : undefined,
-          // O que vai amarrado ao item do pedido: os números da rifa, e a
-          // forma de entrega que a pessoa escolheu.
-          dados: {
-            ...(ehRifa ? { numeros } : {}),
-            ...(entregaEscolhida ? { entrega: entregaEscolhida.rotulo } : {}),
-          },
-          valorCentavos: valorLivre ? valor : undefined,
           doacaoExtraCentavos: valorLivre ? undefined : extra,
-          // Os adicionais do carrinho, cada um com sua quantidade.
-          extras: opcoesExtra
-            .filter((o) => (carrinho[o.id] ?? 0) > 0)
-            .map((o) => ({ opcaoId: o.id, quantidade: carrinho[o.id] })),
+          // O evento manda o carrinho inteiro (cada ingresso e adicional vira um
+          // item). As outras ações seguem com o item único de sempre.
+          ...(evento
+            ? {
+                itens: carrinhoLinhas.map((l) => ({
+                  opcaoId: l.opcao.id,
+                  quantidade: l.quantidade,
+                })),
+              }
+            : {
+                quantidade: quantos,
+                opcaoId: temOpcoes ? opcaoEscolhida?.id : undefined,
+                // O que vai amarrado ao item: os números da rifa e a forma de
+                // entrega que a pessoa escolheu.
+                dados: {
+                  ...(ehRifa ? { numeros } : {}),
+                  ...(entregaEscolhida ? { entrega: entregaEscolhida.rotulo } : {}),
+                },
+                valorCentavos: valorLivre ? valor : undefined,
+              }),
         }),
       });
 
@@ -497,7 +548,6 @@ export default function FormularioDeApoio({
               value={cpf}
               onChange={(e) => setCpf(mascararCpf(e.target.value))}
             />
-            <span className="ap-dica">O banco exige. Não aparece no site.</span>
           </label>
         </div>
 
@@ -658,69 +708,138 @@ export default function FormularioDeApoio({
         className="ap-enviar"
         type="submit"
         style={{ background: corForte }}
-        disabled={enviando || total <= 0}
+        disabled={enviando || total <= 0 || (evento && !temIngressoNoCarrinho)}
       >
         {enviando
           ? "Gerando seu PIX..."
-          : total > 0
-            ? `Pagar ${formatar(total)} por PIX`
-            : "Escolha um valor acima"}
+          : evento && !temIngressoNoCarrinho
+            ? "Adicione um ingresso ao carrinho"
+            : total > 0
+              ? `Pagar ${formatar(total)} por PIX`
+              : "Escolha um valor acima"}
       </button>
 
       <p className="ap-rodape">Pagamento por PIX. Leva menos de um minuto.</p>
     </>
   );
 
-  // Os adicionais do evento: cada um com um contador ao lado, pra pessoa ir
-  // montando o carrinho antes de preencher os dados. Some do fluxo das outras
-  // ações (só o evento tem extras).
-  const blocoAdicionais = opcoesExtra.length > 0 && (
-    <div className="ap-bloco">
-      <span className="ap-pergunta">Adicionais</span>
-      <span className="ap-dica">Opcional. Some o que quiser por cima do ingresso.</span>
-      <div className="ap-adicionais">
-        {opcoesExtra.map((o) => {
-          const qtd = carrinho[o.id] ?? 0;
-          const teto = o.restante ?? 99;
-          return (
-            <div key={o.id} className={`ap-adicional${o.esgotada ? " esgotado" : ""}`}>
-              <div className="ap-adicional-texto">
-                <span className="ap-adicional-nome">{o.nome}</span>
-                <span className="ap-adicional-preco">{formatar(o.precoCentavos)}</span>
-              </div>
-              {o.esgotada ? (
-                <span className="ap-adicional-esgotado">Esgotado</span>
-              ) : (
-                <div className="ap-contador pequeno">
-                  <button
-                    type="button"
-                    onClick={() => setCarrinho((c) => ({ ...c, [o.id]: Math.max(0, (c[o.id] ?? 0) - 1) }))}
-                    disabled={qtd <= 0}
-                    aria-label={`Menos ${o.nome}`}
-                  >
-                    −
-                  </button>
-                  <span className="ap-numero">{qtd}</span>
-                  <button
-                    type="button"
-                    onClick={() => setCarrinho((c) => ({ ...c, [o.id]: Math.min(teto, (c[o.id] ?? 0) + 1) }))}
-                    disabled={qtd >= teto}
-                    aria-label={`Mais ${o.nome}`}
-                  >
-                    +
-                  </button>
+  // Um "balcão": a lista de ingressos (ou de adicionais), cada linha com o preço
+  // à direita e um contador de quantidade, e embaixo o botão que joga tudo pro
+  // carrinho. A pessoa pode levar mais de um tipo (2 inteiras + 1 batalha), por
+  // isso é contador em cada linha, e não escolher-um. Só o evento usa isto.
+  function balcao(
+    titulo: string,
+    dica: string,
+    lista: OpcaoDoForm[],
+    valores: Record<string, number>,
+    setValores: (v: Record<string, number>) => void
+  ) {
+    if (lista.length === 0) return null;
+    return (
+      <div className="ap-bloco">
+        <span className="ap-pergunta">{titulo}</span>
+        <span className="ap-dica">{dica}</span>
+        <div className="ap-adicionais">
+          {lista.map((o) => {
+            const qtd = valores[o.id] ?? 0;
+            const noCarrinho = carrinho[o.id] ?? 0;
+            // O teto já desconta o que a pessoa colocou no carrinho: somando o
+            // balcão, nunca passa do que resta de verdade.
+            const teto = o.restante != null ? Math.max(0, o.restante - noCarrinho) : 99;
+            const semVaga = o.esgotada || teto <= 0;
+            return (
+              <div key={o.id} className={`ap-adicional${semVaga ? " esgotado" : ""}`}>
+                <div className="ap-adicional-texto">
+                  <span className="ap-adicional-nome">{o.nome}</span>
+                  {!o.esgotada && o.restante !== null && o.restante <= 10 && (
+                    <span className="ap-adicional-preco">restam {o.restante}</span>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
+                <span className="ap-linha-preco">{formatar(o.precoCentavos)}</span>
+                {semVaga ? (
+                  <span className="ap-adicional-esgotado">
+                    {o.esgotada ? "Esgotado" : "No carrinho"}
+                  </span>
+                ) : (
+                  <div className="ap-contador pequeno">
+                    <button
+                      type="button"
+                      onClick={() => setValores({ ...valores, [o.id]: Math.max(0, qtd - 1) })}
+                      disabled={qtd <= 0}
+                      aria-label={`Menos ${o.nome}`}
+                    >
+                      −
+                    </button>
+                    <span className="ap-numero">{qtd}</span>
+                    <button
+                      type="button"
+                      onClick={() => setValores({ ...valores, [o.id]: Math.min(teto, qtd + 1) })}
+                      disabled={qtd >= teto}
+                      aria-label={`Mais ${o.nome}`}
+                    >
+                      +
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          className="ap-add-carrinho"
+          disabled={somaBalcao(valores) === 0}
+          onClick={() => adicionarAoCarrinho(valores, setValores)}
+        >
+          Adicionar ao carrinho
+        </button>
       </div>
+    );
+  }
+
+  // O carrinho: a lista do que já foi somado, com o valor de cada linha, um
+  // total, e um × pra tirar. Vem antes dos dados: a pessoa fecha a conta e só
+  // então se identifica pra pagar.
+  const blocoCarrinho = (
+    <div className="ap-bloco ap-carrinho">
+      <span className="ap-pergunta">Carrinho</span>
+      {carrinhoLinhas.length === 0 ? (
+        <span className="ap-dica">
+          Seu carrinho está vazio. Adicione ao menos um ingresso acima.
+        </span>
+      ) : (
+        <>
+          <ul className="ap-carrinho-lista">
+            {carrinhoLinhas.map((l) => (
+              <li key={l.opcao.id}>
+                <span className="ap-carrinho-qtd">{l.quantidade}×</span>
+                <span className="ap-carrinho-nome">{l.opcao.nome}</span>
+                <span className="ap-carrinho-valor">
+                  {formatar(l.opcao.precoCentavos * l.quantidade)}
+                </span>
+                <button
+                  type="button"
+                  className="ap-carrinho-x"
+                  onClick={() => removerDoCarrinho(l.opcao.id)}
+                  aria-label={`Remover ${l.opcao.nome}`}
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="ap-carrinho-total">
+            <span>Total</span>
+            <strong>{formatar(carrinhoTotal)}</strong>
+          </div>
+        </>
+      )}
     </div>
   );
 
   // Arrumação de EVENTO: os detalhes e a descrição de um lado, o carrinho do
-  // outro (50/50). O carrinho é: escolhe o ingresso, soma os adicionais, e só
-  // então preenche os dados e paga.
+  // outro (50/50). O fluxo: monta os ingressos, soma os adicionais, confere o
+  // carrinho e só então preenche os dados e paga.
   if (evento) {
     return (
       <form className="ap loja" onSubmit={enviar}>
@@ -731,8 +850,21 @@ export default function FormularioDeApoio({
           </div>
 
           <div className="loja-compra">
-            {blocoEscolha}
-            {blocoAdicionais}
+            {balcao(
+              "Ingressos",
+              "Você pode levar mais de um tipo.",
+              opcoes,
+              balcaoIngresso,
+              setBalcaoIngresso
+            )}
+            {balcao(
+              "Adicionais",
+              "Opcional. Some o que quiser por cima do ingresso.",
+              opcoesExtra,
+              balcaoAdicional,
+              setBalcaoAdicional
+            )}
+            {blocoCarrinho}
             {blocoDados}
             {blocoExtra}
             {blocoFecha}

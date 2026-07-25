@@ -4275,7 +4275,11 @@ body {
 .evento-detalhes > div {
   margin: 0;
 }
-.evento-detalhes strong {
+/* O rótulo (QUANDO, ONDE, INCLUÍDO) é só o <strong> que rotula a linha: o
+   filho direto do <p>/<div>. O negrito que a pessoa escreveu DENTRO do texto
+   rico (ex.: "com um ingresso padrão") não é rótulo, e não pode virar menu. */
+.evento-detalhes p > strong,
+.evento-detalhes > div > strong {
   display: block;
   font-size: 11px;
   font-weight: 700;
@@ -4283,6 +4287,15 @@ body {
   text-transform: uppercase;
   color: var(--tinta-50);
   margin-bottom: 2px;
+}
+.evento-detalhes .texto strong {
+  display: inline;
+  font-size: inherit;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+  color: inherit;
+  margin: 0;
 }
 .evento-detalhes span {
   font-size: 15px;
@@ -4317,6 +4330,7 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  flex: 1 1 auto;
 }
 .ap-adicional-nome {
   font-size: 14.5px;
@@ -4345,4 +4359,101 @@ body {
   min-width: 20px;
   text-align: center;
   font-size: 16px;
+}
+
+/* O preço de cada linha (ingresso ou adicional) fica NEUTRO, escuro, como em
+   loja de verdade: preço é informação, não enfeite. A cor da ação (que pode
+   ser um amarelo que, escuro o bastante pra ler no branco, viraria ocre) mora
+   nos lugares certos: a fita do card, a barra da meta, a borda dos botões. */
+.ap-linha-preco {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--tinta-90);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+/* O botão ADICIONAR AO CARRINHO: contorno na cor viva da ação (var --acao-marca,
+   que é o tom cheio, não o escurecido pra texto), texto escuro pra ler sempre. */
+.ap-add-carrinho {
+  margin-top: 4px;
+  padding: 11px 16px;
+  border: 1.5px solid var(--acao-marca, var(--azul));
+  border-radius: 10px;
+  background: var(--acao-fundo, transparent);
+  color: var(--tinta-90);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.12s;
+}
+.ap-add-carrinho:hover:not(:disabled) {
+  filter: brightness(0.97);
+}
+.ap-add-carrinho:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* O carrinho: a lista do que já foi somado, com um total embaixo. */
+.ap-carrinho {
+  background: var(--cinza);
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.ap-carrinho-lista {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.ap-carrinho-lista li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+}
+.ap-carrinho-qtd {
+  font-weight: 700;
+  color: var(--tinta-90);
+  flex: 0 0 auto;
+}
+.ap-carrinho-nome {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ap-carrinho-valor {
+  font-weight: 700;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.ap-carrinho-x {
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: none;
+  color: var(--tinta-50);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.ap-carrinho-x:hover {
+  background: var(--linha);
+  color: var(--tinta-90);
+}
+.ap-carrinho-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--linha);
+  font-size: 15px;
+}
+.ap-carrinho-total strong {
+  font-size: 20px;
 }
