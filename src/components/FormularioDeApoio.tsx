@@ -262,11 +262,11 @@ export default function FormularioDeApoio({
     ? carrinhoTotal + extra
     : totalItens + (valorLivre ? 0 : extra);
 
-  async function enviar(evento: React.FormEvent<HTMLFormElement>) {
-    evento.preventDefault();
+  async function enviar(ev: React.FormEvent<HTMLFormElement>) {
+    ev.preventDefault();
     setErro(null);
 
-    const dados = new FormData(evento.currentTarget);
+    const dados = new FormData(ev.currentTarget);
     setEnviando(true);
 
     try {
