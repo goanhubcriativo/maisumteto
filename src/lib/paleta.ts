@@ -320,8 +320,12 @@ export function estiloDaCor(
     estilo["--acao-heroi-tinta"] = `color-mix(in srgb, ${mancha}, #000 86%)`;
   } else {
     estilo["--acao-heroi-de"] = principal ?? c.forte;
+    // Só um passo mais fundo da MESMA cor, não um fade pro quase-preto: com 55%
+    // de escuro o coral apagava no rodapé do herói e virava um bronze
+    // avermelhado. 10% dá profundidade sem tirar a cor. (Cor própria com topo
+    // definido segue no degradê que a pessoa escolheu.)
     estilo["--acao-heroi-ate"] =
-      topo ?? `color-mix(in srgb, ${principal ?? c.forte}, #06121a 55%)`;
+      topo ?? `color-mix(in srgb, ${principal ?? c.forte}, #000 10%)`;
     estilo["--acao-heroi-tinta"] = "#ffffff";
   }
 
