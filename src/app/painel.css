@@ -2755,3 +2755,28 @@ textarea.campo-entrada {
     align-items: stretch;
   }
 }
+
+/* Busca + filtro dos pedidos: a busca em cima (larga), o filtro embaixo. */
+.pedidos-controles {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pedidos-busca {
+  position: relative;
+  max-width: 460px;
+}
+.pedidos-busca-lupa {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--tinta-50);
+  pointer-events: none;
+}
+.pedidos-busca .campo-entrada {
+  width: 100%;
+  padding-left: 38px;
+}

@@ -8,6 +8,7 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { exigirLogin, exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
+import BuscaPedidos from "@/components/BuscaPedidos";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,11 @@ function mascararTelefone(t: string | null): string {
 function quando(d: Date | null): string {
   if (!d) return "";
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+
+/** minúsculas e sem acento, pro texto que a busca compara (igual ao cliente). */
+function normalizar(s: string): string {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
 export default async function Pedidos({
@@ -142,7 +148,8 @@ export default async function Pedidos({
       </section>
 
       {total > 0 && (
-        <div className="extrato-barra">
+        <div className="pedidos-controles">
+          <BuscaPedidos />
           <div className="pedidos-filtro" role="tablist" aria-label="Filtrar pedidos">
             {[
               { id: "pendentes", rotulo: `A entregar (${pendentes})` },
@@ -179,8 +186,15 @@ export default async function Pedidos({
                 p.itens.map((i) => dado(i, "entrega") as string | undefined).filter(Boolean)
               ),
             ].join(", ");
+            const buscaTexto = normalizar(
+              [p.nome, p.whatsapp, itens.join(" "), entrega, p.entregaComo ?? ""].join(" ")
+            );
             return (
-              <div key={p.id} className={`pedido-cartao${p.entregue ? " entregue" : ""}`}>
+              <div
+                key={p.id}
+                data-busca={buscaTexto}
+                className={`pedido-cartao${p.entregue ? " entregue" : ""}`}
+              >
                 <div className="pedido-topo">
                   <div className="pedido-quem">
                     <strong>{p.nome}</strong>
@@ -250,6 +264,11 @@ export default async function Pedidos({
           })}
         </div>
       )}
+
+      {/* Só aparece quando a busca não encontra nada (o cliente liga/desliga). */}
+      <div id="busca-vazia" hidden className="vazio">
+        Nenhum pedido encontrado para essa busca.
+      </div>
     </div>
   );
 }
