@@ -226,6 +226,14 @@ textarea.campo-entrada {
   color: var(--teto);
   box-shadow: 0 1px 3px rgba(18, 48, 63, 0.12);
 }
+/* No computador o menu é a trilha segmentada só com os rótulos; o ícone só
+   aparece no celular, onde o menu vira a barra fininha lateral. */
+.painel-nav-icone {
+  display: none;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
 /* O link pro site público fica fora da trilha, e com uma seta pra deixar claro
    que sai do painel. */
 .painel-nav-sair {
@@ -1225,13 +1233,70 @@ textarea.campo-entrada {
     flex-wrap: wrap;
     gap: 12px;
   }
+  /* O menu deixa de ser a faixa que rolava de lado (ruim de acertar o dedo) e
+     vira uma barra fininha fixa na esquerda: um ícone e um rótulo curto por
+     aba. O topo e o corpo abrem espaço pra ela. */
   .painel-nav {
-    order: 3;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 64px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    background: var(--branco);
+    border-right: 1px solid var(--linha);
+    z-index: 40;
+    padding: 8px 6px calc(10px + env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+  .painel-nav-grupo {
+    flex-direction: column;
+    gap: 4px;
     width: 100%;
-    overflow-x: auto;
+    background: none;
+    border: none;
+    padding: 0;
+    border-radius: 0;
+  }
+  .painel-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 2px;
+    font-size: 9.5px;
+    line-height: 1.15;
+    text-align: center;
+    border-radius: 10px;
+  }
+  .painel-nav-item.ativo {
+    background: var(--teto-6);
+    box-shadow: none;
+  }
+  .painel-nav-icone {
+    display: block;
+  }
+  .painel-nav-sair {
+    display: flex;
+    margin-top: auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 2px;
+    font-size: 9.5px;
+    text-align: center;
+  }
+  .painel-nav-sair::after {
+    content: none;
+  }
+  /* Abre a canaleta pra barra: topo e corpo deslocam pra direita dela. */
+  .painel-topo-linha {
+    padding-left: 78px;
   }
   .painel-corpo {
-    padding: 22px 16px 60px;
+    padding: 22px 16px 60px 78px;
   }
   .ferramentas {
     grid-template-columns: minmax(0, 1fr);
@@ -2535,5 +2600,158 @@ textarea.campo-entrada {
   }
   .evento-lote .campo:first-child {
     grid-column: 1 / -1;
+  }
+}
+
+/* ================= Pedidos: o controle de entrega ================= */
+
+/* O filtro em abas (a entregar / entregues / todos), a mesma trilha do menu. */
+.pedidos-filtro {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--cinza);
+  border: 1px solid var(--linha);
+  border-radius: 12px;
+}
+.pedidos-filtro-item {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tinta-70);
+  text-decoration: none;
+  padding: 7px 13px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.pedidos-filtro-item:hover {
+  color: var(--teto);
+}
+.pedidos-filtro-item.ativo {
+  background: var(--branco);
+  color: var(--teto);
+  box-shadow: 0 1px 3px rgba(18, 48, 63, 0.12);
+}
+
+.pedidos-lista {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+.pedido-cartao {
+  background: var(--branco);
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+  padding: 16px 18px;
+}
+.pedido-cartao.entregue {
+  background: var(--cinza);
+  border-color: var(--linha);
+}
+.pedido-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pedido-quem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pedido-quem strong {
+  font-size: 15.5px;
+}
+.pedido-contato {
+  font-size: 12.5px;
+  color: var(--tinta-70);
+}
+.pedido-selo {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.pedido-selo.pendente {
+  color: #9a6a00;
+  background: rgba(247, 191, 18, 0.16);
+}
+.pedido-selo.ok {
+  color: #0f8554;
+  background: rgba(22, 192, 121, 0.14);
+}
+.pedido-itens {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.pedido-itens li {
+  font-size: 13.5px;
+  font-weight: 600;
+  background: var(--cinza);
+  border: 1px solid var(--linha);
+  border-radius: 8px;
+  padding: 5px 10px;
+}
+.pedido-cartao.entregue .pedido-itens li {
+  background: var(--branco);
+}
+.pedido-entrega-pedida {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--tinta-70);
+}
+.pedido-entrega-pedida strong {
+  color: var(--tinta-90);
+}
+/* A ação de entregar: um campo do "como" e o botão, na mesma linha. */
+.pedido-entregar {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+.pedido-entregar .campo-entrada {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.pedido-entregar .botao {
+  flex: 0 0 auto;
+}
+.pedido-feito {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: var(--tinta-70);
+}
+.pedido-feito strong {
+  color: var(--tinta-90);
+}
+.pedido-desfazer {
+  flex: 0 0 auto;
+  border: none;
+  background: none;
+  color: var(--tinta-50);
+  font-size: 12.5px;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 4px;
+}
+.pedido-desfazer:hover {
+  color: var(--tinta-90);
+}
+@media (max-width: 560px) {
+  .pedido-entregar {
+    flex-direction: column;
+    align-items: stretch;
   }
 }

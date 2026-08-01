@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import RegistrarSW from "@/components/RegistrarSW";
 
 // Inter no lugar da Raleway (que e a fonte do material do bolao).
 //
@@ -18,12 +19,22 @@ export const metadata: Metadata = {
   title: "Um TETO, um RECOMEÇO!",
   description:
     "Arrecadação coletiva para construir uma casa. Doações, bolão, rifa, camisas e eventos, com extrato aberto de onde veio cada real.",
+  // Instalável: o nome do atalho na tela inicial e o ícone da barra do iOS.
+  appleWebApp: { capable: true, title: "Casa Amiga", statusBarStyle: "default" },
+  icons: { apple: "/icone-app.svg" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0092dd",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={inter.variable}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <RegistrarSW />
+      </body>
     </html>
   );
 }

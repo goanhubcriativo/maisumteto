@@ -330,6 +330,17 @@ model Pedido {
   pixQrCodeImage     String?   @db.Text // base64, sem o prefixo data:
   pixExpiraEm        DateTime?
 
+  // ---- Entrega ------------------------------------------------------------
+  // O controle do que a equipe já entregou (a camisa, o ingresso) e como. Só
+  // faz sentido pra pedido com item entregável (produto, evento); doação e rifa
+  // não têm o que entregar por pedido. Fica no Pedido, não no Item: a equipe
+  // entrega o pedido inteiro de uma vez, e um controle por item seria mais
+  // trabalho no dia a dia sem ganho real.
+  entregue    Boolean   @default(false)
+  /// Como foi entregue, em texto livre: "Retirou na sede", "Correios AA123", etc.
+  entregaComo String?
+  entregueEm  DateTime?
+
   itens       Item[]
   lancamentos Lancamento[]
   numerosRifa NumeroRifa[]
