@@ -2703,13 +2703,35 @@ textarea.campo-entrada {
 .pedido-cartao.entregue .pedido-itens li {
   background: var(--branco);
 }
-.pedido-entrega-pedida {
-  margin: 12px 0 0;
-  font-size: 13px;
-  color: var(--tinta-70);
+/* A forma de entrega, em destaque logo abaixo do nome: a etiqueta que a equipe
+   bate o olho pra saber como a pessoa quer receber (retirada, envio...). */
+.pedido-entrega {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 6px 12px 6px 10px;
+  background: var(--teto-6);
+  border: 1px solid var(--teto-12);
+  border-radius: 999px;
 }
-.pedido-entrega-pedida strong {
-  color: var(--tinta-90);
+.pedido-entrega-icone {
+  width: 17px;
+  height: 17px;
+  color: var(--azul);
+  flex: 0 0 auto;
+}
+.pedido-entrega-rotulo {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--tinta-50);
+}
+.pedido-entrega-valor {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--azul);
 }
 /* A ação de entregar: um campo do "como" e o botão, na mesma linha. */
 .pedido-entregar {

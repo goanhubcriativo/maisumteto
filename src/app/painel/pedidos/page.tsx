@@ -210,17 +210,33 @@ export default async function Pedidos({
                   )}
                 </div>
 
+                {entrega && (
+                  <div className="pedido-entrega">
+                    <svg
+                      className="pedido-entrega-icone"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.7"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 7h11v8H3z" />
+                      <path d="M14 10h4l3 3v2h-7z" />
+                      <circle cx="7" cy="17" r="1.7" />
+                      <circle cx="17.5" cy="17" r="1.7" />
+                    </svg>
+                    <span className="pedido-entrega-rotulo">Como quer receber</span>
+                    <span className="pedido-entrega-valor">{entrega}</span>
+                  </div>
+                )}
+
                 <ul className="pedido-itens">
                   {itens.map((t, i) => (
                     <li key={i}>{t}</li>
                   ))}
                 </ul>
-
-                {entrega && (
-                  <p className="pedido-entrega-pedida">
-                    Pediu para receber: <strong>{entrega}</strong>
-                  </p>
-                )}
 
                 {p.entregue ? (
                   <div className="pedido-feito">
