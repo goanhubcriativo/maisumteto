@@ -5,6 +5,7 @@ import {
   buscarAcao,
   campanhaAtual,
   contarApoiadores,
+  duplicarAcao,
   listarAcoes,
   moverAcao,
   publicarAcao,
@@ -17,6 +18,7 @@ import { lerNumeros, registrarLancamentoManual } from "@/lib/manual";
 import { receitaDe } from "@/lib/catalogo";
 import { IconeDaAcao } from "@/components/icones";
 import LancamentoManual from "@/components/LancamentoManual";
+import BotaoPendente from "@/components/BotaoPendente";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +75,17 @@ export default async function Painel({
     await moverAcao(c.id, String(dados.get("id")), dados.get("direcao") === "cima" ? "cima" : "baixo");
     revalidatePath("/painel");
     revalidatePath("/");
+  }
+
+  // Duplica uma ação (com opções, blocos e config), como rascunho, e abre a
+  // cópia pra equipe ajustar o que muda. Sem copiar venda nem dinheiro.
+  async function duplicar(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    const nova = await duplicarAcao(String(dados.get("id")));
+    revalidatePath("/painel");
+    if (nova) redirect(`/painel/acao/${nova.id}`);
+    redirect("/painel");
   }
 
   /**
@@ -192,6 +205,7 @@ export default async function Painel({
                 acao={a}
                 alternar={alternar}
                 lancar={lancarManualDaLista}
+                duplicar={duplicar}
                 hoje={hoje}
               />
             ))}
@@ -210,6 +224,7 @@ export default async function Painel({
             acao={a}
             alternar={alternar}
             lancar={lancarManualDaLista}
+            duplicar={duplicar}
             hoje={hoje}
             reordenar={reordenar}
             primeiro={i === 0}
@@ -225,6 +240,7 @@ function LinhaDeAcao({
   acao,
   alternar,
   lancar,
+  duplicar,
   hoje,
   reordenar,
   primeiro,
@@ -233,6 +249,7 @@ function LinhaDeAcao({
   acao: AcaoDoPainel;
   alternar: (dados: FormData) => Promise<void>;
   lancar: (dados: FormData) => Promise<void>;
+  duplicar: (dados: FormData) => Promise<void>;
   hoje: string;
   /** Só nas publicadas: sobe/desce o card. Ausente = sem setas (rascunho). */
   reordenar?: (dados: FormData) => Promise<void>;
@@ -318,6 +335,15 @@ function LinhaDeAcao({
         <Link href={`/painel/acao/${acao.id}`} className="botao botao-contorno botao-pequeno">
           Editar
         </Link>
+
+        {/* Duplicar: cria uma cópia rascunho desta ação (com opções e blocos) e
+            abre a cópia. Serve pra montar a próxima a partir de uma pronta. */}
+        <form action={duplicar}>
+          <input type="hidden" name="id" value={acao.id} />
+          <BotaoPendente pendente="Duplicando..." className="botao botao-contorno botao-pequeno">
+            Duplicar
+          </BotaoPendente>
+        </form>
       </span>
     </div>
   );

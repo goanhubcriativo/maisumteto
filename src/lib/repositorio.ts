@@ -146,84 +146,63 @@ export async function criarCampanhaDeTeste(equipeId: string) {
 }
 
 /**
- * Duplica uma campanha inteira: a casca (textos, capa, meta, ficha), as ações
- * (com preço, custo, estoque, cor, config), as opções de cada ação e os blocos
- * (da campanha e de cada ação). NÃO copia dinheiro nem venda: pedidos,
- * lançamentos, repasses, números de rifa e lances ficam de fora, senão a cópia
- * nasceria "com dinheiro" que nunca entrou. A cópia nasce como RASCUNHO, então
- * não some com a campanha pública (que é sempre a principal, a mais antiga).
+ * Duplica uma AÇÃO dentro da mesma campanha: leva preço, custo, estoque, cor,
+ * config, as opções (lotes, tamanhos, ingressos, adicionais) e os blocos da
+ * ação. NÃO copia dinheiro nem venda: itens, lançamentos, números de rifa e
+ * lances ficam de fora, senão a cópia nasceria com venda que nunca aconteceu.
+ * A cópia nasce como RASCUNHO, pra equipe ajustar o que muda e só então
+ * publicar. Serve pra criar a próxima camisa, o próximo lote, a partir de uma
+ * pronta, sem remontar tudo.
  *
- * As imagens são referências (URLs) e ficam compartilhadas de propósito: são
- * arquivos imutáveis; trocar a foto da cópia depois só troca a URL dela.
+ * As imagens são referências (URLs) compartilhadas de propósito: são arquivos
+ * imutáveis; trocar a foto da cópia depois só troca a URL dela.
  */
-export async function duplicarCampanha(id: string) {
-  const src = await prisma.campanha.findUnique({
+export async function duplicarAcao(id: string) {
+  const src = await prisma.acao.findUnique({
     where: { id },
-    include: {
-      blocos: true,
-      acoes: { include: { opcoes: true, blocos: true }, orderBy: { ordem: "asc" } },
-    },
+    include: { opcoes: true, blocos: true },
   });
   if (!src) return null;
 
-  const slug = await slugDeCampanhaLivre(`${src.slug}-copia`);
-  const bloco = (b: { tipo: string; ordem: number; visivel: boolean; conteudo: Prisma.JsonValue }) => ({
-    tipo: b.tipo,
-    ordem: b.ordem,
-    visivel: b.visivel,
-    conteudo: b.conteudo as Prisma.InputJsonValue,
-  });
+  const slug = await slugLivre(src.campanhaId, `${src.slug}-copia`);
 
-  return prisma.campanha.create({
+  return prisma.acao.create({
     data: {
-      equipeId: src.equipeId,
+      campanhaId: src.campanhaId,
+      tipo: src.tipo,
       slug,
       titulo: `${src.titulo} (cópia)`,
-      resumo: src.resumo,
-      historia: src.historia,
+      descricao: src.descricao,
       capaUrl: src.capaUrl,
       capaFoco: src.capaFoco,
-      capaFocoMobile: src.capaFocoMobile,
-      periodo: src.periodo,
-      equipeArrecadacao: src.equipeArrecadacao,
-      sede: src.sede,
-      sobreTeto: src.sobreTeto,
-      sobreContrato: src.sobreContrato,
-      metaCentavos: src.metaCentavos,
-      prazo: src.prazo,
+      tabelaMedidas: src.tabelaMedidas,
       status: "RASCUNHO",
-      blocos: { create: src.blocos.map(bloco) },
-      acoes: {
-        create: src.acoes.map((a) => ({
-          tipo: a.tipo,
-          slug: a.slug, // slug é único por campanha; numa campanha nova não colide
-          titulo: a.titulo,
-          descricao: a.descricao,
-          capaUrl: a.capaUrl,
-          capaFoco: a.capaFoco,
-          tabelaMedidas: a.tabelaMedidas,
-          status: a.status,
-          precoCentavos: a.precoCentavos,
-          custoUnitarioCentavos: a.custoUnitarioCentavos,
-          estoqueTotal: a.estoqueTotal,
-          limitePorPedido: a.limitePorPedido,
-          ordem: a.ordem,
-          metaCentavos: a.metaCentavos,
-          abreEm: a.abreEm,
-          fechaEm: a.fechaEm,
-          cor: a.cor,
-          config: a.config === null ? undefined : (a.config as Prisma.InputJsonValue),
-          opcoes: {
-            create: a.opcoes.map((o) => ({
-              nome: o.nome,
-              precoCentavos: o.precoCentavos,
-              custoUnitarioCentavos: o.custoUnitarioCentavos,
-              estoqueTotal: o.estoqueTotal,
-              ordem: o.ordem,
-              ehExtra: o.ehExtra,
-            })),
-          },
-          blocos: { create: a.blocos.map(bloco) },
+      precoCentavos: src.precoCentavos,
+      custoUnitarioCentavos: src.custoUnitarioCentavos,
+      estoqueTotal: src.estoqueTotal,
+      limitePorPedido: src.limitePorPedido,
+      ordem: src.ordem,
+      metaCentavos: src.metaCentavos,
+      abreEm: src.abreEm,
+      fechaEm: src.fechaEm,
+      cor: src.cor,
+      config: src.config === null ? undefined : (src.config as Prisma.InputJsonValue),
+      opcoes: {
+        create: src.opcoes.map((o) => ({
+          nome: o.nome,
+          precoCentavos: o.precoCentavos,
+          custoUnitarioCentavos: o.custoUnitarioCentavos,
+          estoqueTotal: o.estoqueTotal,
+          ordem: o.ordem,
+          ehExtra: o.ehExtra,
+        })),
+      },
+      blocos: {
+        create: src.blocos.map((b) => ({
+          tipo: b.tipo,
+          ordem: b.ordem,
+          visivel: b.visivel,
+          conteudo: b.conteudo as Prisma.InputJsonValue,
         })),
       },
     },
