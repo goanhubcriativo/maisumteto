@@ -8,7 +8,12 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { apagarCampanha, criarCampanhaDeTeste, listarCampanhas } from "@/lib/repositorio";
+import {
+  apagarCampanha,
+  criarCampanhaDeTeste,
+  duplicarCampanha,
+  listarCampanhas,
+} from "@/lib/repositorio";
 import {
   campanhaDoPainel,
   definirCampanhaDoPainel,
@@ -28,9 +33,9 @@ const STATUS: Record<string, string> = {
 export default async function Campanhas({
   searchParams,
 }: {
-  searchParams: Promise<{ criada?: string }>;
+  searchParams: Promise<{ criada?: string; duplicada?: string }>;
 }) {
-  const { criada } = await searchParams;
+  const { criada, duplicada } = await searchParams;
   const campanhas = await listarCampanhas();
   const atual = await campanhaDoPainel();
   const principalId = campanhas[0]?.id;
@@ -47,6 +52,17 @@ export default async function Campanhas({
     // Volta pra esta mesma tela com aviso: a nova aparece na lista na hora e o
     // "criada" confirma que deu certo, em vez de parecer que nada aconteceu.
     redirect("/painel/campanhas?criada=1");
+  }
+
+  async function duplicar(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    // Copia a campanha inteira (ações, opções, blocos), sem dinheiro nem venda,
+    // como rascunho, e já entra na cópia pra equipe ir ajustando o que muda.
+    const nova = await duplicarCampanha(String(dados.get("id")));
+    if (nova) await definirCampanhaDoPainel(nova.id);
+    revalidatePath("/painel", "layout");
+    redirect("/painel/campanhas?duplicada=1");
   }
 
   async function trocar(dados: FormData) {
@@ -75,6 +91,14 @@ export default async function Campanhas({
         <p className="aviso-salvo" role="status" style={{ marginBottom: 22 }}>
           Campanha de teste criada, em branco, e já selecionada. Vá em{" "}
           <strong>Campanha</strong> no menu para começar a preenchê-la.
+        </p>
+      )}
+
+      {duplicada && (
+        <p className="aviso-salvo" role="status" style={{ marginBottom: 22 }}>
+          Cópia criada como <strong>rascunho</strong>, com as ações e os textos da original, e já
+          selecionada. Nada foi copiado de dinheiro ou vendas. O público continua vendo a campanha
+          principal até você publicar esta.
         </p>
       )}
 
@@ -127,6 +151,19 @@ export default async function Campanhas({
                     </button>
                   </form>
                 )}
+
+                {/* Duplicar vale pra qualquer uma, inclusive a principal: é o
+                    caminho mais comum, começar a próxima a partir da atual. A
+                    cópia nasce rascunho, sem dinheiro nem venda. */}
+                <form action={duplicar}>
+                  <input type="hidden" name="id" value={c.id} />
+                  <BotaoPendente
+                    pendente="Duplicando..."
+                    className="botao botao-contorno botao-pequeno"
+                  >
+                    Duplicar
+                  </BotaoPendente>
+                </form>
 
                 {/* Apagar só as de teste. A principal nunca (a barreira também
                     está no servidor, em apagarCampanha). */}
