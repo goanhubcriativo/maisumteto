@@ -2784,6 +2784,15 @@ textarea.campo-entrada {
   flex-direction: column;
   gap: 12px;
 }
+/* O filtro à esquerda e o "baixar planilha" à direita, na mesma linha; quebram
+   pra duas quando não cabem. */
+.pedidos-controles-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 .pedidos-busca {
   position: relative;
   max-width: 460px;

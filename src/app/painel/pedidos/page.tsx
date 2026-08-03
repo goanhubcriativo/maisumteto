@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { exigirLogin, exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
 import BuscaPedidos from "@/components/BuscaPedidos";
+import ExportarExtrato from "@/components/ExportarExtrato";
 
 export const dynamic = "force-dynamic";
 
@@ -115,6 +116,38 @@ export default async function Pedidos({
       });
   }
 
+  /** A forma de entrega que a pessoa escolheu (junta se houver mais de uma). */
+  function entregaDoPedido(p: (typeof pedidos)[number]): string {
+    return [
+      ...new Set(p.itens.map((i) => dado(i, "entrega") as string | undefined).filter(Boolean)),
+    ].join(", ");
+  }
+
+  // A planilha segue o filtro da tela (a entregar / entregues / todos). A última
+  // coluna vai em branco de propósito: é o espaço pra equipe anotar à mão.
+  const cabecalhoCsv = [
+    "Comprou em",
+    "Quem",
+    "WhatsApp",
+    "Itens",
+    "Forma de entrega",
+    "Entregue",
+    "Como foi entregue",
+    "Data da entrega",
+    "Anotações",
+  ];
+  const linhasCsv = lista.map((p) => [
+    quando(p.paidAt),
+    p.nome,
+    mascararTelefone(p.whatsapp),
+    itensEntregaveis(p).join(" / "),
+    entregaDoPedido(p),
+    p.entregue ? "sim" : "não",
+    p.entregaComo ?? "",
+    p.entregue ? quando(p.entregueEm) : "",
+    "",
+  ]);
+
   return (
     <div className="painel-largura">
       <div className="painel-cabeca">
@@ -150,21 +183,28 @@ export default async function Pedidos({
       {total > 0 && (
         <div className="pedidos-controles">
           <BuscaPedidos />
-          <div className="pedidos-filtro" role="tablist" aria-label="Filtrar pedidos">
-            {[
-              { id: "pendentes", rotulo: `A entregar (${pendentes})` },
-              { id: "entregues", rotulo: `Entregues (${entregues})` },
-              { id: "todos", rotulo: `Todos (${total})` },
-            ].map((f) => (
-              <a
-                key={f.id}
-                href={f.id === "pendentes" ? "/painel/pedidos" : `/painel/pedidos?ver=${f.id}`}
-                className={`pedidos-filtro-item${filtro === f.id ? " ativo" : ""}`}
-                aria-current={filtro === f.id ? "true" : undefined}
-              >
-                {f.rotulo}
-              </a>
-            ))}
+          <div className="pedidos-controles-linha">
+            <div className="pedidos-filtro" role="tablist" aria-label="Filtrar pedidos">
+              {[
+                { id: "pendentes", rotulo: `A entregar (${pendentes})` },
+                { id: "entregues", rotulo: `Entregues (${entregues})` },
+                { id: "todos", rotulo: `Todos (${total})` },
+              ].map((f) => (
+                <a
+                  key={f.id}
+                  href={f.id === "pendentes" ? "/painel/pedidos" : `/painel/pedidos?ver=${f.id}`}
+                  className={`pedidos-filtro-item${filtro === f.id ? " ativo" : ""}`}
+                  aria-current={filtro === f.id ? "true" : undefined}
+                >
+                  {f.rotulo}
+                </a>
+              ))}
+            </div>
+            <ExportarExtrato
+              cabecalho={cabecalhoCsv}
+              linhas={linhasCsv}
+              nomeArquivo={`pedidos${filtro !== "pendentes" ? `-${filtro}` : "-a-entregar"}.csv`}
+            />
           </div>
         </div>
       )}
@@ -181,11 +221,7 @@ export default async function Pedidos({
         <div className="pedidos-lista">
           {lista.map((p) => {
             const itens = itensEntregaveis(p);
-            const entrega = [
-              ...new Set(
-                p.itens.map((i) => dado(i, "entrega") as string | undefined).filter(Boolean)
-              ),
-            ].join(", ");
+            const entrega = entregaDoPedido(p);
             const buscaTexto = normalizar(
               [p.nome, p.whatsapp, itens.join(" "), entrega, p.entregaComo ?? ""].join(" ")
             );
