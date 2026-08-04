@@ -331,22 +331,16 @@ function CartaoAcao({
 
   const estilo = estiloDaCor(acao.cor);
 
-  // Ainda vai abrir: o conteudo aparece borrado, com um selo por cima. E de
-  // proposito que apareca em vez de sumir. Mostra que a equipe tem plano, cria
-  // expectativa, e faz quem chegou hoje voltar no dia que abrir.
+  // EM BREVE: card enxuto. Só a faixa e a data de lançamento, no meio da caixa.
+  // Não é clicável (a página ainda não abriu); é um aviso de "guarda a data".
   if (aindaVaiAbrir) {
     return (
-      <div className={`acao em-breve ${tom}`} style={estilo}>
+      <div className={`acao acao-mini acao-mini-breve ${tom}`} style={estilo}>
         {fita}
-        <span className="acao-borrado" aria-hidden="true">
-          {conteudo}
+        <span className="mini-centro">
+          <span className="mini-rotulo">Lançamento</span>
+          <span className="mini-data">{quandoAbre(acao.abreEm)}</span>
         </span>
-        <span className="acao-selo">
-          <span className="acao-selo-rotulo">Em breve</span>
-          <span className="acao-selo-quando">abre {quandoAbre(acao.abreEm)}</span>
-        </span>
-        {/* O conteudo borrado esta escondido de leitor de tela; este resumo e o
-            que ele le, senao a acao viraria um bloco mudo. */}
         <span className="apenas-leitor">
           {acao.titulo}: abre {quandoAbre(acao.abreEm)}.
         </span>
@@ -354,13 +348,35 @@ function CartaoAcao({
     );
   }
 
-  // Encerrada e esgotada CONTINUAM clicáveis: a página delas vira o resultado
-  // (quanto rendeu, quanta gente entrou, como foi). Muita gente procura isso
-  // depois que acabou, e é o que dá ideia para quem vai organizar a próxima.
+  // ENCERRADO / ESGOTADO: card compacto. A faixa, o valor à esquerda e o botão
+  // "Veja como foi" à direita. Continua clicável: leva pro resultado (quanto
+  // rendeu, quanta gente entrou), que é o que muita gente procura depois.
+  if (!acao.disponivel) {
+    return (
+      <Link
+        href={`/c/${campanhaSlug}/${acao.slug}`}
+        className={`acao acao-mini acao-mini-fim ${tom}`}
+        style={estilo}
+      >
+        {fita}
+        <span className="mini-fim-linha">
+          <span className="mini-fim-valor">
+            <strong>{formatarBRLCurto(acao.liquidoCentavos)}</strong>
+            <span className="mini-fim-rotulo">
+              {acao.motivo === "ESGOTADO" ? "arrecadados · esgotou" : "arrecadados"}
+            </span>
+          </span>
+          <span className="mini-fim-botao">Veja como foi</span>
+        </span>
+      </Link>
+    );
+  }
+
+  // ATUAL: o card completo de sempre.
   return (
     <Link
       href={`/c/${campanhaSlug}/${acao.slug}`}
-      className={`acao ${tom}${acao.disponivel ? "" : " indisponivel"}`}
+      className={`acao ${tom}`}
       style={estilo}
     >
       {fita}
@@ -392,6 +408,23 @@ export default function CampanhaView({
   // O cartao macico vai pra primeira acao ABERTA: e a que a pessoa pode usar
   // agora. Se nao houver nenhuma aberta, a grade fica toda branca, e tudo bem.
   const idDestacada = vitrine.find((a) => a.disponivel)?.id ?? null;
+
+  // A vitrine em três partes: as que estão abertas agora, as que ainda vão
+  // abrir, e as que já acabaram. Cada uma tem seu card (a atual é a completa; a
+  // "em breve" e a "encerrada" são enxutas). Grupo vazio nem aparece.
+  const emBreve = vitrine.filter((a) => a.motivo === "AINDA_NAO_ABRIU");
+  const atuais = vitrine.filter((a) => a.disponivel);
+  const encerrados = vitrine.filter(
+    (a) => !a.disponivel && a.motivo !== "AINDA_NAO_ABRIU"
+  );
+  const grupos = [
+    { titulo: "Atuais", lista: atuais },
+    { titulo: "Em breve", lista: emBreve },
+    { titulo: "Encerrados", lista: encerrados },
+  ].filter((g) => g.lista.length > 0);
+  // Só separa com rótulo quando há mais de um grupo: com tudo aberto, um título
+  // "Atuais" sozinho seria enfeite.
+  const mostrarLabels = grupos.length > 1;
 
   return (
     <>
@@ -605,30 +638,41 @@ export default function CampanhaView({
                 <div className="vazio">A equipe ainda está montando as ações desta campanha.</div>
               </>
             ) : (
-              <div className="acoes">
-                <div className="acoes-cabeca">
+              <>
+                <div className="acoes-cabeca acoes-cabeca-topo">
                   <p className="rotulo-secao">Formas de ajudar</p>
                   <h2 className="secao-titulo">Escolha o seu jeito de entrar nessa!</h2>
                   <p className="secao-intro">
                     A equipe de arrecadação decidiu realizar algumas ações especiais para dar
                     mais opções de colaboração além da forma tradicional, que é entrar e doar
-                    um valor. Você pode olhar nos blocos ao lado e escolher a melhor forma
+                    um valor. Você pode olhar nos blocos abaixo e escolher a melhor forma
                     para contribuir com esse projeto.
                   </p>
                   <p className="acoes-instrucao">Escolha como contribuir</p>
                 </div>
 
-                {vitrine.map((acao, i) => (
-                  <Revelar key={acao.id} atraso={Math.min(i * 70, 420)} className="acao-berco">
-                    <CartaoAcao
-                      acao={acao}
-                      campanhaSlug={campanha.slug}
-                      faltaNoContrato={falta}
-                      destacado={acao.id === idDestacada}
-                    />
-                  </Revelar>
+                {grupos.map((grupo) => (
+                  <div key={grupo.titulo} className="acoes-grupo">
+                    {mostrarLabels && <p className="acoes-grupo-lab">{grupo.titulo}</p>}
+                    <div className="acoes acoes-grade">
+                      {grupo.lista.map((acao, i) => (
+                        <Revelar
+                          key={acao.id}
+                          atraso={Math.min(i * 70, 420)}
+                          className="acao-berco"
+                        >
+                          <CartaoAcao
+                            acao={acao}
+                            campanhaSlug={campanha.slug}
+                            faltaNoContrato={falta}
+                            destacado={acao.id === idDestacada}
+                          />
+                        </Revelar>
+                      ))}
+                    </div>
+                  </div>
                 ))}
-              </div>
+              </>
             )}
           </section>
 

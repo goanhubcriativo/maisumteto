@@ -4493,3 +4493,91 @@ body {
 .ap-carrinho-total strong {
   font-size: 20px;
 }
+
+/* ===== Vitrine em 3 partes: Atuais / Em breve / Encerrados ===== */
+
+/* A intro deixou de ser a primeira célula da grade e virou um bloco no alto,
+   acima dos grupos. */
+.acoes-cabeca-topo {
+  padding: 0;
+}
+.acoes-grupo-lab {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--tinta-50);
+  margin: 34px 0 16px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid var(--linha);
+}
+.acoes-grupo:first-of-type .acoes-grupo-lab {
+  margin-top: 20px;
+}
+
+/* Os cards enxutos (Em breve e Encerrados): baixos, com o conteúdo centrado na
+   vertical, embaixo da faixa. */
+.acao-mini {
+  min-height: 128px;
+  padding: 42px 16px 16px;
+  justify-content: center;
+}
+.acao-mini-breve {
+  align-items: center;
+  text-align: center;
+}
+.mini-centro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: auto 0;
+}
+.mini-rotulo {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tinta-50);
+}
+.mini-data {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--tinta-90);
+}
+/* Encerrado: valor à esquerda, botão "Veja como foi" à direita. */
+.mini-fim-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: auto 0;
+}
+.mini-fim-valor {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.mini-fim-valor strong {
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--tinta-90);
+  line-height: 1.05;
+}
+.mini-fim-rotulo {
+  font-size: 11.5px;
+  color: var(--tinta-70);
+}
+.mini-fim-botao {
+  flex: 0 0 auto;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--acao-texto, var(--acao-forte));
+  border: 1px solid var(--acao-borda);
+  border-radius: 8px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+a.acao-mini-fim:hover .mini-fim-botao {
+  background: var(--acao-fundo);
+}
