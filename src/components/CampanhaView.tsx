@@ -124,6 +124,17 @@ function textoDaEtiqueta(acao: AcaoNaVitrine): string {
 }
 
 /** "em 12 de agosto" / "amanhã" / "hoje", pro aviso do que ainda vai abrir. */
+/** A data em que a ação começa, por extenso: "14 de agosto" (com o ano quando
+ *  não é o de agora). É o que o card "Em breve" mostra abaixo de "Inicia em". */
+function dataDeInicio(data: Date): string {
+  const mesmoAno = data.getFullYear() === new Date().getFullYear();
+  return data.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    ...(mesmoAno ? {} : { year: "numeric" }),
+  });
+}
+
 function quandoAbre(data: Date | null | undefined): string {
   if (!data) return "em breve";
   const dias = Math.ceil((data.getTime() - Date.now()) / 864e5);
@@ -338,8 +349,14 @@ function CartaoAcao({
       <div className={`acao acao-mini acao-mini-breve ${tom}`} style={estilo}>
         {fita}
         <span className="mini-centro">
-          <span className="mini-rotulo">Lançamento</span>
-          <span className="mini-data">{quandoAbre(acao.abreEm)}</span>
+          {acao.abreEm ? (
+            <>
+              <span className="mini-rotulo">Inicia em</span>
+              <span className="mini-data">{dataDeInicio(acao.abreEm)}</span>
+            </>
+          ) : (
+            <span className="mini-data">Em breve</span>
+          )}
         </span>
         <span className="apenas-leitor">
           {acao.titulo}: abre {quandoAbre(acao.abreEm)}.

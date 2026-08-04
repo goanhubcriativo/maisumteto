@@ -21,7 +21,14 @@ export const metadata: Metadata = {
     "Arrecadação coletiva para construir uma casa. Doações, bolão, rifa, camisas e eventos, com extrato aberto de onde veio cada real.",
   // Instalável: o nome do atalho na tela inicial e o ícone da barra do iOS.
   appleWebApp: { capable: true, title: "Casa Amiga", statusBarStyle: "default" },
-  icons: { apple: "/icone-app.svg" },
+  // O favicon (aba do navegador) é o logo da Teto; o ícone do app instalado e do
+  // iOS é a casinha. Definir `apple` sozinho antes tirava o rel="icon" do <head>,
+  // e o site ficava sem favicon.
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icone-app.svg",
+  },
 };
 
 export const viewport: Viewport = {
