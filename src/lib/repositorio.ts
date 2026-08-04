@@ -441,7 +441,7 @@ export async function renomearSlugAcao(
 ): Promise<{ ok: true; slug: string } | { ok: false; erro: string }> {
   const acao = await prisma.acao.findUnique({
     where: { id },
-    select: { campanhaId: true, slug: true },
+    select: { campanhaId: true, slug: true, slugsAntigos: true },
   });
   if (!acao) return { ok: false, erro: "Ação não encontrada." };
 
@@ -463,8 +463,29 @@ export async function renomearSlugAcao(
     slug = `${base}-${n}`;
     n += 1;
   }
-  await prisma.acao.update({ where: { id }, data: { slug } });
+  // O slug atual entra na lista dos antigos, pra o link velho redirecionar pro
+  // novo. Se o novo slug já estava lá (renomearam de volta), sai da lista, senão
+  // uma ação teria como "antigo" o próprio endereço de agora.
+  const antigos = new Set(acao.slugsAntigos);
+  antigos.add(acao.slug);
+  antigos.delete(slug);
+  await prisma.acao.update({
+    where: { id },
+    data: { slug, slugsAntigos: [...antigos] },
+  });
   return { ok: true, slug };
+}
+
+/**
+ * Acha a ação que HOJE responde por um slug antigo (um endereço que já foi
+ * trocado), pra página pública redirecionar o link velho pro novo. Devolve o
+ * slug atual e o da campanha, que é pra onde o link deve apontar.
+ */
+export async function acaoPorSlugAntigo(slug: string) {
+  return prisma.acao.findFirst({
+    where: { slugsAntigos: { has: slug } },
+    select: { slug: true, campanha: { select: { slug: true } } },
+  });
 }
 
 /**

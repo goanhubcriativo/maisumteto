@@ -196,6 +196,9 @@ model Acao {
 
   tipo   TipoAcao
   slug   String // unico dentro da campanha: /c/casa-amiga-dezembro/bolao-da-final
+  /// Slugs que esta acao ja teve. Quando o endereco muda, o antigo entra aqui, e
+  /// o link velho passa a redirecionar pro novo em vez de dar 404.
+  slugsAntigos String[] @default([])
   titulo String
   descricao String? @db.Text
   capaUrl   String?

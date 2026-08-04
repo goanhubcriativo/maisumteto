@@ -7,11 +7,12 @@
 // um botao que nao faz nada, a pagina diz a verdade: "ainda nao da pra pagar por
 // aqui, fale com a equipe". Botao morto em pagina de doacao queima confianca.
 
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { usuarioAtual } from "@/lib/sessao";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
+  acaoPorSlugAntigo,
   apoiadoresDaAcao,
   buscarAcao,
   campanhaAtual,
@@ -75,7 +76,15 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
   const { previa } = await searchParams;
 
   const acao = await buscarAcao(slugDaAcao);
-  if (!acao) notFound();
+  if (!acao) {
+    // O endereço não existe mais como atual: pode ser um link ANTIGO, de antes
+    // de a equipe trocar o slug. Se for, manda pro endereço novo em vez de 404.
+    const movida = await acaoPorSlugAntigo(slugDaAcao);
+    if (movida && movida.campanha.slug === slug) {
+      redirect(`/c/${slug}/${movida.slug}`);
+    }
+    notFound();
+  }
 
   // Rascunho nao tem pagina publica: se tivesse, bastaria adivinhar o endereco
   // pra ver o que a equipe ainda esta preparando.
