@@ -14,6 +14,7 @@ import {
   salvarAcao,
   salvarBloco,
   atualizarConfig,
+  renomearSlugAcao,
 } from "@/lib/repositorio";
 import { receitaDe } from "@/lib/catalogo";
 import { definicaoDe, type TipoBloco } from "@/lib/blocos";
@@ -90,10 +91,13 @@ export default async function EditarAcao({
     erro?: string;
     custo?: string;
     erroCusto?: string;
+    linkTrocado?: string;
+    erroLink?: string;
   }>;
 }) {
   const { id } = await params;
-  const { novo, salvo, lancado, erro, custo, erroCusto } = await searchParams;
+  const { novo, salvo, lancado, erro, custo, erroCusto, linkTrocado, erroLink } =
+    await searchParams;
 
   const usuario = await exigirLogin();
   const acao = await buscarAcao(id);
@@ -116,6 +120,20 @@ export default async function EditarAcao({
   // Publicar uma ação com abertura marcada pro futuro é programar, não publicar:
   // ela vai pro ar borrada, com o selo "Em breve", e abre sozinha no dia.
   const vaiAbrirNoFuturo = Boolean(acao.abreEm && acao.abreEm.getTime() > Date.now());
+
+  // Troca o endereço público da ação (o fim do link). Útil depois de duplicar,
+  // quando a cópia herda um slug "...-copia". Quebra o link antigo de propósito.
+  async function mudarLink(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    const r = await renomearSlugAcao(acaoId, String(dados.get("slug") ?? ""));
+    recarregar(acaoId);
+    revalidatePath("/");
+    if (!r.ok) {
+      redirect(`/painel/acao/${acaoId}?erroLink=${encodeURIComponent(r.erro)}`);
+    }
+    redirect(`/painel/acao/${acaoId}?linkTrocado=1`);
+  }
 
   // Custo diferido pro fechamento. Produto com custo total do lote (ou com o
   // custo deixado pra depois) não desconta durante a campanha: a ação não pode
@@ -672,6 +690,41 @@ export default async function EditarAcao({
           Alterações salvas.
         </p>
       )}
+
+      {linkTrocado && (
+        <p className="aviso-salvo" role="status">
+          Link trocado. O endereço novo é <strong>/c/{campanha.slug}/{acao.slug}</strong>. O antigo
+          deixou de funcionar.
+        </p>
+      )}
+      {erroLink && (
+        <p className="aviso-ruim" role="alert">
+          {erroLink}
+        </p>
+      )}
+
+      {/* Trocar o endereço público desta ação. Útil depois de duplicar, quando a
+          cópia herda um slug tipo "...-copia". */}
+      <section className="painel-cartao link-editor">
+        <h2 className="formulario-secao">Endereço da página</h2>
+        <p className="campo-ajuda" style={{ margin: "-8px 0 14px" }}>
+          É o fim do link público desta ação. Trocar aqui muda o endereço e o link antigo deixa de
+          funcionar. Use letras, números e hífens.
+        </p>
+        <form action={mudarLink} className="link-editor-form">
+          <span className="link-editor-prefixo">/c/{campanha.slug}/</span>
+          <input
+            className="campo-entrada"
+            name="slug"
+            defaultValue={acao.slug}
+            spellCheck={false}
+            aria-label="Endereço da ação"
+          />
+          <button className="botao botao-contorno botao-pequeno" type="submit">
+            Trocar link
+          </button>
+        </form>
+      </section>
 
       {pedirCustoNoFim && (
         <form action={confirmarCustoNoFim} className="faixa-custo-fim">

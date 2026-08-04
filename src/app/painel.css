@@ -2811,3 +2811,25 @@ textarea.campo-entrada {
   width: 100%;
   padding-left: 38px;
 }
+
+/* Trocar o endereço (slug) da ação: prefixo fixo, campo e botão na mesma linha. */
+.link-editor-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.link-editor-prefixo {
+  font-size: 13.5px;
+  color: var(--tinta-50);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.link-editor-form .campo-entrada {
+  flex: 1 1 220px;
+  min-width: 0;
+  font-family: inherit;
+}
+.link-editor-form .botao {
+  flex: 0 0 auto;
+}

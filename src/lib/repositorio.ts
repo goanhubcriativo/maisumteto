@@ -429,6 +429,45 @@ export async function salvarAcao(id: string, campos: Prisma.AcaoUpdateInput) {
 }
 
 /**
+ * Troca o endereço (slug) de uma ação. É o fim do link público
+ * (/c/campanha/ESTE-pedaço). Limpa o texto pra virar slug, garante que é único
+ * DENTRO da campanha (ignorando a própria ação) e devolve o slug final, que
+ * pode ganhar um número se o escolhido já estava em uso. Trocar o link quebra o
+ * endereço antigo de propósito: é o que a pessoa pediu ao renomear.
+ */
+export async function renomearSlugAcao(
+  id: string,
+  bruto: string
+): Promise<{ ok: true; slug: string } | { ok: false; erro: string }> {
+  const acao = await prisma.acao.findUnique({
+    where: { id },
+    select: { campanhaId: true, slug: true },
+  });
+  if (!acao) return { ok: false, erro: "Ação não encontrada." };
+
+  const base = paraSlug(bruto);
+  if (!base) return { ok: false, erro: "Escreva um endereço com letras ou números." };
+  if (base === acao.slug) return { ok: true, slug: acao.slug };
+
+  const usados = new Set(
+    (
+      await prisma.acao.findMany({
+        where: { campanhaId: acao.campanhaId, NOT: { id } },
+        select: { slug: true },
+      })
+    ).map((a) => a.slug)
+  );
+  let slug = base;
+  let n = 2;
+  while (usados.has(slug)) {
+    slug = `${base}-${n}`;
+    n += 1;
+  }
+  await prisma.acao.update({ where: { id }, data: { slug } });
+  return { ok: true, slug };
+}
+
+/**
  * Mescla chaves na config sem apagar o resto. A config guarda coisas de tipos
  * diferentes na mesma coluna JSON (valores sugeridos, entregas, custo diferido),
  * entao sobrescrever tudo pra mudar uma chave perderia as outras.
