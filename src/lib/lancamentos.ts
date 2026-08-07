@@ -149,6 +149,21 @@ export async function registrarPedidoPago(
   opts: { liquidoCentavos?: number | null } = {}
 ) {
   return prisma.$transaction(async (db) => {
+    // TRAVA ATÔMICA contra lançamento em dobro. `updateMany` de lancadoEm
+    // null -> agora é uma escrita que TRAVA a linha do pedido: se o webhook e a
+    // página de pagamento (que consulta o status) confirmarem o mesmo PIX quase
+    // juntos, só UM vira a marca; o outro espera, vê 0 linhas afetadas e para
+    // aqui. Como está na MESMA transação dos lançamentos, ou tudo entra (marca +
+    // lançamentos) ou nada: se der erro, a marca volta a null e um reenvio pode
+    // tentar de novo, sem duplicar nem perder.
+    const trava = await db.pedido.updateMany({
+      where: { id: pedidoId, lancadoEm: null },
+      data: { lancadoEm: new Date() },
+    });
+    if (trava.count === 0) return { criados: 0, motivo: "ja lancado" as const };
+
+    // Segunda linha de defesa, pros pedidos ANTIGOS (que já têm lançamentos mas
+    // ainda estão com lancadoEm null): não recria o que já existe.
     const jaLancado = await db.lancamento.count({ where: { pedidoId } });
     if (jaLancado > 0) return { criados: 0, motivo: "ja lancado" as const };
 

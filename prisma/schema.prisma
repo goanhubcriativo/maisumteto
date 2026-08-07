@@ -344,6 +344,12 @@ model Pedido {
   entregaComo String?
   entregueEm  DateTime?
 
+  /// Quando o pedido virou lançamento no livro-caixa. Serve de TRAVA ATÔMICA
+  /// contra lançamento em dobro: o webhook do gateway e a página que consulta o
+  /// status podem confirmar o mesmo pagamento quase juntos, e sem esta marca os
+  /// dois lançavam a mesma venda duas vezes (ver registrarPedidoPago).
+  lancadoEm   DateTime?
+
   itens       Item[]
   lancamentos Lancamento[]
   numerosRifa NumeroRifa[]
