@@ -77,6 +77,7 @@ export default async function Extrato({
       itens: {
         select: {
           quantidade: true,
+          custoUnitarioCentavos: true,
           dados: true,
           acao: { select: { id: true, titulo: true } },
           opcao: { select: { nome: true } },
@@ -84,6 +85,12 @@ export default async function Extrato({
       },
     },
   });
+
+  /** O custo dos produtos de um pedido (a camisa, o chaveiro): custo × quantidade
+   *  de cada item. É o que a barra da meta desconta, e o extrato precisava
+   *  descontar também pra "sobrou pra casa" bater com ela. */
+  const custoDoPedido = (p: { itens: { quantidade: number; custoUnitarioCentavos: number }[] }) =>
+    p.itens.reduce((t, i) => t + i.custoUnitarioCentavos * i.quantidade, 0);
 
   // As ações que aparecem no extrato, pro seletor de filtro. Só as que têm
   // pagamento entram: filtrar por uma ação sem venda nenhuma daria lista vazia.
@@ -103,7 +110,14 @@ export default async function Extrato({
   // para o bruto: é melhor mostrar o total um pouco otimista e sinalizar a
   // lacuna do que inventar um desconto que não aconteceu.
   const taxa = filtrados.reduce((t, p) => t + (p.taxaCentavos ?? 0), 0);
-  const liquido = filtrados.reduce((t, p) => t + (p.liquidoCentavos ?? p.valorBrutoCentavos), 0);
+  // O custo dos produtos vendidos. O extrato mostrava só bruto e taxa, então o
+  // "sobrou limpo" ficava ACIMA da barra da meta, que também desconta o custo.
+  // Agora o extrato desconta o custo e o "sobrou pra casa" bate com a barra.
+  const custo = filtrados.reduce((t, p) => t + custoDoPedido(p), 0);
+  // O que entrou na conta depois da taxa do PIX (pra conferir com o banco).
+  const naConta = filtrados.reduce((t, p) => t + (p.liquidoCentavos ?? p.valorBrutoCentavos), 0);
+  // O que de fato sobrou pra casa: tira a taxa E o custo. É o número da barra.
+  const liquido = naConta - custo;
   const semTaxa = filtrados.filter((p) => p.taxaCentavos == null).length;
 
   // O que entrou fora do site. Serve para conferir: o que NAO e manual tem que
@@ -127,7 +141,8 @@ export default async function Extrato({
     "Ajuda extra",
     "Bruto",
     "Taxa",
-    "Líquido",
+    "Custo",
+    "Líquido pra casa",
     "CPF",
     "WhatsApp",
   ];
@@ -147,7 +162,8 @@ export default async function Extrato({
     reais(p.doacaoExtraCentavos),
     reais(p.valorBrutoCentavos),
     p.taxaCentavos == null ? "" : reais(p.taxaCentavos),
-    reais(p.liquidoCentavos ?? p.valorBrutoCentavos),
+    reais(custoDoPedido(p)),
+    reais((p.liquidoCentavos ?? p.valorBrutoCentavos) - custoDoPedido(p)),
     mascararCpf(p.cpf),
     mascararTelefone(p.whatsapp),
   ]);
@@ -174,6 +190,10 @@ export default async function Extrato({
         </div>
       </div>
 
+      {/* A conta inteira, na ordem em que o dinheiro anda: entrou o bruto, o PIX
+          levou a taxa, o produto teve o custo, e o que sobra é o que a barra da
+          meta mostra. Antes só tinha bruto/taxa/"sobrou limpo", sem o custo, e
+          por isso o extrato fechava ACIMA da barra. */}
       <section className="painel-placar">
         <div>
           <span className="painel-placar-valor">{formatarBRL(bruto)}</span>
@@ -184,16 +204,19 @@ export default async function Extrato({
           <span className="painel-placar-rotulo">de taxa do PIX</span>
         </div>
         <div>
-          <span className="painel-placar-valor">{formatarBRL(liquido)}</span>
-          <span className="painel-placar-rotulo">sobrou limpo</span>
+          <span className="painel-placar-valor">{formatarBRL(custo)}</span>
+          <span className="painel-placar-rotulo">de custo das ações</span>
         </div>
         <div>
-          <span className="painel-placar-valor">{filtrados.length}</span>
-          <span className="painel-placar-rotulo">
-            {filtrados.length === 1 ? "pagamento" : "pagamentos"}
-          </span>
+          <span className="painel-placar-valor">{formatarBRL(liquido)}</span>
+          <span className="painel-placar-rotulo">sobrou pra casa</span>
         </div>
       </section>
+      <p className="painel-intro" style={{ marginTop: 14 }}>
+        {filtrados.length} {filtrados.length === 1 ? "pagamento confirmado" : "pagamentos confirmados"}.
+        O <strong>sobrou pra casa</strong> é o mesmo número da barra da meta: bruto menos a taxa do PIX
+        menos o custo dos produtos.
+      </p>
 
       {/* Filtrar por ação e exportar. O que baixa segue o filtro: filtrado por
           uma ação, só ela; sem filtro, tudo. */}
@@ -241,7 +264,8 @@ export default async function Extrato({
                 <th>Ação</th>
                 <th className="num">Bruto</th>
                 <th className="num">Taxa</th>
-                <th className="num">Líquido</th>
+                <th className="num">Custo</th>
+                <th className="num">Pra casa</th>
                 <th />
               </tr>
             </thead>
@@ -272,8 +296,11 @@ export default async function Extrato({
                   <td className="num">
                     {p.taxaCentavos == null ? "a confirmar" : formatarBRL(p.taxaCentavos)}
                   </td>
+                  <td className="num">
+                    {custoDoPedido(p) > 0 ? formatarBRL(custoDoPedido(p)) : "-"}
+                  </td>
                   <td className="num forte">
-                    {formatarBRL(p.liquidoCentavos ?? p.valorBrutoCentavos)}
+                    {formatarBRL((p.liquidoCentavos ?? p.valorBrutoCentavos) - custoDoPedido(p))}
                   </td>
                   <td className="num">
                     <DetalhesDoPedido
