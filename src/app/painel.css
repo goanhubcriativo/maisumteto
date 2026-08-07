@@ -2833,3 +2833,15 @@ textarea.campo-entrada {
 .link-editor-form .botao {
   flex: 0 0 auto;
 }
+
+/* No extrato, o texto de cima e a legenda ocupam a largura toda (como o placar),
+   em vez de parar na metade. A trava de 66ch existe pra leitura confortável nas
+   outras telas, mas aqui deixava um vão grande à direita, ao lado dos cartões. */
+.extrato-cabeca-texto {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+.extrato-cabeca-texto .painel-intro,
+.extrato-intro-larga {
+  max-width: none;
+}

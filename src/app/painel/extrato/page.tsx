@@ -171,7 +171,7 @@ export default async function Extrato({
   return (
     <div className="painel-largura">
       <div className="painel-cabeca">
-        <div>
+        <div className="extrato-cabeca-texto">
           <span className="painel-sobre">Financeiro</span>
           <h1>Extrato</h1>
           <p className="painel-intro">
@@ -212,7 +212,7 @@ export default async function Extrato({
           <span className="painel-placar-rotulo">sobrou pra casa</span>
         </div>
       </section>
-      <p className="painel-intro" style={{ marginTop: 14 }}>
+      <p className="painel-intro extrato-intro-larga" style={{ marginTop: 14 }}>
         {filtrados.length} {filtrados.length === 1 ? "pagamento confirmado" : "pagamentos confirmados"}.
         O <strong>sobrou pra casa</strong> é o mesmo número da barra da meta: bruto menos a taxa do PIX
         menos o custo dos produtos.
