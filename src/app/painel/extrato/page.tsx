@@ -7,8 +7,10 @@
 // Só aparece pedido PAGO. Pendente é promessa, e promessa no extrato faz a
 // equipe contar dinheiro que não entrou.
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { exigirLogin, campanhaDoPainel } from "@/lib/sessao";
+import { exigirLogin, exigirEdicao, campanhaDoPainel } from "@/lib/sessao";
+import { cancelarLancamentoManual } from "@/lib/manual";
 import { formatarBRL } from "@/lib/dinheiro";
 import DetalhesDoPedido from "@/components/DetalhesDoPedido";
 import FiltroDeAcao from "@/components/FiltroDeAcao";
@@ -56,6 +58,17 @@ export default async function Extrato({
   // O extrato é da campanha que o painel está editando, não de todas juntas:
   // com uma campanha de teste aberta, misturar o dinheiro das duas mentiria.
   const campanha = await campanhaDoPainel();
+
+  // Cancela um lançamento manual digitado errado. Só manual (o guard de verdade
+  // está no lib); tira do extrato, da soma e devolve o estoque.
+  async function cancelarManual(dados: FormData) {
+    "use server";
+    await exigirEdicao();
+    await cancelarLancamentoManual(String(dados.get("pedidoId") ?? ""));
+    revalidatePath("/painel/extrato");
+    revalidatePath("/painel");
+    revalidatePath("/");
+  }
 
   const pedidos = await prisma.pedido.findMany({
     where: { status: "PAGO", campanhaId: campanha.id },
@@ -304,6 +317,8 @@ export default async function Extrato({
                   </td>
                   <td className="num">
                     <DetalhesDoPedido
+                      pedidoId={p.id}
+                      aoCancelar={p.manual ? cancelarManual : undefined}
                       quando={quandoCompleto(p.paidAt)}
                       nome={p.nome}
                       anonimo={p.anonimo}

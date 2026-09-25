@@ -54,6 +54,50 @@ export function lerNumeros(texto: string, ate: number): number[] {
   ].sort((a, b) => a - b);
 }
 
+/**
+ * Cancela um lançamento MANUAL que foi digitado errado. Desfaz o que a venda
+ * tinha feito no livro-caixa: apaga os lançamentos (a barra da meta corrige),
+ * libera os números da rifa (voltam a poder ser vendidos) e devolve o estoque
+ * (o item deixa de contar como vendido). O pedido não é apagado; vira CANCELADO,
+ * pra sair do extrato e da soma sem sumir do banco (fica o rastro de que houve e
+ * de que foi cancelado).
+ *
+ * Só vale pra lançamento manual. Um pagamento por PIX é dinheiro que entrou de
+ * verdade na conta: "cancelar" aqui só faria o extrato deixar de bater com o
+ * banco. Se um PIX veio errado, o caminho é o estorno pelo Mercado Pago.
+ */
+export async function cancelarLancamentoManual(
+  pedidoId: string
+): Promise<{ ok: boolean; erro?: string }> {
+  const pedido = await prisma.pedido.findUnique({
+    where: { id: pedidoId },
+    select: { id: true, manual: true, status: true },
+  });
+  if (!pedido) return { ok: false, erro: "Lançamento não encontrado." };
+  if (!pedido.manual) {
+    return {
+      ok: false,
+      erro:
+        "Só dá pra cancelar lançamento manual por aqui. Pagamento por PIX é dinheiro que entrou de verdade; se veio errado, estorne pelo Mercado Pago.",
+    };
+  }
+  if (pedido.status === "CANCELADO") return { ok: true };
+
+  await prisma.$transaction(async (db) => {
+    // Tira do livro-caixa (senão a barra continuaria contando a venda errada).
+    // Os lançamentos ficam com pedidoId nulo no delete do pedido (onDelete
+    // SetNull), por isso apago na mão em vez de contar com cascata.
+    await db.lancamento.deleteMany({ where: { pedidoId } });
+    // Libera os números da rifa, se houver: voltam pro bolo pra revender.
+    await db.numeroRifa.deleteMany({ where: { pedidoId } });
+    // Marca cancelado: sai do extrato (que só mostra PAGO) e da contagem de
+    // vendidos (que só conta PAGO), então o estoque também volta.
+    await db.pedido.update({ where: { id: pedidoId }, data: { status: "CANCELADO" } });
+  });
+
+  return { ok: true };
+}
+
 export async function registrarLancamentoManual(
   novo: NovoLancamentoManual
 ): Promise<Resultado> {

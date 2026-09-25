@@ -7,7 +7,7 @@
 // variação, a forma de entrega, os números da rifa, a ajuda extra, o contato)
 // vive aqui dentro, a um clique, em vez de espremido na linha.
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { formatarBRL } from "@/lib/dinheiro";
 
 export interface ItemDoPedido {
@@ -32,6 +32,11 @@ interface Props {
   liquidoCentavos: number;
   extraCentavos: number;
   itens: ItemDoPedido[];
+  /** Id do pedido, pra ação de cancelar saber qual desfazer. */
+  pedidoId: string;
+  /** Cancela o lançamento (server action). Vem só pros manuais; sem isso, não
+   *  aparece o botão de cancelar. */
+  aoCancelar?: (dados: FormData) => Promise<void>;
 }
 
 function Linha({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
@@ -45,6 +50,10 @@ function Linha({ rotulo, children }: { rotulo: string; children: React.ReactNode
 
 export default function DetalhesDoPedido(p: Props) {
   const caixa = useRef<HTMLDialogElement>(null);
+  // Cancelar é destrutivo, então pede um segundo clique: o primeiro revela o
+  // aviso e o botão que confirma de verdade.
+  const [confirmando, setConfirmando] = useState(false);
+  const podeCancelar = p.manual && Boolean(p.aoCancelar);
 
   return (
     <>
@@ -116,6 +125,40 @@ export default function DetalhesDoPedido(p: Props) {
             </div>
           </Linha>
         </dl>
+
+        {podeCancelar && (
+          <div className="detalhe-cancelar">
+            {confirmando ? (
+              <>
+                <p className="detalhe-cancelar-aviso">
+                  Isso desfaz este lançamento: tira o valor da soma e devolve o estoque (e os
+                  números da rifa, se houver). Não dá pra desfazer o cancelamento.
+                </p>
+                <form action={p.aoCancelar} className="detalhe-cancelar-botoes">
+                  <input type="hidden" name="pedidoId" value={p.pedidoId} />
+                  <button
+                    type="button"
+                    className="botao botao-contorno botao-pequeno"
+                    onClick={() => setConfirmando(false)}
+                  >
+                    Voltar
+                  </button>
+                  <button type="submit" className="botao botao-perigo botao-pequeno">
+                    Sim, cancelar lançamento
+                  </button>
+                </form>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="botao botao-perigo botao-pequeno"
+                onClick={() => setConfirmando(true)}
+              >
+                Cancelar este lançamento
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="popup-acoes">
           <button
