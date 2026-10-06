@@ -54,17 +54,8 @@ export default function PlataformaDesativada() {
             color: "rgba(255,255,255,0.92)",
           }}
         >
-          Essa plataforma foi desativada, mas a campanha continua. Para continuar colaborando,
-          entre em contato com o responsável pela arrecadação{" "}
-          <a
-            href={WHATSAPP}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#7ec8ff", fontWeight: 700, textDecoration: "underline" }}
-          >
-            clicando aqui
-          </a>
-          .
+          Essa plataforma foi desativada! A campanha de arrecadação continua. Para continuar
+          colaborando, entre em contato com o responsável pela arrecadação.
         </p>
 
         <a
@@ -77,7 +68,7 @@ export default function PlataformaDesativada() {
             gap: 10,
             marginTop: 30,
             padding: "14px 26px",
-            background: "#25d366",
+            background: "#7ec8ff",
             color: "#0a2540",
             fontSize: 16,
             fontWeight: 700,
