@@ -4581,3 +4581,57 @@ body {
 a.acao-mini-fim:hover .mini-fim-botao {
   background: var(--acao-fundo);
 }
+
+/* ===== Campanha encerrada: aviso azul + selo "finalizada" ===== */
+
+/* A faixa azul de aviso: a plataforma fechou, contribua pelo telefone. Vai no
+   alto das formas de ajudar e também no lugar do formulário de cada ação. */
+.faixa-encerrada {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--azul);
+  color: #fff;
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin: 0 0 26px;
+}
+.faixa-encerrada-icone {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+.faixa-encerrada-icone svg {
+  width: 24px;
+  height: 24px;
+}
+.faixa-encerrada-texto {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  font-weight: 500;
+}
+.faixa-encerrada-texto strong {
+  font-weight: 800;
+  white-space: nowrap;
+}
+.faixa-encerrada-acao {
+  margin: 0;
+}
+
+/* O selo "Campanha finalizada" no herói, no lugar do botão de doar. */
+.capa-finalizada {
+  display: inline-block;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  padding: 13px 24px;
+}

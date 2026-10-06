@@ -15,6 +15,7 @@ import { numerosOcupados, reservarNumeros } from "@/lib/rifa";
 import { criarPagamentoPix, expiracaoISO } from "@/lib/mercadopago";
 import { buscarAcao } from "@/lib/repositorio";
 import { opcoesDaAcao } from "@/lib/opcoes";
+import { CAMPANHA_ENCERRADA, TELEFONE_EQUIPE } from "@/lib/encerrada";
 
 export const runtime = "nodejs";
 
@@ -41,6 +42,17 @@ const LIMITE_POR_PEDIDO = 50; // trava contra pedido absurdo por engano ou má-f
 const MINIMO_CENTAVOS = 100; // R$ 1: abaixo disso a taxa come tudo
 
 export async function POST(req: NextRequest) {
+  // A campanha foi encerrada pela organização: nenhum pagamento novo entra, nem
+  // por um link antigo. Esta é a trava de verdade, independente da tela.
+  if (CAMPANHA_ENCERRADA) {
+    return NextResponse.json(
+      {
+        erro: `Esta plataforma foi encerrada. Para contribuir, fale com a equipe de arrecadação pelo telefone ${TELEFONE_EQUIPE}.`,
+      },
+      { status: 403 }
+    );
+  }
+
   let corpo: Record<string, unknown>;
   try {
     corpo = await req.json();

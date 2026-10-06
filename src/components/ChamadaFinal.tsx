@@ -11,22 +11,42 @@
 // faz ideia do que seja.
 
 import { formatarBRL } from "@/lib/dinheiro";
+import { TELEFONE_EQUIPE } from "@/lib/encerrada";
 
 interface Props {
   arrecadadoCentavos: number;
   metaCentavos: number;
   apoiadores: number;
+  /** Campanha encerrada: em vez de pedir doação, agradece e manda pro telefone. */
+  encerrada?: boolean;
 }
 
 export default function ChamadaFinal({
   arrecadadoCentavos,
   metaCentavos,
   apoiadores,
+  encerrada = false,
 }: Props) {
   // Meta zero não é meta batida, é meta não definida (campanha ainda em branco).
   // Sem essa distinção, uma campanha recém-criada anunciava "a casa está paga".
   const metaDefinida = metaCentavos > 0;
   const falta = Math.max(0, metaCentavos - arrecadadoCentavos);
+
+  // Encerrada: sem o pedido de doação. Agradece e aponta pro telefone da equipe.
+  if (encerrada) {
+    return (
+      <section className="fechamento">
+        <div className="container fechamento-corpo">
+          <p className="fechamento-sobre">Campanha encerrada</p>
+          <h2 className="fechamento-titulo">Obrigado a quem fez parte.</h2>
+          <p className="fechamento-texto">
+            Esta plataforma foi encerrada. Para contribuir com essa campanha, fale com a equipe de
+            arrecadação pelo telefone <strong>{TELEFONE_EQUIPE}</strong>.
+          </p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="fechamento">

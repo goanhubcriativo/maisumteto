@@ -29,6 +29,7 @@ import { lerTextoRico, deTextoSimples, textoRicoVazio } from "@/lib/textoRico";
 import { lerEntregas } from "@/lib/produto";
 import Blocos from "@/components/Blocos";
 import FormularioDeApoio from "@/components/FormularioDeApoio";
+import { CAMPANHA_ENCERRADA, TELEFONE_EQUIPE } from "@/lib/encerrada";
 
 export const dynamic = "force-dynamic";
 
@@ -430,7 +431,23 @@ export default async function PaginaDaAcao({ params, searchParams }: Props) {
               hora de preencher. Empilhados, o "como funciona" ia parar longe
               demais do momento em que ele resolve alguma coisa. */}
           {!acabou &&
-            (ehProduto ? (
+            (CAMPANHA_ENCERRADA ? (
+              // Campanha encerrada: sem formulário. No lugar dele, o aviso com o
+              // telefone da equipe, pra quem ainda quiser contribuir.
+              <section className="participar-grade">
+                <div className="faixa-encerrada faixa-encerrada-acao" role="status">
+                  <span className="faixa-encerrada-icone" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.5 5.7 2 2 0 0 1 6.5 3.5Z" />
+                    </svg>
+                  </span>
+                  <p className="faixa-encerrada-texto">
+                    Esta plataforma foi encerrada. Para contribuir com essa campanha, fale com a
+                    equipe de arrecadação pelo telefone <strong>{TELEFONE_EQUIPE}</strong>.
+                  </p>
+                </div>
+              </section>
+            ) : ehProduto ? (
               // Produto tem cara de loja: a foto e a descrição entram DENTRO do
               // formulário, que se organiza em volta delas. Continua sendo um
               // formulário só, com um envio só.

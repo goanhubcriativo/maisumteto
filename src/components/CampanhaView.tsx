@@ -21,6 +21,11 @@ import { estiloDaCor, marcaDe } from "@/lib/paleta";
 import type { Bloco } from "@/lib/blocos";
 import type { AcaoNaVitrine, ApoiadorRecente } from "@/lib/vitrine";
 import { SOBRE_TETO, SOBRE_CONTRATO, paragrafos } from "@/lib/textos";
+import {
+  CAMPANHA_ENCERRADA,
+  TOTAL_ENCERRADA_CENTAVOS,
+  TELEFONE_EQUIPE,
+} from "@/lib/encerrada";
 
 export interface DadosDaCampanha {
   slug: string;
@@ -244,15 +249,20 @@ function CartaoAcao({
   campanhaSlug,
   faltaNoContrato,
   destacado = false,
+  encerrada = false,
 }: {
   acao: AcaoNaVitrine;
   campanhaSlug: string;
   faltaNoContrato: number;
   /** O unico cartao macico da grade. E a acao que a equipe quer que voce abra. */
   destacado?: boolean;
+  /** Campanha encerrada: todo card vira o card compacto de "encerrado". */
+  encerrada?: boolean;
 }) {
   const regua = reguaDaAcao(acao, faltaNoContrato);
-  const aindaVaiAbrir = acao.motivo === "AINDA_NAO_ABRIU";
+  // Com a campanha encerrada, nenhum card é "em breve" nem "atual": todos saem
+  // como encerrados.
+  const aindaVaiAbrir = !encerrada && acao.motivo === "AINDA_NAO_ABRIU";
 
   // Um cartao macico no meio de brancos, como na referencia. Colorir TODOS
   // deixou a grade pesada e sem hierarquia: quando tudo grita, nada chama.
@@ -367,8 +377,9 @@ function CartaoAcao({
 
   // ENCERRADO / ESGOTADO: card compacto. A faixa, o valor à esquerda e o botão
   // "Veja como foi" à direita. Continua clicável: leva pro resultado (quanto
-  // rendeu, quanta gente entrou), que é o que muita gente procura depois.
-  if (!acao.disponivel) {
+  // rendeu, quanta gente entrou), que é o que muita gente procura depois. Com a
+  // campanha encerrada, TODO card cai aqui.
+  if (encerrada || !acao.disponivel) {
     return (
       <Link
         href={`/c/${campanhaSlug}/${acao.slug}`}
@@ -416,32 +427,46 @@ export default function CampanhaView({
   /** Os blocos montados pela equipe no painel: o microblog da campanha. */
   blocos?: Bloco[];
 }) {
-  const arrecadado = Math.max(0, resumo.liquidoCentavos);
+  // Campanha encerrada: o valor é o total final acertado (R$ 3.579,00) e a barra
+  // aparece cheia, como numa campanha que fechou.
+  const arrecadado = CAMPANHA_ENCERRADA
+    ? TOTAL_ENCERRADA_CENTAVOS
+    : Math.max(0, resumo.liquidoCentavos);
   const metaDefinida = resumo.metaCentavos > 0;
   const falta = Math.max(0, resumo.metaCentavos - arrecadado);
   const dias = diasRestantes(campanha.prazo);
-  const fatias = fatiasDoGrafico(vitrine, arrecadado);
+  // As fatias sempre saem do valor REAL (pra não inventar uma fatia de "avulsas"
+  // com a diferença até o total encerrado). O que muda na campanha encerrada é só
+  // o número grande mostrado e a barra cheia.
+  const fatias = fatiasDoGrafico(vitrine, Math.max(0, resumo.liquidoCentavos));
+  // Encerrada: a barra enche 100%, então cada fatia ocupa a sua parte do TOTAL
+  // das fatias, e não da meta (que podia nem ter sido batida).
+  const somaFatias = fatias.reduce((t, f) => t + f.valor, 0);
+  const percentual = CAMPANHA_ENCERRADA ? 100 : resumo.percentual;
+  const denomBarra = CAMPANHA_ENCERRADA ? somaFatias || 1 : resumo.metaCentavos;
 
   // O cartao macico vai pra primeira acao ABERTA: e a que a pessoa pode usar
-  // agora. Se nao houver nenhuma aberta, a grade fica toda branca, e tudo bem.
-  const idDestacada = vitrine.find((a) => a.disponivel)?.id ?? null;
+  // agora. Encerrada, não há card em destaque: todos ficam iguais.
+  const idDestacada = CAMPANHA_ENCERRADA
+    ? null
+    : vitrine.find((a) => a.disponivel)?.id ?? null;
 
-  // A vitrine em três partes: as que estão abertas agora, as que ainda vão
-  // abrir, e as que já acabaram. Cada uma tem seu card (a atual é a completa; a
-  // "em breve" e a "encerrada" são enxutas). Grupo vazio nem aparece.
-  const emBreve = vitrine.filter((a) => a.motivo === "AINDA_NAO_ABRIU");
-  const atuais = vitrine.filter((a) => a.disponivel);
-  const encerrados = vitrine.filter(
-    (a) => !a.disponivel && a.motivo !== "AINDA_NAO_ABRIU"
-  );
+  // A vitrine em três partes: abertas, as que vão abrir, e as que acabaram. Com
+  // a campanha encerrada, tudo vira um grupo só de "encerrados", sem rótulo.
+  const emBreve = CAMPANHA_ENCERRADA
+    ? []
+    : vitrine.filter((a) => a.motivo === "AINDA_NAO_ABRIU");
+  const atuais = CAMPANHA_ENCERRADA ? [] : vitrine.filter((a) => a.disponivel);
+  const encerrados = CAMPANHA_ENCERRADA
+    ? vitrine
+    : vitrine.filter((a) => !a.disponivel && a.motivo !== "AINDA_NAO_ABRIU");
   const grupos = [
     { titulo: "Atuais", lista: atuais },
     { titulo: "Em breve", lista: emBreve },
     { titulo: "Encerrados", lista: encerrados },
   ].filter((g) => g.lista.length > 0);
-  // Só separa com rótulo quando há mais de um grupo: com tudo aberto, um título
-  // "Atuais" sozinho seria enfeite.
-  const mostrarLabels = grupos.length > 1;
+  // Só separa com rótulo quando há mais de um grupo (e nunca quando encerrada).
+  const mostrarLabels = !CAMPANHA_ENCERRADA && grupos.length > 1;
 
   return (
     <>
@@ -532,24 +557,30 @@ export default function CampanhaView({
               )}
 
               <div className="capa-botoes">
-                <a href="#ajudar" className="botao botao-acento botao-selo">
-                  Quero doar
-                </a>
-                <span className="capa-aparte">
-                  <span className="capa-aparte-texto">
-                    {metaDefinida ? (
-                      <>
-                        <em>Ainda faltam</em>
-                        <strong>{formatarBRL(falta)}</strong>
-                      </>
-                    ) : (
-                      <>
-                        <em>Meta</em>
-                        <strong>a definir</strong>
-                      </>
-                    )}
-                  </span>
-                </span>
+                {CAMPANHA_ENCERRADA ? (
+                  <span className="capa-finalizada">Campanha finalizada</span>
+                ) : (
+                  <>
+                    <a href="#ajudar" className="botao botao-acento botao-selo">
+                      Quero doar
+                    </a>
+                    <span className="capa-aparte">
+                      <span className="capa-aparte-texto">
+                        {metaDefinida ? (
+                          <>
+                            <em>Ainda faltam</em>
+                            <strong>{formatarBRL(falta)}</strong>
+                          </>
+                        ) : (
+                          <>
+                            <em>Meta</em>
+                            <strong>a definir</strong>
+                          </>
+                        )}
+                      </span>
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -565,25 +596,27 @@ export default function CampanhaView({
             <div className="placar-forte">
               <Numero className="placar-valor" valor={arrecadado} formato="brl" />
               <span className="placar-de">
-                {metaDefinida
-                  ? `de ${formatarBRL(resumo.metaCentavos)}, o custo da casa`
-                  : "a meta ainda não foi definida"}
+                {CAMPANHA_ENCERRADA
+                  ? "arrecadados, com a campanha encerrada"
+                  : metaDefinida
+                    ? `de ${formatarBRL(resumo.metaCentavos)}, o custo da casa`
+                    : "a meta ainda não foi definida"}
               </span>
             </div>
-            <span className="placar-pct">{Math.floor(resumo.percentual)}%</span>
+            <span className="placar-pct">{Math.floor(percentual)}%</span>
           </div>
 
           <div
             className="placar-barra"
             role="img"
-            aria-label={`${Math.floor(resumo.percentual)} por cento da meta`}
+            aria-label={`${Math.floor(percentual)} por cento da meta`}
           >
             {fatias.map((f) => (
               <span
                 key={f.nome}
                 className="placar-fatia"
                 style={{
-                  width: `${(f.valor / resumo.metaCentavos) * 100}%`,
+                  width: `${(f.valor / denomBarra) * 100}%`,
                   background: f.cor,
                 }}
                 title={`${f.nome}: ${formatarBRL(f.valor)}`}
@@ -606,7 +639,7 @@ export default function CampanhaView({
             </div>
           )}
 
-          {metaDefinida && (
+          {!CAMPANHA_ENCERRADA && metaDefinida && (
             <p className="meta-nota placar-nota">
               O valor já desconta o custo: R$ 10 doados não somam R$ 10 exatos.
             </p>
@@ -621,13 +654,15 @@ export default function CampanhaView({
               <strong>{vitrine.length}</strong>{" "}
               {vitrine.length === 1 ? "ação" : "ações"}
             </span>
-            {dias !== null && (
+            {!CAMPANHA_ENCERRADA && dias !== null && (
               <span>
                 <strong>{dias}</strong> {dias === 1 ? "dia restante" : "dias restantes"}
               </span>
             )}
             <span className="placar-falta">
-              {metaDefinida ? (
+              {CAMPANHA_ENCERRADA ? (
+                <strong>campanha encerrada</strong>
+              ) : metaDefinida ? (
                 <>
                   faltam <strong>{formatarBRL(falta)}</strong>
                 </>
@@ -641,6 +676,20 @@ export default function CampanhaView({
 
       <main className="corpo">
         <div className="container">
+          {CAMPANHA_ENCERRADA && (
+            <div className="faixa-encerrada" role="status">
+              <span className="faixa-encerrada-icone" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6.5 3.5h3l1.5 4-2 1.5a12 12 0 0 0 6 6l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4.5 5.7 2 2 0 0 1 6.5 3.5Z" />
+                </svg>
+              </span>
+              <p className="faixa-encerrada-texto">
+                Essa plataforma foi encerrada. Para contribuir com essa campanha, entre em contato
+                com a equipe de arrecadação pelo telefone <strong>{TELEFONE_EQUIPE}</strong>.
+              </p>
+            </div>
+          )}
+
           {/* Formas de ajudar.
               O titulo mora DENTRO da grade, como primeira celula, no lugar de
               ocupar uma faixa inteira em cima. Ganha uma linha de altura e a
@@ -683,6 +732,7 @@ export default function CampanhaView({
                             campanhaSlug={campanha.slug}
                             faltaNoContrato={falta}
                             destacado={acao.id === idDestacada}
+                            encerrada={CAMPANHA_ENCERRADA}
                           />
                         </Revelar>
                       ))}
@@ -762,6 +812,7 @@ export default function CampanhaView({
         arrecadadoCentavos={arrecadado}
         metaCentavos={resumo.metaCentavos}
         apoiadores={resumo.apoiadores}
+        encerrada={CAMPANHA_ENCERRADA}
       />
 
       {/* Um rodape so: quem toca a arrecadacao de um lado, a entrada do painel
