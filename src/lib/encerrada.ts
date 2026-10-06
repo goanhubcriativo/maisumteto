@@ -7,7 +7,10 @@
 //
 // É um interruptor só: virar para false devolve o site ao normal.
 
-export const CAMPANHA_ENCERRADA = true;
+// A campanha NÃO está encerrada: ela continua. O que saiu do ar foi o domínio
+// maisumteto.com.br (proibido pela organização), e isso é tratado por domínio
+// no middleware, não aqui. Então este modo fica desligado.
+export const CAMPANHA_ENCERRADA = false;
 
 /** O valor total a mostrar na barra, já que a campanha fechou (R$ 3.579,00). */
 export const TOTAL_ENCERRADA_CENTAVOS = 357900;
